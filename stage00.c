@@ -8,19 +8,60 @@
 #include <nusys.h>
 #include "main.h"
 #include "graphic.h"
+#include <gu.h>
 
-static float theta;  /* The rotational angle of the square */
-static float triPos_x; /* The display position-X */
-static float triPos_y; /* The display position-Y */
+static float analog_x; /* The display position-X */
+static float analog_y; /* The display position-Y */
 
-void shadetri(Dynamic* dynamicp);
+#define BULLET_COUNT 16
+
+typedef struct {
+  float x;
+  float y;
+} Position;
+
+typedef struct {
+  float x;
+  float y;
+} Velocity;
+
+typedef struct {
+  Mtx mat;
+} EntityTransform;
+
+static Position BulletPositions[BULLET_COUNT];
+static Velocity BulletVelocities[BULLET_COUNT];
+static EntityTransform BulletMatricies[BULLET_COUNT];
+
+/* The vertex coordinate */
+static Vtx shade_vtx[] =  {
+        {        -4,  4, -5, 0, 0, 0, 0, 0xff, 0, 0xff  },
+        {         4,  4, -5, 0, 0, 0, 0, 0, 0, 0xff     },
+        {         4, -4, -5, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -4, -4, -5, 0, 0, 0, 0xff, 0xff, 0, 0xff },
+};
 
 /* The initialization of stage 0 */
 void initStage00(void)
 {
-  triPos_x = 0.0;
-  triPos_y = 0.0;
-  theta = 0.0;
+  int i;
+  int j;
+
+  analog_x = 0.0;
+  analog_y = 0.0;
+
+  for (i = 0; i < BULLET_COUNT; i++) {
+    float r = i / (float)BULLET_COUNT * M_PI * 2.f;
+
+    BulletPositions[i].x = cosf(r) * 1.f;
+    BulletPositions[i].y = sinf(r) * 1.f;
+
+    BulletVelocities[i].x = cosf(r) * 0.01f;
+    BulletVelocities[i].y = sinf(r) * 0.01f;
+
+    guMtxIdent(&(BulletMatricies[i].mat));   
+  }
+
 }
 
 /* Make the display list and activate the task */
@@ -28,6 +69,10 @@ void makeDL00(void)
 {
   Dynamic* dynamicp;
   char conbuf[20]; 
+  int i;
+
+  /* Perspective normal value; I don't know what this does yet. */
+  u16 perspNorm;
 
   /* Specify the display list buffer */
   dynamicp = &gfx_dynamic[gfx_gtask_no];
@@ -40,15 +85,31 @@ void makeDL00(void)
   gfxClearCfb();
 
   /* projection,modeling matrix set */
-  guOrtho(&dynamicp->projection,
-	  -(float)SCREEN_WD/2.0F, (float)SCREEN_WD/2.0F,
-	  -(float)SCREEN_HT/2.0F, (float)SCREEN_HT/2.0F,
-	  1.0F, 10.0F, 1.0F);
-  guRotate(&dynamicp->modeling, theta, 0.0F, 0.0F, 1.0F);
-  guTranslate(&dynamicp->translate, triPos_x, triPos_y, 0.0F);
+  guPerspective(&dynamicp->projection, &perspNorm, 60.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
+  guLookAt(&dynamicp->viewing, analog_x, analog_y, 75.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-  /* Draw a square */
-  shadetri(dynamicp);
+  gSPPerspNormalize(glistp++, perspNorm);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->projection)), G_MTX_PROJECTION | G_MTX_LOAD | G_MTX_NOPUSH);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->viewing)), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
+
+  gDPPipeSync(glistp++);
+  gDPSetCycleType(glistp++,G_CYC_1CYCLE);
+  gDPSetRenderMode(glistp++,G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+  gSPClearGeometryMode(glistp++,0xFFFFFFFF);
+  gSPSetGeometryMode(glistp++,G_SHADE| G_SHADING_SMOOTH);
+
+  for (i = 0; i < BULLET_COUNT; i++) {
+    guTranslate(&(BulletMatricies[i]), BulletPositions[i].x, BulletPositions[i].y, 0.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+
+    gSPVertex(glistp++,&(shade_vtx[0]),4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+
+    gDPPipeSync(glistp++);
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
 
   gDPFullSync(glistp++);
   gSPEndDisplayList(glistp++);
@@ -65,11 +126,11 @@ void makeDL00(void)
     {
       /* Change character representation positions */
       nuDebConTextPos(0,12,23);
-      sprintf(conbuf,"triPos_x=%5.1f",triPos_x);
+      sprintf(conbuf,"analog X=%5.1f",analog_x);
       nuDebConCPuts(0, conbuf);
 
       nuDebConTextPos(0,12,24);
-      sprintf(conbuf,"triPos_y=%5.1f",triPos_y);
+      sprintf(conbuf,"analog Y=%5.1f",analog_y);
       nuDebConCPuts(0, conbuf);
     }
   else
@@ -89,60 +150,25 @@ void makeDL00(void)
 /* The game progressing process for stage 0 */
 void updateGame00(void)
 {  
-  static float vel = 1.0;
+  int i;
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
 
   /* Change the display position by stick data */
-  triPos_x = contdata->stick_x;
-  triPos_y = contdata->stick_y;
+  analog_x = contdata->stick_x;
+  analog_y = contdata->stick_y;
 
   /* The reverse rotation by the A button */
   if(contdata[0].trigger & A_BUTTON)
-    {
-      vel = -vel;
-      osSyncPrintf("A button Push\n");
-    }
+  {
+      //
+  }
 
-  /* Rotate fast while pushing the B button */
-  if(contdata[0].button & B_BUTTON)
-    theta += vel * 3.0;
-  else
-    theta += vel;
-
-  if(theta>360.0)
-      theta-=360.0;
-  else if (theta<0.0)
-      theta+=360.0;
-
-}
-
-/* The vertex coordinate */
-static Vtx shade_vtx[] =  {
-        {        -64,  64, -5, 0, 0, 0, 0, 0xff, 0, 0xff	},
-        {         64,  64, -5, 0, 0, 0, 0, 0, 0, 0xff    	},
-        {         64, -64, -5, 0, 0, 0, 0, 0xff, 0xff, 0xff	},
-        {        -64, -64, -5, 0, 0, 0, 0xff, 0xff, 0, 0xff	},
-};
-
-/* Draw a square */
-void shadetri(Dynamic* dynamicp)
-{
-  gSPMatrix(glistp++,OS_K0_TO_PHYSICAL(&(dynamicp->projection)),
-		G_MTX_PROJECTION|G_MTX_LOAD|G_MTX_NOPUSH);
-  gSPMatrix(glistp++,OS_K0_TO_PHYSICAL(&(dynamicp->translate)),
-		G_MTX_MODELVIEW|G_MTX_LOAD|G_MTX_NOPUSH);
-  gSPMatrix(glistp++,OS_K0_TO_PHYSICAL(&(dynamicp->modeling)),
-		G_MTX_MODELVIEW|G_MTX_MUL|G_MTX_NOPUSH);
-
-  gSPVertex(glistp++,&(shade_vtx[0]),4, 0);
-
-  gDPPipeSync(glistp++);
-  gDPSetCycleType(glistp++,G_CYC_1CYCLE);
-  gDPSetRenderMode(glistp++,G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
-  gSPClearGeometryMode(glistp++,0xFFFFFFFF);
-  gSPSetGeometryMode(glistp++,G_SHADE| G_SHADING_SMOOTH);
-
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  
+  for (i = 0; i < BULLET_COUNT; i++) {
+    BulletPositions[i].x += BulletVelocities[i].x;
+    BulletPositions[i].y += BulletVelocities[i].y;
+  }
+  
 }
