@@ -1,19 +1,16 @@
-/*
-   stage00.c 
-
-   Copyright (C) 1997-1999, NINTENDO Co,Ltd.
-*/
-
 #include <assert.h>
 #include <nusys.h>
 #include "main.h"
 #include "graphic.h"
 #include <gu.h>
 
-static float analog_x; /* The display position-X */
-static float analog_y; /* The display position-Y */
+static float camera_x; /* The display position-X */
+static float camera_y; /* The display position-Y */
 
 #define BULLET_COUNT 16
+
+#define CAMERA_MOVE_SPEED 0.01726f
+#define CAMERA_DISTANCE -14.f
 
 typedef struct {
   float x;
@@ -41,14 +38,41 @@ static Vtx shade_vtx[] =  {
         {        -4, -4, -5, 0, 0, 0, 0xff, 0xff, 0, 0xff },
 };
 
+static Vtx bullet_test_geom[] =  {
+        {         4,  4, 4, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {        -4,  4, 4, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {        -4, -4, 4, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {         4, -4, 4, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {        -4,  -4,  4, 0, 0, 0, 0,    0xff, 0,    0xff },
+        {        -4,   4,  4, 0, 0, 0, 0,    0xff, 0, 0 },
+        {        -4,   4, -4, 0, 0, 0, 0,    0xff, 0xff, 0xff },
+        {        -4,  -4, -4, 0, 0, 0, 0xff, 0xff, 0,    0xff },
+        {        4,  4, 4, 0, 0, 0, 0, 0, 0, 0xff     },
+        {        4,  -4, 4, 0, 0, 0, 0, 0xff, 0, 0xff  },
+        {        4, -4, -4, 0, 0, 0, 0xff, 0xff, 0, 0xff },
+        {        4, 4, -4, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -4,  4, 4, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {         4,  4, 4, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {         4, -4, 4, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {        -4, -4, 4, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {        -4,  4, 4, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {         4,  4, 4, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {         4,  4, -4, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -4,  4, -4, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {         4,  -4, 4, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -4,  -4, 4, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -4,  -4, -4, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         4,  -4, -4, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+};
+
 /* The initialization of stage 0 */
 void initStage00(void)
 {
   int i;
   int j;
 
-  analog_x = 0.0;
-  analog_y = 0.0;
+  camera_x = 0.0;
+  camera_y = 0.0;
 
   for (i = 0; i < BULLET_COUNT; i++) {
     float r = i / (float)BULLET_COUNT * M_PI * 2.f;
@@ -56,8 +80,8 @@ void initStage00(void)
     BulletPositions[i].x = cosf(r) * 1.f;
     BulletPositions[i].y = sinf(r) * 1.f;
 
-    BulletVelocities[i].x = cosf(r) * 0.01f;
-    BulletVelocities[i].y = sinf(r) * 0.01f;
+    BulletVelocities[i].x = cosf(r) * 0.05f;
+    BulletVelocities[i].y = sinf(r) * 0.05f;
 
     guMtxIdent(&(BulletMatricies[i].mat));   
   }
@@ -86,7 +110,7 @@ void makeDL00(void)
 
   /* projection,modeling matrix set */
   guPerspective(&dynamicp->projection, &perspNorm, 60.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
-  guLookAt(&dynamicp->viewing, analog_x, analog_y, 75.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+  guLookAt(&dynamicp->viewing, camera_x, camera_y + CAMERA_DISTANCE, 50.f, camera_x, camera_y, 0.0f, 0.0f, 1.0f, 0.0f);
 
   gSPPerspNormalize(glistp++, perspNorm);
 
@@ -94,16 +118,26 @@ void makeDL00(void)
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->viewing)), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
 
   gDPPipeSync(glistp++);
-  gDPSetCycleType(glistp++,G_CYC_1CYCLE);
-  gDPSetRenderMode(glistp++,G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+  gDPSetCycleType(glistp++, G_CYC_1CYCLE);
+  gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
   gSPClearGeometryMode(glistp++,0xFFFFFFFF);
-  gSPSetGeometryMode(glistp++,G_SHADE| G_SHADING_SMOOTH);
+  gSPSetGeometryMode(glistp++,G_ZBUFFER | G_CULL_BACK | G_SHADE);
 
   for (i = 0; i < BULLET_COUNT; i++) {
     guTranslate(&(BulletMatricies[i]), BulletPositions[i].x, BulletPositions[i].y, 0.f);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-    gSPVertex(glistp++,&(shade_vtx[0]),4, 0);
+    gSPVertex(glistp++,&(bullet_test_geom[0]), 4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++,&(bullet_test_geom[4]), 4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++,&(bullet_test_geom[8]), 4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++,&(bullet_test_geom[12]), 4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++,&(bullet_test_geom[16]), 4, 0);
+    gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++,&(bullet_test_geom[20]), 4, 0);
     gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
 
     gDPPipeSync(glistp++);
@@ -126,11 +160,11 @@ void makeDL00(void)
     {
       /* Change character representation positions */
       nuDebConTextPos(0,12,23);
-      sprintf(conbuf,"analog X=%5.1f",analog_x);
+      sprintf(conbuf,"analog X=%5.1f",camera_x);
       nuDebConCPuts(0, conbuf);
 
       nuDebConTextPos(0,12,24);
-      sprintf(conbuf,"analog Y=%5.1f",analog_y);
+      sprintf(conbuf,"analog Y=%5.1f",camera_y);
       nuDebConCPuts(0, conbuf);
     }
   else
@@ -156,8 +190,8 @@ void updateGame00(void)
   nuContDataGetEx(contdata,0);
 
   /* Change the display position by stick data */
-  analog_x = contdata->stick_x;
-  analog_y = contdata->stick_y;
+  camera_x += contdata->stick_x * CAMERA_MOVE_SPEED;
+  camera_y += contdata->stick_y * CAMERA_MOVE_SPEED;
 
   /* The reverse rotation by the A button */
   if(contdata[0].trigger & A_BUTTON)
