@@ -14,7 +14,7 @@
 #define SCREEN_WD        320
 
 /* The maximum length of the display list of one task  */
-#define GFX_GLIST_LEN     2048
+#define GFX_GLIST_LEN     2048 * 10
 
 /*-------------------------- define structure ------------------------------ */
 /* The structure of the projection-matrix  */
