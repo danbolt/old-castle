@@ -4,10 +4,14 @@
 #include "graphic.h"
 #include <gu.h>
 
+#define PLAYER_MOVE_SPEED 0.003f
+#define DEFAULT_TARGET_DISTANCE 5.6f;
+
 static float player_x;
 static float player_y;
 static float player_facing_x;
 static float player_facing_y;
+static float target_distance;
 
 static float camera_rotation;
 static float player_rotation;
@@ -23,7 +27,6 @@ static int newTileY;
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
 #define CAMERA_DISTANCE 8.3f
-#define PLAYER_MOVE_SPEED 0.003f
 
 #define MAP_SIZE 100
 #define TILE_SIZE 2
@@ -77,6 +80,18 @@ static Vtx bullet_test_geom[] =  {
         {        -1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
         {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
         {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+};
+
+static Vtx jump_target_geom[] =  {
+  {   1,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   0,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   0,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   1,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+
+  {   0,  0, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
+  {  -1,  0, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
+  {  -1, -1, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
+  {   0, -1, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
 };
 
 // TODO: ensure this is all correct statically
@@ -141,11 +156,12 @@ void initStage00(void)
 
   player_x = 6.0f;
   player_y = 6.0f;
+  target_distance = DEFAULT_TARGET_DISTANCE;
 
   camera_x = 0.0f;
   camera_y = 0.0f;
 
-  camera_rotation = 0.f;
+  camera_rotation = 0.1f;
   player_rotation = 0.f;
 
   for (i = 0; i < BULLET_COUNT; i++) {
@@ -196,6 +212,8 @@ void makeDL00(void)
   int j;
   Mtx playerTranslation;
   Mtx playerRotation;
+  Mtx targetTranslation;
+  Mtx targetScale;
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
@@ -233,10 +251,24 @@ void makeDL00(void)
 
   addCubeToDisplayList();
 
-  gDPPipeSync(glistp++);
+  guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
+  guScale(&(targetScale), (sinf(player_x) * 0.6f + 0.5f) + 0.4f, (cosf(player_y) * 0.6f + 0.5f) + 0.4f, 0.f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+  // Render jump target
+  gSPVertex(glistp++, &(jump_target_geom[0]), 4, 0);
+  gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+  gSPVertex(glistp++, &(jump_target_geom[4]), 4, 0);
+  gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  //gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+  gDPPipeSync(glistp++);
 
   // Render Bullets
   for (i = 0; i < BULLET_COUNT; i++) {
@@ -391,6 +423,13 @@ Atan2f(float y, float x)
     return atan2bodyf(y, x);
 }
 
+float fabs(float x) {
+  if (x < 0.f) {
+    return -x;
+  }
+  return x;
+}
+
 
 void updateGame00(void)
 {  
@@ -439,8 +478,8 @@ void updateGame00(void)
   playerStickRot = Atan2f(player_facing_y, player_facing_x);
 
   // If we're pushing on the stick, update the player's rotation
-  if (((contdata->stick_x + contdata->stick_y) > 0.01f) || ((contdata->stick_x + contdata->stick_y) < -0.01f)) {
-    player_rotation = lerp(player_rotation, playerStickRot, 0.08f);
+  if ((fabs(contdata->stick_x) > 0.01f) || (fabs(contdata->stick_y) > 0.01f)) {
+    player_rotation = lerp(player_rotation, playerStickRot, 0.18f);
   }
 
   newX = player_x + player_facing_x * PLAYER_MOVE_SPEED;
