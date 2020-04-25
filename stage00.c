@@ -5,7 +5,9 @@
 #include <gu.h>
 
 #define PLAYER_MOVE_SPEED 0.003f
-#define DEFAULT_TARGET_DISTANCE 5.6f;
+#define DEFAULT_TARGET_DISTANCE 8.6f
+#define JUMP_SPEED_PER_TICK 0.0513f
+#define LAND_SPEED_PER_TICK 0.3f
 
 typedef enum {
   Move,
@@ -15,10 +17,13 @@ typedef enum {
 
 static float player_x;
 static float player_y;
+static float player_jump_x;
+static float player_jump_y;
 static float player_facing_x;
 static float player_facing_y;
 static float target_distance;
 static PlayerState player_state;
+static float player_t;
 
 static float camera_rotation;
 static float player_rotation;
@@ -29,7 +34,7 @@ static float camera_y; /* The display position-Y */
 static int newTileX;
 static int newTileY;
 
-#define BULLET_COUNT 0
+#define BULLET_COUNT 10
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
@@ -165,6 +170,7 @@ void initStage00(void)
   player_y = 6.0f;
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
+  player_t = 0.f;
 
   camera_x = 0.0f;
   camera_y = 0.0f;
@@ -220,6 +226,7 @@ void makeDL00(void)
   int j;
   Mtx playerTranslation;
   Mtx playerRotation;
+  Mtx playerJumpRotation;
   Mtx targetTranslation;
   Mtx targetScale;
 
@@ -252,26 +259,29 @@ void makeDL00(void)
   gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE);
 
   // Render Player
-  guTranslate(&(playerTranslation), player_x, player_y, 0.f);
+  guTranslate(&(playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 3.2f) : 0.f));
   guRotate(&(playerRotation), player_rotation / M_PI * 180.f, 0.0f, 0.0f, 1.0f);
+  guRotate(&(playerJumpRotation), ((player_state == Jumping) ? (sinf(player_t * M_PI * 2.f) * 60.2f) : 0.f), 0.0f, 1.0f, 0.0f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerRotation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerJumpRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
   addCubeToDisplayList();
 
   guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
   guScale(&(targetScale), (sinf(player_x) * 0.6f + 0.5f) + 0.4f, (cosf(player_y) * 0.6f + 0.5f) + 0.4f, 0.f);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-  // Render jump target
-  gSPVertex(glistp++, &(jump_target_geom[0]), 4, 0);
-  gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++, &(jump_target_geom[4]), 4, 0);
-  gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+  if (player_state == Move) { 
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-  //gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+    gSPVertex(glistp++, &(jump_target_geom[0]), 4, 0);
+    gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++, &(jump_target_geom[4]), 4, 0);
+    gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
@@ -317,6 +327,10 @@ void makeDL00(void)
 
     nuDebConTextPos(0,1,21);
     sprintf(conbuf,"player_rotation=%5.1f", player_rotation);
+    nuDebConCPuts(0, conbuf);
+
+    nuDebConTextPos(0,1,22);
+    sprintf(conbuf,"PlayerState=%d", player_state);
     nuDebConCPuts(0, conbuf);
 
     nuDebConTextPos(0,1,23);
@@ -431,7 +445,7 @@ Atan2f(float y, float x)
     return atan2bodyf(y, x);
 }
 
-float fabs(float x) {
+float fabs_d(float x) {
   if (x < 0.f) {
     return -x;
   }
@@ -455,43 +469,70 @@ void updateGame00(void)
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
 
-  /* The reverse rotation by the A button */
-  if(contdata[0].button & L_TRIG)
-  {
-      camera_rotation += CAMERA_TURN_SPEED;
+  if (player_state == Move) {
+    /* The reverse rotation by the A button */
+    if(contdata[0].button & L_TRIG)
+    {
+        camera_rotation += CAMERA_TURN_SPEED;
 
-      if (camera_rotation > (M_PI * 2.0f))
-      {
-        camera_rotation -= M_PI * 2.0f;
-      } 
+        if (camera_rotation > (M_PI * 2.0f))
+        {
+          camera_rotation -= M_PI * 2.0f;
+        } 
+    }
+
+    if(contdata[0].button & R_TRIG)
+    {
+        camera_rotation -= CAMERA_TURN_SPEED;
+
+        if (camera_rotation < 0.f)
+        {
+          camera_rotation += M_PI * 2.0f;
+        }
+    }
+
+    // Raw stick data (this should be adjusted for deadzones or emulator players on d-pads)
+    cosCamRot = cosf(-camera_rotation);
+    sinCamRot = sinf(-camera_rotation);
+    deltaX = contdata->stick_x;
+    deltaY = contdata->stick_y;
+    player_facing_x = (deltaX * cosCamRot) + (deltaY * sinCamRot);
+    player_facing_y = (-deltaX * sinCamRot) + (deltaY * cosCamRot);
+    playerStickRot = Atan2f(player_facing_y, player_facing_x);
+
+    // If we're pushing on the stick, update the player's rotation
+    if ((fabs_d(contdata->stick_x) > 0.01f) || (fabs_d(contdata->stick_y) > 0.01f)) {
+      player_rotation = lerp(player_rotation, playerStickRot, 0.18f);
+    }
+
+    newX = player_x + player_facing_x * PLAYER_MOVE_SPEED;
+    newY = player_y + player_facing_y * PLAYER_MOVE_SPEED;
+
+    if (contdata[0].trigger & A_BUTTON) {
+      player_state = Jumping;
+      player_t = 0.f;
+      player_jump_x = player_x;
+      player_jump_y = player_y;
+    }
+  } else if (player_state == Jumping) {
+    newX = player_jump_x + cosf(player_rotation) * player_t * target_distance;
+    newY = player_jump_y + sinf(player_rotation) * player_t * target_distance;
+
+    player_t += JUMP_SPEED_PER_TICK;
+    if (player_t > 1.f) {
+      player_state = Landed;
+      player_t = 0.f;
+    }
+  } else if (player_state == Landed) {
+    newX = player_x;
+    newY = player_y;
+
+    player_t += LAND_SPEED_PER_TICK;
+    if (player_t > 2.2f) {
+      player_state = Move;
+    }
   }
 
-  if(contdata[0].button & R_TRIG)
-  {
-      camera_rotation -= CAMERA_TURN_SPEED;
-
-      if (camera_rotation < 0.f)
-      {
-        camera_rotation += M_PI * 2.0f;
-      }
-  }
-
-  // Raw stick data (this should be adjusted for deadzones or emulator players on d-pads)
-  cosCamRot = cosf(-camera_rotation);
-  sinCamRot = sinf(-camera_rotation);
-  deltaX = contdata->stick_x;
-  deltaY = contdata->stick_y;
-  player_facing_x = (deltaX * cosCamRot) + (deltaY * sinCamRot);
-  player_facing_y = (-deltaX * sinCamRot) + (deltaY * cosCamRot);
-  playerStickRot = Atan2f(player_facing_y, player_facing_x);
-
-  // If we're pushing on the stick, update the player's rotation
-  if ((fabs(contdata->stick_x) > 0.01f) || (fabs(contdata->stick_y) > 0.01f)) {
-    player_rotation = lerp(player_rotation, playerStickRot, 0.18f);
-  }
-
-  newX = player_x + player_facing_x * PLAYER_MOVE_SPEED;
-  newY = player_y + player_facing_y * PLAYER_MOVE_SPEED;
   newTileX = (int)(newX * INV_TILE_SIZE);
   newTileY = (int)(newY * INV_TILE_SIZE);
 
