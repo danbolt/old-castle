@@ -7,11 +7,18 @@
 #define PLAYER_MOVE_SPEED 0.003f
 #define DEFAULT_TARGET_DISTANCE 5.6f;
 
+typedef enum {
+  Move,
+  Jumping,
+  Landed
+} PlayerState;
+
 static float player_x;
 static float player_y;
 static float player_facing_x;
 static float player_facing_y;
 static float target_distance;
+static PlayerState player_state;
 
 static float camera_rotation;
 static float player_rotation;
@@ -157,6 +164,7 @@ void initStage00(void)
   player_x = 6.0f;
   player_y = 6.0f;
   target_distance = DEFAULT_TARGET_DISTANCE;
+  player_state = Move;
 
   camera_x = 0.0f;
   camera_y = 0.0f;
