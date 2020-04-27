@@ -4,15 +4,16 @@
 #include "graphic.h"
 #include <gu.h>
 
-#define PLAYER_MOVE_SPEED 0.003f
-#define DEFAULT_TARGET_DISTANCE 8.6f
+#define PLAYER_MOVE_SPEED 0.0015f
+#define DEFAULT_TARGET_DISTANCE 9.9f
 #define JUMP_SPEED_PER_TICK 0.0513f
 #define LAND_SPEED_PER_TICK 0.3f
 
 typedef enum {
   Move,
   Jumping,
-  Landed
+  Landed,
+  Dead
 } PlayerState;
 
 static float player_x;
