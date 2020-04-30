@@ -35,12 +35,13 @@ static float camera_y; /* The display position-Y */
 static int newTileX;
 static int newTileY;
 
-#define BULLET_COUNT 10
+#define BULLET_COUNT 100
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
 #define CAMERA_DISTANCE 21.3f
 #define CAMERA_HEIGHT 25.3f
+#define CAMERA_LERP 0.13f
 
 #define MAP_SIZE 100
 #define TILE_SIZE 2
@@ -72,30 +73,30 @@ static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
 
 static Vtx bullet_test_geom[] =  {
-        {         1,  1, 1, 0, 0, 0, 0xff, 0, 0, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1, -1, 1, 0, 0, 0, 0xff, 0, 0, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1,  -1,  1, 0, 0, 0, 0,    0xff, 0,    0xff },
-        {        -1,   1,  1, 0, 0, 0, 0,    0xff, 0, 0 },
+        {        -1,   1,  1, 0, 0, 0, 0,    0, 0, 0 },
         {        -1,   1, -1, 0, 0, 0, 0,    0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0,    0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0, 0xff, 0,    0xff },
         {        1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff     },
-        {        1,  -1, 1, 0, 0, 0, 0, 0xff, 0, 0xff  },
+        {        1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff  },
         {        1, -1, -1, 0, 0, 0, 0xff, 0xff, 0, 0xff },
-        {        1, 1, -1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        1, 1, -1, 0, 0, 0, 0, 0, 0xff, 0xff },
         {        -1,  1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1, -1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0, 0xff, 0, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
         {         1,  1, -1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
-        {        -1,  1, -1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -1,  1, -1, 0, 0, 0, 0, 0xff, 0, 0xff },
         {         1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  -1, 1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0xff, 0, 0xff, 0xff },
+        {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0, 0xff },
 };
 
 static Vtx jump_target_geom[] =  {
@@ -197,6 +198,7 @@ void updateMapFromInfo() {
   for (i = 0; i < MAP_SIZE * MAP_SIZE; i++) {
     short x = i % MAP_SIZE;
     short y = i / MAP_SIZE;
+    int roll = guRandom() % 0x0f;
 
     map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
@@ -204,10 +206,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
@@ -215,10 +217,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -226,10 +228,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -237,10 +239,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
 
     if (IS_TILE_BLOCKED(x, y)) {
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
@@ -309,10 +311,10 @@ void initStage00(void)
   player_rotation = 0.f;
 
   for (i = 0; i < BULLET_COUNT; i++) {
-    float r = i / (float)BULLET_COUNT * M_PI * 2.f;
+    float r = i / (float)((guRandom() % 10 / 10.f) * M_PI * 2.f);
 
-    BulletPositions[i].x = cosf(r) * 1.f;
-    BulletPositions[i].y = sinf(r) * 1.f;
+    BulletPositions[i].x = MAP_SIZE * TILE_SIZE * 0.5f;
+    BulletPositions[i].y = MAP_SIZE * TILE_SIZE * 0.5f;
 
     BulletVelocities[i].x = cosf(r) * 0.05f;
     BulletVelocities[i].y = sinf(r) * 0.05f;
@@ -333,6 +335,13 @@ void initStage00(void)
 
 void addCubeToDisplayList()
 {
+  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
+  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
+  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
+  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  /*
   gSPVertex(glistp++,&(bullet_test_geom[0]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
   gSPVertex(glistp++,&(bullet_test_geom[4]), 4, 0);
@@ -345,6 +354,7 @@ void addCubeToDisplayList()
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
   gSPVertex(glistp++,&(bullet_test_geom[20]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  */
 }
 
 void addPlayerDisplayList()
@@ -528,6 +538,10 @@ void makeDL00(void)
 
   if(contPattern & 0x1)
   {
+
+    nuDebConTextPos(0,1,3);
+    sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
+    nuDebConCPuts(0, conbuf);
 
     nuDebConTextPos(0,1,21);
     sprintf(conbuf,"player_rotation=%5.1f", player_rotation);
@@ -753,8 +767,8 @@ void updateGame00(void)
   player_y = newY;
 
   // Lerp the camera
-  camera_x = lerp(camera_x, player_x, 0.13f);
-  camera_y = lerp(camera_y, player_y, 0.13f);
+  camera_x = lerp(camera_x, player_x, CAMERA_LERP);
+  camera_y = lerp(camera_y, player_y, CAMERA_LERP);
   
   for (i = 0; i < BULLET_COUNT; i++) {
     BulletPositions[i].x += BulletVelocities[i].x;
