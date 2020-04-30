@@ -2,3 +2,6 @@
 *.out
 *.n64
 .DS_Store
+
+
+*.blend1
