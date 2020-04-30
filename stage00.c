@@ -39,8 +39,8 @@ static int newTileY;
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 15.3f
-#define CAMERA_HEIGHT 15.3f
+#define CAMERA_DISTANCE 21.3f
+#define CAMERA_HEIGHT 25.3f
 
 #define MAP_SIZE 100
 #define TILE_SIZE 2
@@ -65,7 +65,9 @@ static Velocity BulletVelocities[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
 
 static int MapInfo[MAP_SIZE * MAP_SIZE]; // 0 for empty, 1 for filled
-static Vtx map_geom[MAP_SIZE * MAP_SIZE * 4];
+
+#define VERTS_PER_TILE 8
+static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
 
@@ -151,17 +153,17 @@ static Vtx player_face[] = {
 { 11, 49, 130, 0, 0, 0, 52, 125, 201, 255 },
 { -11, 35, 107, 0, 0, 0, 255, 255, 255, 255 },
 { 15, 40, 178, 0, 0, 0, 19, 170, 255, 255 },
-{ 26, 24, 152, 0, 0, 0, 2, 14, 20, 255 },
-{ 32, 5, 148, 0, 0, 0, 2, 14, 20, 255 },
-{ 28, 18, 153, 0, 0, 0, 2, 14, 20, 255 },
-{ 26, 23, 149, 0, 0, 0, 255, 255, 255, 255 },
-{ 32, 8, 146, 0, 0, 0, 255, 255, 255, 255 },
-{ 26, 20, 137, 0, 0, 0, 255, 255, 255, 255 },
-{ 30, 8, 137, 0, 0, 0, 255, 255, 255, 255 },
-{ 30, 15, 147, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, 14, 139, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, 13, 144, 0, 0, 0, 2, 14, 20, 255 },
-{ 29, 17, 143, 0, 0, 0, 2, 14, 20, 255 },
+{ 25, 31, 157, 0, 0, 0, 2, 14, 20, 255 },
+{ 35, 1, 150, 0, 0, 0, 2, 14, 20, 255 },
+{ 29, 22, 157, 0, 0, 0, 2, 14, 20, 255 },
+{ 26, 30, 151, 0, 0, 0, 255, 255, 255, 255 },
+{ 34, 5, 147, 0, 0, 0, 255, 255, 255, 255 },
+{ 26, 24, 132, 0, 0, 0, 255, 255, 255, 255 },
+{ 32, 6, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 31, 17, 148, 0, 0, 0, 2, 14, 20, 255 },
+{ 32, 15, 135, 0, 0, 0, 2, 14, 20, 255 },
+{ 32, 13, 143, 0, 0, 0, 2, 14, 20, 255 },
+{ 30, 20, 141, 0, 0, 0, 2, 14, 20, 255 },
 { 16, -53, 101, 0, 0, 0, 201, 149, 113, 255 },
 { 19, -61, 128, 0, 0, 0, 52, 125, 201, 255 },
 { 2, -51, 112, 0, 0, 0, 201, 149, 113, 255 },
@@ -176,20 +178,19 @@ static Vtx player_face[] = {
 { 15, -65, 178, 0, 0, 0, 19, 170, 255, 255 },
 { -11, -12, 107, 0, 0, 0, 255, 255, 255, 255 },
 { 33, -12, 188, 0, 0, 0, 19, 170, 255, 255 },
-{ 26, -48, 152, 0, 0, 0, 2, 14, 20, 255 },
-{ 32, -30, 148, 0, 0, 0, 2, 14, 20, 255 },
-{ 28, -43, 153, 0, 0, 0, 2, 14, 20, 255 },
-{ 26, -48, 149, 0, 0, 0, 255, 255, 255, 255 },
-{ 32, -33, 146, 0, 0, 0, 255, 255, 255, 255 },
-{ 26, -44, 137, 0, 0, 0, 255, 255, 255, 255 },
-{ 30, -33, 137, 0, 0, 0, 255, 255, 255, 255 },
-{ 30, -40, 147, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, -39, 139, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, -38, 144, 0, 0, 0, 2, 14, 20, 255 },
-{ 29, -42, 143, 0, 0, 0, 2, 14, 20, 255 },
+{ 24, -56, 156, 0, 0, 0, 2, 14, 20, 255 },
+{ 34, -27, 149, 0, 0, 0, 2, 14, 20, 255 },
+{ 28, -48, 156, 0, 0, 0, 2, 14, 20, 255 },
+{ 25, -55, 151, 0, 0, 0, 255, 255, 255, 255 },
+{ 33, -31, 146, 0, 0, 0, 255, 255, 255, 255 },
+{ 25, -50, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 32, -32, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 30, -42, 147, 0, 0, 0, 2, 14, 20, 255 },
+{ 32, -41, 134, 0, 0, 0, 2, 14, 20, 255 },
+{ 31, -39, 142, 0, 0, 0, 2, 14, 20, 255 },
+{ 30, -46, 141, 0, 0, 0, 2, 14, 20, 255 },
 };
 
-// TODO: ensure this is all correct statically
 void updateMapFromInfo() {
   int i;
 
@@ -197,49 +198,95 @@ void updateMapFromInfo() {
     short x = i % MAP_SIZE;
     short y = i / MAP_SIZE;
 
-    map_geom[(i * 4) + 0].v.ob[0] = (x * TILE_SIZE);
-    map_geom[(i * 4) + 0].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * 4) + 0].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
-    map_geom[(i * 4) + 0].v.flag = 0;
-    map_geom[(i * 4) + 0].v.tc[0] = 0;
-    map_geom[(i * 4) + 0].v.tc[1] = 0;
-    map_geom[(i * 4) + 0].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * 4) + 0].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * 4) + 0].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * 4) + 0].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
+    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
+    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
 
-    map_geom[(i * 4) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * 4) + 1].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * 4) + 1].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
-    map_geom[(i * 4) + 1].v.flag = 0;
-    map_geom[(i * 4) + 1].v.tc[0] = 0;
-    map_geom[(i * 4) + 1].v.tc[1] = 0;
-    map_geom[(i * 4) + 1].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * 4) + 1].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * 4) + 1].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * 4) + 1].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
+    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
 
-    map_geom[(i * 4) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * 4) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * 4) + 2].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
-    map_geom[(i * 4) + 2].v.flag = 0;
-    map_geom[(i * 4) + 2].v.tc[0] = 0;
-    map_geom[(i * 4) + 2].v.tc[1] = 0;
-    map_geom[(i * 4) + 2].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * 4) + 2].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * 4) + 2].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * 4) + 2].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
 
-    map_geom[(i * 4) + 3].v.ob[0] = (x * TILE_SIZE);
-    map_geom[(i * 4) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * 4) + 3].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
-    map_geom[(i * 4) + 3].v.flag = 0;
-    map_geom[(i * 4) + 3].v.tc[0] = 0;
-    map_geom[(i * 4) + 3].v.tc[1] = 0;
-    map_geom[(i * 4) + 3].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
-    map_geom[(i * 4) + 3].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
-    map_geom[(i * 4) + 3].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
-    map_geom[(i * 4) + 3].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
+    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? 0xaa : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? 0x88 : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? 0x99 : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? 0x44 : 0x01;
+
+    if (IS_TILE_BLOCKED(x, y)) {
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = 0x11;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = 0x24;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = 0x12;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0x01;
+
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = 0x11;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = 0x24;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = 0x12;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0x01;
+
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = 0x11;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = 0x24;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = 0x12;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0x01;
+
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = 0x11;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = 0x24;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = 0x12;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0x01;
+    }
   }
 }
 
@@ -389,7 +436,7 @@ void makeDL00(void)
   gfxClearCfb();
 
   /* projection,modeling matrix set */
-  guPerspective(&dynamicp->projection, &perspNorm, 45.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
+  guPerspective(&dynamicp->projection, &perspNorm, 35.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
   guLookAt(&dynamicp->viewing, camera_x + (cosf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), camera_y + (sinf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
 
   gSPPerspNormalize(glistp++, perspNorm);
@@ -453,8 +500,16 @@ void makeDL00(void)
   // Render map tiles
   for (i = MAX(0, (int)((camera_x / TILE_SIZE) - 11)); i < MIN(MAP_SIZE, (int)((camera_x / TILE_SIZE) + 11)); i++) {
     for (j = MAX(0, (int)((camera_y / TILE_SIZE) - 11)); j < MIN(MAP_SIZE, (int)((camera_y / TILE_SIZE) + 11)); j++) {
-      gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * 4]), 4, 0);
+      gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * VERTS_PER_TILE]), IS_TILE_BLOCKED(i, j) ? 8 : 4, 0);
       gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+
+      if (IS_TILE_BLOCKED(i, j)) {
+        gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+        gSP2Triangles(glistp++,2,1,5,0,2,5,6,0);
+        gSP2Triangles(glistp++,3,2,6,0,3,6,7,0);
+        gSP2Triangles(glistp++,0,3,7,0,0,7,4,0);
+        gSP2Triangles(glistp++,1,0,4,0,1,4,5,0);
+      }
     }
   }
 
