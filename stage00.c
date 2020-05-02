@@ -3,11 +3,12 @@
 #include "main.h"
 #include "graphic.h"
 #include <gu.h>
+#include "os_time.h"
 
 #define PLAYER_MOVE_SPEED 0.0015f
 #define DEFAULT_TARGET_DISTANCE 9.9f
-#define JUMP_SPEED_PER_TICK 0.0613f
-#define LAND_SPEED_PER_TICK 0.3f
+#define JUMP_SPEED_PER_TICK 0.03115f
+#define LAND_SPEED_PER_TICK 0.035f
 
 typedef enum {
   Move,
@@ -34,6 +35,8 @@ static float camera_y; /* The display position-Y */
 
 static int newTileX;
 static int newTileY;
+
+static OSTime time;
 
 #define BULLET_COUNT 100
 
@@ -75,28 +78,28 @@ static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 static Vtx bullet_test_geom[] =  {
         {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0xff, 0, 0, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  -1,  1, 0, 0, 0, 0,    0xff, 0,    0xff },
-        {        -1,   1,  1, 0, 0, 0, 0,    0, 0, 0 },
-        {        -1,   1, -1, 0, 0, 0, 0,    0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0, 0xff, 0,    0xff },
+        {        -1,  -1,  1, 0, 0, 0, 0,    0, 0,    0xff },
+        {        -1,   1,  1, 0, 0, 0, 0,    0, 0, 0xff },
+        {        -1,   1, -1, 0, 0, 0, 0,    0, 0, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0, 0, 0,    0xff },
         {        1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff     },
         {        1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff  },
-        {        1, -1, -1, 0, 0, 0, 0xff, 0xff, 0, 0xff },
-        {        1, 1, -1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
+        {        1, -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        1, 1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0xff, 0, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0, 0, 0xff, 0xff },
-        {         1,  1, -1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
-        {        -1,  1, -1, 0, 0, 0, 0, 0xff, 0, 0xff },
-        {         1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1, 1, 0, 0, 0, 0, 0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0xff, 0, 0xff, 0xff },
-        {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1,  1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
 };
 
 static Vtx jump_target_geom[] =  {
@@ -112,84 +115,138 @@ static Vtx jump_target_geom[] =  {
 };
 
 static Vtx player_cloak[] = {
-{ -98, 98, 33, 0, 0, 0, 30, 30, 92, 255 },
-{ -104, 81, -51, 0, 0, 0, 30, 30, 92, 255 },
-{ 34, 85, 40, 0, 0, 0, 30, 30, 92, 255 },
-{ -22, 132, -144, 0, 0, 0, 30, 30, 92, 255 },
-{ -71, 75, 95, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, 75, 95, 0, 0, 0, 30, 30, 92, 255 },
-{ -54, 60, 174, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, 41, 183, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, 58, 137, 0, 0, 0, 30, 30, 92, 255 },
-{ -54, 65, 115, 0, 0, 0, 30, 30, 92, 255 },
-{ -98, -123, 33, 0, 0, 0, 30, 30, 92, 255 },
-{ -104, -106, -51, 0, 0, 0, 30, 30, 92, 255 },
-{ 34, -109, 40, 0, 0, 0, 30, 30, 92, 255 },
-{ -22, -156, -144, 0, 0, 0, 30, 30, 92, 255 },
-{ -140, -12, -69, 0, 0, 0, 30, 30, 92, 255 },
-{ 47, -12, 74, 0, 0, 0, 30, 30, 92, 255 },
-{ -20, -12, -21, 0, 0, 0, 30, 30, 92, 255 },
-{ -107, -12, 48, 0, 0, 0, 30, 30, 92, 255 },
-{ -71, -99, 95, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, -99, 95, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, -12, 95, 0, 0, 0, 30, 30, 92, 255 },
-{ -81, -12, 101, 0, 0, 0, 30, 30, 92, 255 },
-{ -54, -84, 174, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, -66, 183, 0, 0, 0, 30, 30, 92, 255 },
-{ 26, -12, 224, 0, 0, 0, 30, 30, 92, 255 },
-{ -54, -12, 204, 0, 0, 0, 30, 30, 92, 255 },
-{ 57, -12, 186, 0, 0, 0, 30, 30, 92, 255 },
-{ -83, -12, 131, 0, 0, 0, 30, 30, 92, 255 },
-{ 20, -82, 137, 0, 0, 0, 30, 30, 92, 255 },
-{ -54, -89, 115, 0, 0, 0, 30, 30, 92, 255 },
-{ 5, -12, 159, 0, 0, 0, 30, 30, 92, 255 },
+{ -98, 112, 33, 0, 0, 0, 30, 30, 92, 255 },
+{ -63, 145, -135, 0, 0, 0, 13, 13, 38, 255 },
+{ 34, 98, 40, 0, 0, 0, 30, 30, 92, 255 },
+{ -71, 88, 95, 0, 0, 0, 30, 30, 92, 255 },
+{ 20, 88, 95, 0, 0, 0, 52, 52, 158, 255 },
+{ -54, 73, 174, 0, 0, 0, 52, 52, 158, 255 },
+{ 20, 54, 183, 0, 0, 0, 52, 52, 158, 255 },
+{ 20, 71, 137, 0, 0, 0, 52, 52, 158, 255 },
+{ -54, 78, 115, 0, 0, 0, 30, 30, 92, 255 },
+{ -98, -110, 33, 0, 0, 0, 30, 30, 92, 255 },
+{ -63, -143, -135, 0, 0, 0, 13, 13, 38, 255 },
+{ 34, -96, 40, 0, 0, 0, 30, 30, 92, 255 },
+{ -140, 1, -69, 0, 0, 0, 13, 13, 38, 255 },
+{ 47, 1, 74, 0, 0, 0, 30, 30, 92, 255 },
+{ -47, 1, -13, 0, 0, 0, 13, 13, 38, 255 },
+{ -107, 1, 48, 0, 0, 0, 30, 30, 92, 255 },
+{ -71, -86, 95, 0, 0, 0, 30, 30, 92, 255 },
+{ 20, -86, 95, 0, 0, 0, 52, 52, 158, 255 },
+{ 20, 1, 95, 0, 0, 0, 30, 30, 92, 255 },
+{ -81, 1, 101, 0, 0, 0, 52, 52, 158, 255 },
+{ -54, -71, 174, 0, 0, 0, 52, 52, 158, 255 },
+{ 20, -52, 183, 0, 0, 0, 52, 52, 158, 255 },
+{ 26, 1, 224, 0, 0, 0, 52, 52, 158, 255 },
+{ -54, 1, 204, 0, 0, 0, 52, 52, 158, 255 },
+{ 57, 1, 186, 0, 0, 0, 52, 52, 158, 255 },
+{ -83, 1, 131, 0, 0, 0, 52, 52, 158, 255 },
+{ 20, -69, 137, 0, 0, 0, 52, 52, 158, 255 },
+{ -54, -76, 115, 0, 0, 0, 30, 30, 92, 255 },
+{ 5, 1, 159, 0, 0, 0, 52, 52, 158, 255 },
 };
 
 static Vtx player_face[] = {
-{ 16, 29, 101, 0, 0, 0, 201, 149, 113, 255 },
-{ 19, 37, 128, 0, 0, 0, 52, 125, 201, 255 },
-{ 2, 26, 112, 0, 0, 0, 201, 149, 113, 255 },
-{ 22, 38, 156, 0, 0, 0, 19, 170, 255, 255 },
-{ 7, 38, 93, 0, 0, 0, 201, 149, 113, 255 },
-{ 11, 49, 130, 0, 0, 0, 52, 125, 201, 255 },
-{ -11, 35, 107, 0, 0, 0, 255, 255, 255, 255 },
-{ 15, 40, 178, 0, 0, 0, 19, 170, 255, 255 },
-{ 25, 31, 157, 0, 0, 0, 2, 14, 20, 255 },
-{ 35, 1, 150, 0, 0, 0, 2, 14, 20, 255 },
-{ 29, 22, 157, 0, 0, 0, 2, 14, 20, 255 },
-{ 26, 30, 151, 0, 0, 0, 255, 255, 255, 255 },
-{ 34, 5, 147, 0, 0, 0, 255, 255, 255, 255 },
-{ 26, 24, 132, 0, 0, 0, 255, 255, 255, 255 },
-{ 32, 6, 131, 0, 0, 0, 255, 255, 255, 255 },
-{ 31, 17, 148, 0, 0, 0, 2, 14, 20, 255 },
-{ 32, 15, 135, 0, 0, 0, 2, 14, 20, 255 },
-{ 32, 13, 143, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, 20, 141, 0, 0, 0, 2, 14, 20, 255 },
-{ 16, -53, 101, 0, 0, 0, 201, 149, 113, 255 },
-{ 19, -61, 128, 0, 0, 0, 52, 125, 201, 255 },
-{ 2, -51, 112, 0, 0, 0, 201, 149, 113, 255 },
-{ 22, -62, 156, 0, 0, 0, 19, 170, 255, 255 },
-{ 2, -12, 112, 0, 0, 0, 255, 255, 255, 255 },
-{ 35, -12, 163, 0, 0, 0, 19, 170, 255, 255 },
-{ 37, -12, 94, 0, 0, 0, 201, 149, 113, 255 },
-{ 37, -12, 128, 0, 0, 0, 201, 149, 113, 255 },
-{ 7, -63, 93, 0, 0, 0, 201, 149, 113, 255 },
-{ 11, -73, 130, 0, 0, 0, 52, 125, 201, 255 },
-{ -11, -59, 107, 0, 0, 0, 255, 255, 255, 255 },
-{ 15, -65, 178, 0, 0, 0, 19, 170, 255, 255 },
-{ -11, -12, 107, 0, 0, 0, 255, 255, 255, 255 },
-{ 33, -12, 188, 0, 0, 0, 19, 170, 255, 255 },
-{ 24, -56, 156, 0, 0, 0, 2, 14, 20, 255 },
-{ 34, -27, 149, 0, 0, 0, 2, 14, 20, 255 },
-{ 28, -48, 156, 0, 0, 0, 2, 14, 20, 255 },
-{ 25, -55, 151, 0, 0, 0, 255, 255, 255, 255 },
-{ 33, -31, 146, 0, 0, 0, 255, 255, 255, 255 },
-{ 25, -50, 131, 0, 0, 0, 255, 255, 255, 255 },
-{ 32, -32, 131, 0, 0, 0, 255, 255, 255, 255 },
-{ 30, -42, 147, 0, 0, 0, 2, 14, 20, 255 },
-{ 32, -41, 134, 0, 0, 0, 2, 14, 20, 255 },
-{ 31, -39, 142, 0, 0, 0, 2, 14, 20, 255 },
-{ 30, -46, 141, 0, 0, 0, 2, 14, 20, 255 },
+{ 12, 35, 101, 0, 0, 0, 201, 149, 113, 255 },
+{ 17, 42, 128, 0, 0, 0, 52, 125, 201, 255 },
+{ -10, 33, 112, 0, 0, 0, 201, 149, 113, 255 },
+{ 22, 43, 156, 0, 0, 0, 19, 170, 255, 255 },
+{ -1, 43, 93, 0, 0, 0, 201, 149, 113, 255 },
+{ 5, 52, 130, 0, 0, 0, 52, 125, 201, 255 },
+{ -31, 40, 107, 0, 0, 0, 255, 255, 255, 255 },
+{ 11, 45, 178, 0, 0, 0, 19, 170, 255, 255 },
+{ 27, 37, 157, 0, 0, 0, 2, 14, 20, 255 },
+{ 43, 12, 150, 0, 0, 0, 2, 14, 20, 255 },
+{ 33, 30, 160, 0, 0, 0, 2, 14, 20, 255 },
+{ 28, 36, 151, 0, 0, 0, 255, 255, 255, 255 },
+{ 42, 16, 147, 0, 0, 0, 255, 255, 255, 255 },
+{ 28, 31, 132, 0, 0, 0, 255, 255, 255, 255 },
+{ 39, 16, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 37, 25, 148, 0, 0, 0, 2, 14, 20, 255 },
+{ 39, 24, 135, 0, 0, 0, 2, 14, 20, 255 },
+{ 41, 19, 141, 0, 0, 0, 2, 14, 20, 255 },
+{ 34, 32, 143, 0, 0, 0, 2, 14, 20, 255 },
+{ 12, -33, 101, 0, 0, 0, 201, 149, 113, 255 },
+{ 17, -40, 128, 0, 0, 0, 52, 125, 201, 255 },
+{ -10, -31, 112, 0, 0, 0, 201, 149, 113, 255 },
+{ 22, -40, 156, 0, 0, 0, 19, 170, 255, 255 },
+{ -10, 1, 112, 0, 0, 0, 255, 255, 255, 255 },
+{ 44, 1, 163, 0, 0, 0, 19, 170, 255, 255 },
+{ 46, 1, 94, 0, 0, 0, 201, 149, 113, 255 },
+{ 46, 1, 128, 0, 0, 0, 201, 149, 113, 255 },
+{ -1, -41, 93, 0, 0, 0, 201, 149, 113, 255 },
+{ 5, -50, 130, 0, 0, 0, 52, 125, 201, 255 },
+{ -31, -38, 107, 0, 0, 0, 255, 255, 255, 255 },
+{ 11, -42, 178, 0, 0, 0, 19, 170, 255, 255 },
+{ -31, 1, 107, 0, 0, 0, 255, 255, 255, 255 },
+{ 41, 1, 188, 0, 0, 0, 19, 170, 255, 255 },
+{ 26, -36, 156, 0, 0, 0, 2, 14, 20, 255 },
+{ 42, -11, 149, 0, 0, 0, 2, 14, 20, 255 },
+{ 32, -28, 160, 0, 0, 0, 2, 14, 20, 255 },
+{ 27, -35, 151, 0, 0, 0, 255, 255, 255, 255 },
+{ 41, -14, 146, 0, 0, 0, 255, 255, 255, 255 },
+{ 27, -30, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 38, -15, 131, 0, 0, 0, 255, 255, 255, 255 },
+{ 36, -24, 147, 0, 0, 0, 2, 14, 20, 255 },
+{ 38, -23, 134, 0, 0, 0, 2, 14, 20, 255 },
+{ 39, -17, 140, 0, 0, 0, 2, 14, 20, 255 },
+{ 33, -30, 140, 0, 0, 0, 2, 14, 20, 255 },
+};
+
+static Vtx player_legs[] = {
+  { -22, -64, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { -22, 64, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 22, -64, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 16, -44, 58, 0, 0, 0, 141, 32, 158, 255 },
+  { 22, 64, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 16, 44, 58, 0, 0, 0, 141, 32, 158, 255 },
+  { -22, -24, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 22, -24, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 16, -17, 58, 0, 0, 0, 141, 32, 158, 255 },
+  { 22, 19, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { -22, 19, -23, 0, 0, 0, 141, 32, 158, 255 },
+  { 16, 13, 58, 0, 0, 0, 141, 32, 158, 255 },
+  { -15, -33, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { -15, -57, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { 38, 65, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { -15, 56, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { 38, 20, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { 38, -65, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { 38, -25, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { -15, 29, -134, 0, 0, 0, 141, 32, 158, 255 },
+  { 19, 20, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { 19, 64, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { -19, 57, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { -19, 17, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { 19, -64, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { 19, -24, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { -19, -57, -88, 0, 0, 0, 141, 32, 158, 255 },
+  { -19, -22, -88, 0, 0, 0, 141, 32, 158, 255 },
+};
+
+static Vtx player_sword[] = {
+{ 46, -22, 88, 0, 0, 0, 0, 186, 167, 255 },
+{ 46, -22, 113, 0, 0, 0, 40, 186, 168, 255 },
+{ 81, -25, 89, 0, 0, 0, 0, 186, 167, 255 },
+{ 81, -25, 112, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, -61, 114, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, -61, 86, 0, 0, 0, 40, 186, 168, 255 },
+{ 392, -15, 102, 0, 0, 0, 182, 186, 186, 255 },
+{ 46, 22, 88, 0, 0, 0, 0, 186, 167, 255 },
+{ 46, 22, 113, 0, 0, 0, 40, 186, 168, 255 },
+{ 81, 25, 89, 0, 0, 0, 0, 186, 167, 255 },
+{ 81, 25, 112, 0, 0, 0, 40, 186, 168, 255 },
+{ 46, 0, 88, 0, 0, 0, 0, 186, 167, 255 },
+{ 46, 0, 113, 0, 0, 0, 40, 186, 168, 255 },
+{ 81, 0, 89, 0, 0, 0, 0, 186, 167, 255 },
+{ 81, 0, 112, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, 0, 121, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, 61, 114, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, 61, 86, 0, 0, 0, 40, 186, 168, 255 },
+{ 97, 0, 79, 0, 0, 0, 0, 186, 167, 255 },
+{ 392, 0, 103, 0, 0, 0, 182, 186, 186, 255 },
+{ 392, 15, 102, 0, 0, 0, 182, 186, 186, 255 },
+{ 328, 0, 96, 0, 0, 0, 40, 186, 168, 255 },
 };
 
 void updateMapFromInfo() {
@@ -341,6 +398,8 @@ void addCubeToDisplayList()
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
   gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
+  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
   /*
   gSPVertex(glistp++,&(bullet_test_geom[0]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
@@ -360,35 +419,33 @@ void addCubeToDisplayList()
 void addPlayerDisplayList()
 {
   gSPVertex(glistp++,&(player_cloak[0]), 31, 0);
-  gSP2Triangles(glistp++, 14, 3, 16, 0, 2, 3, 0, 0);
-  gSP2Triangles(glistp++, 14, 0, 1, 0, 3, 15, 16, 0);
-  gSP2Triangles(glistp++, 0, 21, 4, 0, 30, 7, 26, 0);
-  gSP2Triangles(glistp++, 2, 4, 5, 0, 15, 5, 20, 0);
-  gSP2Triangles(glistp++, 6, 24, 7, 0, 8, 6, 7, 0);
-  gSP2Triangles(glistp++, 9, 25, 6, 0, 24, 26, 7, 0);
-  gSP2Triangles(glistp++, 3, 14, 1, 0, 1, 0, 3, 0);
-  gSP2Triangles(glistp++, 4, 27, 9, 0, 5, 9, 8, 0);
-  gSP2Triangles(glistp++, 20, 8, 30, 0, 14, 16, 13, 0);
-  gSP2Triangles(glistp++, 12, 10, 13, 0, 14, 10, 17, 0);
-  gSP2Triangles(glistp++, 13, 15, 12, 0, 10, 21, 17, 0);
-  gSP2Triangles(glistp++, 30, 23, 28, 0, 12, 18, 10, 0);
-  gSP2Triangles(glistp++, 15, 19, 12, 0, 22, 24, 25, 0);
-  gSP2Triangles(glistp++, 28, 22, 29, 0, 29, 25, 27, 0);
-  gSP2Triangles(glistp++, 24, 23, 26, 0, 13, 11, 14, 0);
-  gSP2Triangles(glistp++, 11, 13, 10, 0, 18, 27, 21, 0);
-  gSP2Triangles(glistp++, 19, 29, 18, 0, 20, 28, 19, 0);
-  gSP2Triangles(glistp++, 14, 17, 0, 0, 3, 2, 15, 0);
-  gSP2Triangles(glistp++, 0, 17, 21, 0, 30, 8, 7, 0);
-  gSP2Triangles(glistp++, 2, 0, 4, 0, 15, 2, 5, 0);
-  gSP2Triangles(glistp++, 6, 25, 24, 0, 8, 9, 6, 0);
-  gSP2Triangles(glistp++, 9, 27, 25, 0, 4, 21, 27, 0);
-  gSP2Triangles(glistp++, 5, 4, 9, 0, 20, 5, 8, 0);
-  gSP2Triangles(glistp++, 14, 11, 10, 0, 13, 16, 15, 0);
-  gSP2Triangles(glistp++, 10, 18, 21, 0, 30, 26, 23, 0);
-  gSP2Triangles(glistp++, 12, 19, 18, 0, 15, 20, 19, 0);
-  gSP2Triangles(glistp++, 22, 23, 24, 0, 28, 23, 22, 0);
-  gSP2Triangles(glistp++, 29, 22, 25, 0, 18, 29, 27, 0);
-  gSP2Triangles(glistp++, 19, 28, 29, 0, 20, 30, 28, 0);
+  gSP2Triangles(glistp++, 12, 1, 14, 0, 2, 1, 0, 0);
+  gSP2Triangles(glistp++, 12, 0, 1, 0, 1, 13, 14, 0);
+  gSP2Triangles(glistp++, 0, 19, 3, 0, 28, 6, 24, 0);
+  gSP2Triangles(glistp++, 2, 3, 4, 0, 13, 4, 18, 0);
+  gSP2Triangles(glistp++, 5, 22, 6, 0, 7, 5, 6, 0);
+  gSP2Triangles(glistp++, 8, 23, 5, 0, 22, 24, 6, 0);
+  gSP2Triangles(glistp++, 3, 25, 8, 0, 4, 8, 7, 0);
+  gSP2Triangles(glistp++, 18, 7, 28, 0, 12, 14, 10, 0);
+  gSP2Triangles(glistp++, 11, 9, 10, 0, 12, 9, 15, 0);
+  gSP2Triangles(glistp++, 10, 13, 11, 0, 9, 19, 15, 0);
+  gSP2Triangles(glistp++, 28, 21, 26, 0, 11, 16, 9, 0);
+  gSP2Triangles(glistp++, 13, 17, 11, 0, 20, 22, 23, 0);
+  gSP2Triangles(glistp++, 26, 20, 27, 0, 27, 23, 25, 0);
+  gSP2Triangles(glistp++, 22, 21, 24, 0, 16, 25, 19, 0);
+  gSP2Triangles(glistp++, 17, 27, 16, 0, 18, 26, 17, 0);
+  gSP2Triangles(glistp++, 12, 15, 0, 0, 1, 2, 13, 0);
+  gSP2Triangles(glistp++, 0, 15, 19, 0, 28, 7, 6, 0);
+  gSP2Triangles(glistp++, 2, 0, 3, 0, 13, 2, 4, 0);
+  gSP2Triangles(glistp++, 5, 23, 22, 0, 7, 8, 5, 0);
+  gSP2Triangles(glistp++, 8, 25, 23, 0, 3, 19, 25, 0);
+  gSP2Triangles(glistp++, 4, 3, 8, 0, 18, 4, 7, 0);
+  gSP2Triangles(glistp++, 12, 10, 9, 0, 10, 14, 13, 0);
+  gSP2Triangles(glistp++, 9, 16, 19, 0, 28, 24, 21, 0);
+  gSP2Triangles(glistp++, 11, 17, 16, 0, 13, 18, 17, 0);
+  gSP2Triangles(glistp++, 20, 21, 22, 0, 26, 21, 20, 0);
+  gSP2Triangles(glistp++, 27, 20, 23, 0, 16, 27, 25, 0);
+  gSP2Triangles(glistp++, 17, 26, 27, 0, 18, 28, 26, 0);
 
   gSPVertex(glistp++,&(player_face[0]), 44, 0);
   gSP2Triangles(glistp++, 3, 5, 7, 0, 24, 7, 32, 0);
@@ -416,6 +473,74 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 31, 29, 30, 0, 29, 27, 28, 0);
   gSP2Triangles(glistp++, 21, 29, 31, 0, 20, 28, 27, 0);
   gSP2Triangles(glistp++, 19, 27, 29, 0, 36, 38, 39, 0);
+
+  gSPVertex(glistp++,&(player_legs[0]), 52, 0);
+  gSP2Triangles(glistp++, 1, 5, 4, 0, 7, 3, 2, 0);
+  gSP2Triangles(glistp++, 2, 3, 0, 0, 22, 14, 15, 0);
+  gSP2Triangles(glistp++, 8, 0, 3, 0, 11, 6, 8, 0);
+  gSP2Triangles(glistp++, 10, 7, 6, 0, 9, 8, 7, 0);
+  gSP2Triangles(glistp++, 4, 11, 9, 0, 21, 16, 14, 0);
+  gSP2Triangles(glistp++, 5, 10, 11, 0, 12, 17, 13, 0);
+  gSP2Triangles(glistp++, 15, 16, 19, 0, 25, 17, 18, 0);
+  gSP2Triangles(glistp++, 20, 19, 16, 0, 24, 13, 17, 0);
+  gSP2Triangles(glistp++, 27, 18, 12, 0, 26, 12, 13, 0);
+  gSP2Triangles(glistp++, 23, 15, 19, 0, 10, 22, 23, 0);
+  gSP2Triangles(glistp++, 9, 23, 20, 0, 4, 20, 21, 0);
+  gSP2Triangles(glistp++, 1, 21, 22, 0, 0, 27, 26, 0);
+  gSP2Triangles(glistp++, 6, 25, 27, 0, 2, 26, 24, 0);
+  gSP2Triangles(glistp++, 7, 24, 25, 0, 7, 8, 3, 0);
+  gSP2Triangles(glistp++, 22, 21, 14, 0, 8, 6, 0, 0);
+  gSP2Triangles(glistp++, 11, 10, 6, 0, 10, 9, 7, 0);
+  gSP2Triangles(glistp++, 9, 11, 8, 0, 4, 5, 11, 0);
+  gSP2Triangles(glistp++, 21, 20, 16, 0, 5, 1, 10, 0);
+  gSP2Triangles(glistp++, 12, 18, 17, 0, 15, 14, 16, 0);
+  gSP2Triangles(glistp++, 25, 24, 17, 0, 20, 23, 19, 0);
+  gSP2Triangles(glistp++, 24, 26, 13, 0, 27, 25, 18, 0);
+  gSP2Triangles(glistp++, 26, 27, 12, 0, 23, 22, 15, 0);
+  gSP2Triangles(glistp++, 10, 1, 22, 0, 9, 10, 23, 0);
+  gSP2Triangles(glistp++, 4, 9, 20, 0, 1, 4, 21, 0);
+  gSP2Triangles(glistp++, 0, 6, 27, 0, 6, 7, 25, 0);
+  gSP2Triangles(glistp++, 2, 0, 26, 0, 7, 2, 24, 0);
+}
+
+void addSwordDisplayList()
+{
+  gSPVertex(glistp++,&(player_sword[0]), 22, 0);
+  gSP2Triangles(glistp++, 14, 4, 15, 0, 2, 1, 0, 0);
+  gSP2Triangles(glistp++, 11, 2, 0, 0, 14, 1, 3, 0);
+  gSP2Triangles(glistp++, 0, 12, 11, 0, 15, 6, 19, 0);
+  gSP2Triangles(glistp++, 2, 18, 5, 0, 3, 5, 4, 0);
+  gSP2Triangles(glistp++, 21, 19, 6, 0, 4, 5, 6, 0);
+  gSP2Triangles(glistp++, 5, 21, 6, 0, 14, 3, 4, 0);
+  gSP2Triangles(glistp++, 2, 3, 1, 0, 11, 13, 2, 0);
+  gSP2Triangles(glistp++, 14, 12, 1, 0, 0, 1, 12, 0);
+  gSP2Triangles(glistp++, 15, 4, 6, 0, 2, 13, 18, 0);
+  gSP2Triangles(glistp++, 3, 2, 5, 0, 5, 18, 21, 0);
+  gSP2Triangles(glistp++, 14, 15, 16, 0, 9, 7, 8, 0);
+  gSP2Triangles(glistp++, 11, 7, 9, 0, 14, 10, 8, 0);
+  gSP2Triangles(glistp++, 7, 11, 12, 0, 15, 19, 20, 0);
+  gSP2Triangles(glistp++, 9, 17, 18, 0, 10, 16, 17, 0);
+  gSP2Triangles(glistp++, 21, 20, 19, 0, 16, 20, 17, 0);
+  gSP2Triangles(glistp++, 17, 20, 21, 0, 14, 16, 10, 0);
+  gSP2Triangles(glistp++, 9, 8, 10, 0, 11, 9, 13, 0);
+  gSP2Triangles(glistp++, 14, 8, 12, 0, 7, 12, 8, 0);
+  gSP2Triangles(glistp++, 15, 20, 16, 0, 9, 18, 13, 0);
+  gSP2Triangles(glistp++, 10, 17, 9, 0, 17, 21, 18, 0);
+}
+
+float fabs_d(float x) {
+  if (x < 0.f) {
+    return -x;
+  }
+  return x;
+}
+
+float lerp(float v0, float v1, float t) {
+  return (1 - t) * v0 + t * v1;
+}
+
+float cubic(float t) {
+  return t * t * t;
 }
 
 /* Make the display list and activate the task */
@@ -431,6 +556,11 @@ void makeDL00(void)
   Mtx playerScale;
   Mtx targetTranslation;
   Mtx targetScale;
+  Mtx swordTranslation;
+  Mtx swordScale;
+  Mtx swordRotationX;
+  Mtx swordRotationZ;
+  int running = (fabs_d(player_facing_x) > 0.1f) || (fabs_d(player_facing_y) > 0.1f);
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
@@ -463,7 +593,18 @@ void makeDL00(void)
   // Render Player
   guTranslate(&(playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
   guRotate(&(playerRotation), player_rotation / M_PI * 180.f, 0.0f, 0.0f, 1.0f);
-  guRotate(&(playerJumpRotation), ((player_state == Jumping) ? (sinf(player_t * M_PI * 2.f) * 60.2f) : 0.f), 0.0f, 1.0f, 0.0f);
+  if (player_state == Jumping) {
+    guRotate(&(playerJumpRotation), sinf(player_t * M_PI * 2.f) * 75.2f, 0.0f, 1.0f, 0.0f);
+  } else if (player_state == Move) {
+    if (running) {
+      guRotate(&(playerJumpRotation), sinf(time / 100000.f) * 5.f, 0.0f, 1.0f, 0.0f);
+    } else {
+      guRotate(&(playerJumpRotation), 5.f, 0.0f, 1.0f, 0.0f);
+    }
+  } else if (player_state == Landed) {
+    guRotate(&(playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
+  }
+  
   guScale(&(playerScale), 0.01, 0.01, 0.01);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
@@ -471,6 +612,46 @@ void makeDL00(void)
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
   addPlayerDisplayList();
+
+  // Determine sword display list
+  guMtxIdent(&swordTranslation);
+  if (player_state == Move) {
+    guScale(&(swordScale), 1.0f, 1.0f, 1.0f);
+    if (running) {
+      guRotate(&(swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), 120.f + (6.3f * sinf(time / 180000.f)), 0.0f, 0.0f, 1.0f);
+    } else {
+      guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
+    }
+  } else if (player_state == Jumping) {
+    float cubedScale = cubic(player_t);
+    float scale = lerp(1.0f, 2.1f, cubedScale);
+    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 5.f);
+    guScale(&(swordScale), scale, scale, scale);
+    if (cubedScale < 0.5f) {
+      guRotate(&(swordRotationX), lerp(5.f, -90.f, cubedScale * 2.f), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale * 2.f), 0.0f, 0.0f, 1.0f);
+    } else {
+      guRotate(&(swordRotationX), lerp(-90.f, 90.f, (cubedScale - 0.5f) * 2.f), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), lerp(110.f, 0.f, (cubedScale - 0.5f) * 2.f), 0.0f, 0.0f, 1.0f);
+    }
+  } else if (player_state == Landed) {
+    float scale = lerp(2.0f, 1.0f, player_t);
+    guTranslate(&swordTranslation, 0.f, 0.f, (1 - scale) * 5.f);
+    guScale(&(swordScale), scale, scale, scale);
+    guRotate(&(swordRotationX), lerp(90.f, 5.f, player_t), 0.0f, 1.0f, 0.0f);
+    guRotate(&(swordRotationZ), lerp(0.f, 120.f, player_t), 0.0f, 0.0f, 1.0f);
+  } else if (player_state == Dead) {
+    guScale(&(swordScale), 1.0f, 1.0f, 1.0f);
+    // Todo
+  }
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationZ)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationX)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  addSwordDisplayList();
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
@@ -542,6 +723,10 @@ void makeDL00(void)
     sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
     nuDebConCPuts(0, conbuf);
 
+    nuDebConTextPos(0,1,4);
+    sprintf(conbuf,"time=%llu", time);
+    nuDebConCPuts(0, conbuf);
+
     nuDebConTextPos(0,1,21);
     sprintf(conbuf,"player_rotation=%5.1f", player_rotation);
     nuDebConCPuts(0, conbuf);
@@ -583,10 +768,6 @@ void makeDL00(void)
 
   /* Switch display list buffers */
   gfx_gtask_no ^= 1;
-}
-
-float lerp(float v0, float v1, float t) {
-  return (1 - t) * v0 + t * v1;
 }
 
 
@@ -662,14 +843,6 @@ Atan2f(float y, float x)
     return atan2bodyf(y, x);
 }
 
-float fabs_d(float x) {
-  if (x < 0.f) {
-    return -x;
-  }
-  return x;
-}
-
-
 void updateGame00(void)
 {  
   int i;
@@ -682,6 +855,9 @@ void updateGame00(void)
   float newX;
   float newY;
   float playerStickRot;
+
+  time = osGetTime();
+  time = OS_CYCLES_TO_USEC(time);
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
@@ -745,7 +921,7 @@ void updateGame00(void)
     newY = player_y;
 
     player_t += LAND_SPEED_PER_TICK;
-    if (player_t > 2.2f) {
+    if (player_t > 1.0f) {
       player_state = Move;
     }
   }
