@@ -466,7 +466,7 @@ void makeDL00(void)
   guRotate(&(playerJumpRotation), ((player_state == Jumping) ? (sinf(player_t * M_PI * 2.f) * 60.2f) : 0.f), 0.0f, 1.0f, 0.0f);
   guScale(&(playerScale), 0.01, 0.01, 0.01);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerRotation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerJumpRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
@@ -489,7 +489,6 @@ void makeDL00(void)
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
-  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gDPPipeSync(glistp++);
