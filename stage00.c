@@ -616,7 +616,7 @@ void makeDL00(void)
   // Determine sword display list
   guMtxIdent(&swordTranslation);
   if (player_state == Move) {
-    guScale(&(swordScale), 1.0f, 1.0f, 1.0f);
+    guScale(&(swordScale), 0.9f, 0.9f, 0.8f);
     if (running) {
       guRotate(&(swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), 120.f + (6.3f * sinf(time / 180000.f)), 0.0f, 0.0f, 1.0f);
@@ -626,13 +626,15 @@ void makeDL00(void)
     }
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
-    float scale = lerp(1.0f, 2.1f, cubedScale);
-    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 5.f);
-    guScale(&(swordScale), scale, scale, scale);
+    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 10.f);
     if (cubedScale < 0.5f) {
-      guRotate(&(swordRotationX), lerp(5.f, -90.f, cubedScale * 2.f), 0.0f, 1.0f, 0.0f);
+      float scale = lerp(1.0f, 0.7f, cubedScale);
+      guScale(&(swordScale), scale, scale, scale);
+      guRotate(&(swordRotationX), lerp(5.f, -40.f, cubedScale * 2.f), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale * 2.f), 0.0f, 0.0f, 1.0f);
     } else {
+      float scale = lerp(0.7f, 2.1f, cubedScale);
+      guScale(&(swordScale), scale, scale, scale);
       guRotate(&(swordRotationX), lerp(-90.f, 90.f, (cubedScale - 0.5f) * 2.f), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), lerp(110.f, 0.f, (cubedScale - 0.5f) * 2.f), 0.0f, 0.0f, 1.0f);
     }
@@ -855,6 +857,7 @@ void updateGame00(void)
   float newX;
   float newY;
   float playerStickRot;
+  int roll;
 
   time = osGetTime();
   time = OS_CYCLES_TO_USEC(time);
@@ -907,6 +910,10 @@ void updateGame00(void)
       player_jump_x = player_x;
       player_jump_y = player_y;
     }
+
+    for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
+      player_sword[i].v.cn[0] = player_sword[(i + 1) % (sizeof(player_sword) / sizeof(Vtx))].v.cn[0];
+    }
   } else if (player_state == Jumping) {
     newX = player_jump_x + cosf(player_rotation) * player_t * target_distance;
     newY = player_jump_y + sinf(player_rotation) * player_t * target_distance;
@@ -916,6 +923,14 @@ void updateGame00(void)
       player_state = Landed;
       player_t = 0.f;
     }
+
+    roll = guRandom() % 2;
+    for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
+      player_sword[i].v.cn[0] = ((roll == 0) && (i % 2 == 0)) ? 200 : 0;
+      player_sword[i].v.cn[1] = 230;
+      player_sword[i].v.cn[2] = 230;
+    }
+
   } else if (player_state == Landed) {
     newX = player_x;
     newY = player_y;
