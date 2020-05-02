@@ -370,8 +370,8 @@ void initStage00(void)
   for (i = 0; i < BULLET_COUNT; i++) {
     float r = i / (float)((guRandom() % 10 / 10.f) * M_PI * 2.f);
 
-    BulletPositions[i].x = MAP_SIZE * TILE_SIZE * 0.5f;
-    BulletPositions[i].y = MAP_SIZE * TILE_SIZE * 0.5f;
+    BulletPositions[i].x = MAP_SIZE * TILE_SIZE * 0.15f;
+    BulletPositions[i].y = MAP_SIZE * TILE_SIZE * 0.15f;
 
     BulletVelocities[i].x = cosf(r) * 0.05f;
     BulletVelocities[i].y = sinf(r) * 0.05f;
