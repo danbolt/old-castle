@@ -10,6 +10,13 @@
 #define JUMP_SPEED_PER_TICK 0.03115f
 #define LAND_SPEED_PER_TICK 0.035f
 
+#define FLOOR_TILE 0
+#define LOW_WALL_TILE 1
+#define HIGH_WALL_TILE 2
+
+#define PLAYER_HIT_RADIUS 1
+#define PLAYER_HIT_RADIUS_SQ (PLAYER_HIT_RADIUS * PLAYER_HIT_RADIUS)
+
 typedef enum {
   Move,
   Jumping,
@@ -26,6 +33,7 @@ static float player_facing_y;
 static float target_distance;
 static PlayerState player_state;
 static float player_t;
+static int HIT_WALL_WHILE_JUMPING;
 
 static float camera_rotation;
 static float player_rotation;
@@ -42,8 +50,8 @@ static OSTime time;
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 21.3f
-#define CAMERA_HEIGHT 25.3f
+#define CAMERA_DISTANCE 18.3f
+#define CAMERA_HEIGHT 29.3f
 #define CAMERA_LERP 0.13f
 
 #define MAP_SIZE 100
@@ -66,6 +74,8 @@ typedef struct {
 
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
+static u8 BulletStates[BULLET_COUNT];
+static u8 BulletRadiiSquared[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
 
 static int MapInfo[MAP_SIZE * MAP_SIZE]; // 0 for empty, 1 for filled
@@ -259,7 +269,7 @@ void updateMapFromInfo() {
 
     map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
     map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
@@ -270,7 +280,7 @@ void updateMapFromInfo() {
 
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
     map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
@@ -281,7 +291,7 @@ void updateMapFromInfo() {
 
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
     map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
@@ -292,7 +302,7 @@ void updateMapFromInfo() {
 
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = (MapInfo[i] == 0) ? -1 : 1;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
     map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
@@ -360,6 +370,7 @@ void initStage00(void)
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
   player_t = 0.f;
+  HIT_WALL_WHILE_JUMPING = 0;
 
   camera_x = 0.0f;
   camera_y = 0.0f;
@@ -373,8 +384,11 @@ void initStage00(void)
     BulletPositions[i].x = MAP_SIZE * TILE_SIZE * 0.15f;
     BulletPositions[i].y = MAP_SIZE * TILE_SIZE * 0.15f;
 
-    BulletVelocities[i].x = cosf(r) * 0.05f;
-    BulletVelocities[i].y = sinf(r) * 0.05f;
+    BulletVelocities[i].x = cosf(guRandom() % 7) * 0.05f;
+    BulletVelocities[i].y = sinf(guRandom() % 7) * 0.05f;
+
+    BulletStates[i] = 1;
+    BulletRadiiSquared[i] = 1 * 1;
 
     guMtxIdent(&(BulletMatricies[i].mat));   
   }
@@ -383,7 +397,13 @@ void initStage00(void)
     for (j = 0; j < MAP_SIZE; j++) {
       int roll = guRandom() % 10;
 
-      MapInfo[j * MAP_SIZE + i] = (roll == 0) ? 1 : 0;
+      if (roll == 0) {
+        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
+      } else if (roll == 1) {
+        MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
+      } else {
+        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
+      }
     }
   }
   updateMapFromInfo();
@@ -603,6 +623,8 @@ void makeDL00(void)
     }
   } else if (player_state == Landed) {
     guRotate(&(playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
+  } else if (player_state == Dead) {
+    guRotate(&(playerJumpRotation), 90.f, 0.0f, 1.0f, 0.0f);
   }
   
   guScale(&(playerScale), 0.01, 0.01, 0.01);
@@ -646,7 +668,8 @@ void makeDL00(void)
     guRotate(&(swordRotationZ), lerp(0.f, 120.f, player_t), 0.0f, 0.0f, 1.0f);
   } else if (player_state == Dead) {
     guScale(&(swordScale), 1.0f, 1.0f, 1.0f);
-    // Todo
+    guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
+    guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
   }
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationZ)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
@@ -678,6 +701,10 @@ void makeDL00(void)
 
   // Render Bullets
   for (i = 0; i < BULLET_COUNT; i++) {
+    if (BulletStates[i] == 0) {
+      continue;
+    }
+
     guTranslate(&(BulletMatricies[i]), BulletPositions[i].x, BulletPositions[i].y, 0.f);
 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
@@ -909,14 +936,20 @@ void updateGame00(void)
       player_t = 0.f;
       player_jump_x = player_x;
       player_jump_y = player_y;
+      HIT_WALL_WHILE_JUMPING = 0;
     }
 
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
       player_sword[i].v.cn[0] = player_sword[(i + 1) % (sizeof(player_sword) / sizeof(Vtx))].v.cn[0];
     }
   } else if (player_state == Jumping) {
-    newX = player_jump_x + cosf(player_rotation) * player_t * target_distance;
-    newY = player_jump_y + sinf(player_rotation) * player_t * target_distance;
+    if (HIT_WALL_WHILE_JUMPING == 0) {
+      newX = player_jump_x + cosf(player_rotation) * player_t * target_distance;
+      newY = player_jump_y + sinf(player_rotation) * player_t * target_distance;
+    } else {
+      newX = player_x;
+      newY = player_y;
+    }
 
     player_t += JUMP_SPEED_PER_TICK;
     if (player_t > 1.f) {
@@ -939,6 +972,9 @@ void updateGame00(void)
     if (player_t > 1.0f) {
       player_state = Move;
     }
+  } else if (player_state == Dead) {
+    newX = player_x;
+    newY = player_y;
   }
 
   newTileX = (int)(newX * INV_TILE_SIZE);
@@ -946,23 +982,68 @@ void updateGame00(void)
 
   // step x
   if ((newTileX < (MAP_SIZE * TILE_SIZE)) && (newTileX >= 0) && (IS_TILE_BLOCKED(newTileX, (int)(player_y * INV_TILE_SIZE)))) {
-    newX = player_x;
+    if (player_state == Jumping && (IS_TILE_BLOCKED(newTileX, (int)(player_y * INV_TILE_SIZE)) != LOW_WALL_TILE)) {
+      HIT_WALL_WHILE_JUMPING = 1;
+    }
+
+      newX = player_x;
   }
-  player_x = newX;
+  player_x = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newX));
 
   // step y
   if ((newTileY < (MAP_SIZE * TILE_SIZE)) && (newTileY >= 0) && (IS_TILE_BLOCKED((int)(player_x * INV_TILE_SIZE), newTileY))) {
+  
+    if (player_state == Jumping && (IS_TILE_BLOCKED((int)(player_x * INV_TILE_SIZE), newTileY) != LOW_WALL_TILE)) {
+      HIT_WALL_WHILE_JUMPING = 1;
+    }
+
     newY = player_y;
   }
-  player_y = newY;
+  player_y = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newY));;
 
   // Lerp the camera
   camera_x = lerp(camera_x, player_x, CAMERA_LERP);
   camera_y = lerp(camera_y, player_y, CAMERA_LERP);
   
   for (i = 0; i < BULLET_COUNT; i++) {
+    float dxSq = 9999.f;
+    float dySq = 9999.f;
+
+    if (BulletStates[i] == 0) {
+      continue;
+    }
+
+    if ((BulletPositions[i].x < 0) || (BulletPositions[i].x > MAP_SIZE * TILE_SIZE)
+        || (BulletPositions[i].y < 0) || (BulletPositions[i].y > MAP_SIZE * TILE_SIZE)) {
+      BulletStates[i] = 0;
+    }
+
+    if (IS_TILE_BLOCKED((int)(BulletPositions[i].x), (int)(BulletPositions[i].y))) {
+      BulletStates[i] = 0;
+      continue;
+    }
+
     BulletPositions[i].x += BulletVelocities[i].x;
     BulletPositions[i].y += BulletVelocities[i].y;
+
+    dxSq = player_x - BulletPositions[i].x;
+    dxSq = dxSq * dxSq;
+    if (dxSq > BulletRadiiSquared[i]) {
+      continue;
+    }
+
+    dySq = player_y - BulletPositions[i].y;
+    dySq = dySq * dySq;
+    if (dySq > BulletRadiiSquared[i]) {
+      continue;
+    }
+
+    if ((dySq + dxSq) >= PLAYER_HIT_RADIUS_SQ) {
+      continue;
+    }
+
+    // If we've reached this line, the bullet has hit the player
+    player_state = Dead;
   }
   
 }
