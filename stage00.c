@@ -5,10 +5,11 @@
 #include <gu.h>
 #include "os_time.h"
 
-#define PLAYER_MOVE_SPEED 0.0015f
+#define PLAYER_MOVE_SPEED 0.0028753f
 #define DEFAULT_TARGET_DISTANCE 9.9f
 #define JUMP_SPEED_PER_TICK 0.03115f
 #define LAND_SPEED_PER_TICK 0.035f
+#define DEATH_FALL_PER_TICK 0.18f
 
 #define FLOOR_TILE 0
 #define LOW_WALL_TILE 1
@@ -16,6 +17,9 @@
 
 #define PLAYER_HIT_RADIUS 1
 #define PLAYER_HIT_RADIUS_SQ (PLAYER_HIT_RADIUS * PLAYER_HIT_RADIUS)
+
+#define EMITTER_DEAD 0
+#define EMITTER_ALIVE 1
 
 typedef enum {
   Move,
@@ -45,8 +49,10 @@ static int newTileX;
 static int newTileY;
 
 static OSTime time;
+static OSTime delta;
 
 #define BULLET_COUNT 100
+#define EMITTER_COUNT 40
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
@@ -72,11 +78,33 @@ typedef struct {
   Mtx mat;
 } EntityTransform;
 
+typedef struct {
+  u8 emitterIndex;
+
+  u8 shotsToFire;
+  u8 spreadSpeadInDegrees;
+  float period;
+  float t;
+} AimEmitterData;
+
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
 static u8 BulletStates[BULLET_COUNT];
 static u8 BulletRadiiSquared[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
+
+
+#define AIM_EMITTER_COUNT 32
+static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
+
+#define EMITTER_RADIUS 1.f
+#define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
+
+static Position EmitterPositions[EMITTER_COUNT];
+static Velocity EmitterVelocities[EMITTER_COUNT];
+static EntityTransform EmitterMatricies[EMITTER_COUNT];
+static u8 EmitterStates[EMITTER_COUNT];
+static u32 EmitterTicks[EMITTER_COUNT];
 
 static int MapInfo[MAP_SIZE * MAP_SIZE]; // 0 for empty, 1 for filled
 
@@ -110,6 +138,33 @@ static Vtx bullet_test_geom[] =  {
         {        -1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
         {         1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+};
+
+static Vtx emitter_test_geom[] =  {
+        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  -1,  1, 0, 0, 0, 120,    120, 120,    0xff },
+        {        -1,   1,  1, 0, 0, 0, 120,    120, 120, 0xff },
+        {        -1,   1, -1, 0, 0, 0, 120,    120, 120, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 120, 120, 120,    0xff },
+        {        1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff     },
+        {        1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff  },
+        {        1, -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        1, 1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1,  1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+        {         1,  -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
 };
 
 static Vtx jump_target_geom[] =  {
@@ -273,10 +328,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
@@ -284,10 +339,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -295,10 +350,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
 
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -306,10 +361,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0xaa + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x88 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x99 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0x44 + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
 
     if (IS_TILE_BLOCKED(x, y)) {
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
@@ -375,6 +430,9 @@ void initStage00(void)
   camera_x = 0.0f;
   camera_y = 0.0f;
 
+  time = 0;
+  delta = 
+
   camera_rotation = 0.1f;
   player_rotation = 0.f;
 
@@ -387,15 +445,32 @@ void initStage00(void)
     BulletVelocities[i].x = cosf(guRandom() % 7) * 0.05f;
     BulletVelocities[i].y = sinf(guRandom() % 7) * 0.05f;
 
-    BulletStates[i] = 1;
+    BulletStates[i] = 0;
     BulletRadiiSquared[i] = 1 * 1;
 
     guMtxIdent(&(BulletMatricies[i].mat));   
   }
 
+  for (i = 0; i < EMITTER_COUNT; i++) {
+    EmitterStates[i] = EMITTER_DEAD;
+    EmitterPositions[i].x = 0.f;
+    EmitterPositions[i].y = 0.f;
+    EmitterVelocities[i].x = 0.f;
+    EmitterVelocities[i].y = 0.f;
+    EmitterTicks[i] = 0;
+
+    guMtxIdent(&(EmitterMatricies[i].mat));   
+  }
+
+  EmitterStates[5] = EMITTER_ALIVE;
+  EmitterPositions[5].x = 6;
+  EmitterPositions[5].y = 6;
+  EmitterVelocities[5].x = 0.f;
+  EmitterVelocities[5].y = 0.f;
+
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
-      int roll = guRandom() % 10;
+      int roll = guRandom() % 30;
 
       if (roll == 0) {
         MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
@@ -420,20 +495,18 @@ void addCubeToDisplayList()
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
   gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  /*
-  gSPVertex(glistp++,&(bullet_test_geom[0]), 4, 0);
+}
+
+void addEmitterToDisplayList()
+{
+  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[4]), 4, 0);
+  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[8]), 4, 0);
+  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[12]), 4, 0);
+  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
   gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[16]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[20]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  */
 }
 
 void addPlayerDisplayList()
@@ -624,7 +697,7 @@ void makeDL00(void)
   } else if (player_state == Landed) {
     guRotate(&(playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
   } else if (player_state == Dead) {
-    guRotate(&(playerJumpRotation), 90.f, 0.0f, 1.0f, 0.0f);
+    guRotate(&(playerJumpRotation), lerp(0.f, -90.f, (player_t)), 0.0f, 1.0f, 0.0f);
   }
   
   guScale(&(playerScale), 0.01, 0.01, 0.01);
@@ -667,7 +740,7 @@ void makeDL00(void)
     guRotate(&(swordRotationX), lerp(90.f, 5.f, player_t), 0.0f, 1.0f, 0.0f);
     guRotate(&(swordRotationZ), lerp(0.f, 120.f, player_t), 0.0f, 0.0f, 1.0f);
   } else if (player_state == Dead) {
-    guScale(&(swordScale), 1.0f, 1.0f, 1.0f);
+    guScale(&(swordScale), 0.5f, 0.5f, 0.5f);
     guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
     guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
   }
@@ -716,6 +789,23 @@ void makeDL00(void)
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
+  // Render emitters
+  for (i = 0; i < EMITTER_COUNT; i++) {
+    if (EmitterStates[i] == EMITTER_DEAD) {
+      continue;
+    }
+
+    guTranslate(&(EmitterMatricies[i]), EmitterPositions[i].x, EmitterPositions[i].y, 0.f);
+
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+
+    addEmitterToDisplayList();
+
+    gDPPipeSync(glistp++);
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
+
   // Render map tiles
   for (i = MAX(0, (int)((camera_x / TILE_SIZE) - 11)); i < MIN(MAP_SIZE, (int)((camera_x / TILE_SIZE) + 11)); i++) {
     for (j = MAX(0, (int)((camera_y / TILE_SIZE) - 11)); j < MIN(MAP_SIZE, (int)((camera_y / TILE_SIZE) + 11)); j++) {
@@ -754,6 +844,10 @@ void makeDL00(void)
 
     nuDebConTextPos(0,1,4);
     sprintf(conbuf,"time=%llu", time);
+    nuDebConCPuts(0, conbuf);
+
+    nuDebConTextPos(0,1,5);
+    sprintf(conbuf,"delta=%llu", delta);
     nuDebConCPuts(0, conbuf);
 
     nuDebConTextPos(0,1,21);
@@ -885,9 +979,10 @@ void updateGame00(void)
   float newY;
   float playerStickRot;
   int roll;
+  OSTime newTime = OS_CYCLES_TO_USEC(osGetTime());
 
-  time = osGetTime();
-  time = OS_CYCLES_TO_USEC(time);
+  delta = (newTime - time);
+  time = newTime;
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
@@ -975,6 +1070,7 @@ void updateGame00(void)
   } else if (player_state == Dead) {
     newX = player_x;
     newY = player_y;
+    player_t = MIN(player_t + DEATH_FALL_PER_TICK, 1.f);
   }
 
   newTileX = (int)(newX * INV_TILE_SIZE);
@@ -1005,6 +1101,7 @@ void updateGame00(void)
   camera_x = lerp(camera_x, player_x, CAMERA_LERP);
   camera_y = lerp(camera_y, player_y, CAMERA_LERP);
   
+  // Update bullets
   for (i = 0; i < BULLET_COUNT; i++) {
     float dxSq = 9999.f;
     float dySq = 9999.f;
@@ -1018,13 +1115,18 @@ void updateGame00(void)
       BulletStates[i] = 0;
     }
 
-    if (IS_TILE_BLOCKED((int)(BulletPositions[i].x), (int)(BulletPositions[i].y))) {
+    if (IS_TILE_BLOCKED((int)(BulletPositions[i].x * INV_TILE_SIZE), (int)(BulletPositions[i].y * INV_TILE_SIZE))) {
       BulletStates[i] = 0;
       continue;
     }
 
     BulletPositions[i].x += BulletVelocities[i].x;
     BulletPositions[i].y += BulletVelocities[i].y;
+
+    // If the player's in the air or dead, there's no point in checking death
+    if ((player_state == Jumping) || (player_state == Dead)) {
+      continue;
+    }
 
     dxSq = player_x - BulletPositions[i].x;
     dxSq = dxSq * dxSq;
@@ -1044,6 +1146,50 @@ void updateGame00(void)
 
     // If we've reached this line, the bullet has hit the player
     player_state = Dead;
+    player_t = 0;
+  }
+
+  // Update emitters position/velocity/life
+  for (i = 0; i < EMITTER_COUNT; i++) {
+    float dxSq = 9999.f;
+    float dySq = 9999.f;
+    
+    if (EmitterStates[i] == EMITTER_DEAD) {
+      continue;
+    }
+
+    EmitterPositions[i].x += EmitterVelocities[i].x;
+    EmitterPositions[i].y += EmitterVelocities[i].y;
+
+    // Kill an emitter if the player landed on it
+    if (player_state != Landed) {
+      continue;
+    }
+
+    dxSq = player_x - EmitterPositions[i].x;
+    dxSq = dxSq * dxSq;
+    if (dxSq > EMITTER_RADIUS_SQ) {
+      continue;
+    }
+
+    dySq = player_y - EmitterPositions[i].y;
+    dySq = dySq * dySq;
+    if (dySq > EMITTER_RADIUS_SQ) {
+      continue;
+    }
+
+    if ((dySq + dxSq) >= PLAYER_HIT_RADIUS_SQ) {
+      continue;
+    }
+
+    EmitterStates[i] = EMITTER_DEAD;
+  }
+
+  // Update aim emitters
+  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
+    if ((EmitterStates[AimEmitters[i].emitterIndex]) == EMITTER_DEAD) {
+      continue;
+    }
   }
   
 }
