@@ -79,7 +79,7 @@ typedef struct {
 } EntityTransform;
 
 typedef struct {
-  u8 emitterIndex;
+  s8 emitterIndex;
 
   u8 shotsToFire;
   u8 spreadSpeadInDegrees;
@@ -92,12 +92,12 @@ static Velocity BulletVelocities[BULLET_COUNT];
 static u8 BulletStates[BULLET_COUNT];
 static u8 BulletRadiiSquared[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
-
+static int NextBulletIndex;
 
 #define AIM_EMITTER_COUNT 32
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 
-#define EMITTER_RADIUS 1.f
+#define EMITTER_RADIUS 2.f
 #define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
 
 static Position EmitterPositions[EMITTER_COUNT];
@@ -328,10 +328,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x11 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x44 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : (0x12 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x40);
 
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
@@ -339,10 +339,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x11 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x44 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : (0x12 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x40);
 
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
     map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -350,10 +350,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x11 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x44 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : (0x12 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x40);
 
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
     map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
@@ -361,10 +361,10 @@ void updateMapFromInfo() {
     map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
     map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x11;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : 0x44;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : 0x12;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : 0x01;
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x11 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x40 + roll) : (0x44 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x24 + roll) : (0x12 + 0x40);
+    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x40);
 
     if (IS_TILE_BLOCKED(x, y)) {
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
@@ -414,14 +414,42 @@ void updateMapFromInfo() {
   }
 }
 
+int consumeNextBullet() {
+  int i;
+  int iRaw;
+  int foundNewBullet = 0;
+  int nextCandidate = 0;
+  int result = -1;
+
+  // Find the next bullet to shoot
+  for (iRaw = 0; iRaw < BULLET_COUNT; iRaw++) {
+    i = (NextBulletIndex + iRaw + 1) % BULLET_COUNT;
+
+    if (BulletStates[i] != 0) {
+      continue;
+    }
+
+    nextCandidate = i;
+    foundNewBullet = 1;
+    break;
+  }
+
+  if (foundNewBullet) {
+    result = NextBulletIndex;
+    NextBulletIndex = nextCandidate;
+  }
+
+  return result;
+}
+
 /* The initialization of stage 0 */
 void initStage00(void)
 {
   int i;
   int j;
 
-  player_x = 6.0f;
-  player_y = 6.0f;
+  player_x = 22.0f;
+  player_y = 22.0f;
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
   player_t = 0.f;
@@ -431,7 +459,7 @@ void initStage00(void)
   camera_y = 0.0f;
 
   time = 0;
-  delta = 
+  delta = 0;
 
   camera_rotation = 0.1f;
   player_rotation = 0.f;
@@ -450,6 +478,7 @@ void initStage00(void)
 
     guMtxIdent(&(BulletMatricies[i].mat));   
   }
+  NextBulletIndex = 0;
 
   for (i = 0; i < EMITTER_COUNT; i++) {
     EmitterStates[i] = EMITTER_DEAD;
@@ -464,9 +493,21 @@ void initStage00(void)
 
   EmitterStates[5] = EMITTER_ALIVE;
   EmitterPositions[5].x = 6;
-  EmitterPositions[5].y = 6;
+  EmitterPositions[5].y = 10;
   EmitterVelocities[5].x = 0.f;
   EmitterVelocities[5].y = 0.f;
+
+  for (i = 0; i <AIM_EMITTER_COUNT; i++) {
+    AimEmitters[i].emitterIndex = 0;
+    AimEmitters[i].period = 0.6f;
+    AimEmitters[i].shotsToFire = 1;
+    AimEmitters[i].spreadSpeadInDegrees = 90.f;
+    AimEmitters[i].t = 0.f;
+  }
+
+  AimEmitters[2].emitterIndex = 5;
+  AimEmitters[2].t = 0.f;
+  AimEmitters[2].shotsToFire = 1;
 
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
@@ -850,6 +891,11 @@ void makeDL00(void)
     sprintf(conbuf,"delta=%llu", delta);
     nuDebConCPuts(0, conbuf);
 
+    nuDebConTextPos(0,1,6);
+    sprintf(conbuf,"NextBulletIndex=%d", NextBulletIndex);
+    nuDebConCPuts(0, conbuf);
+
+
     nuDebConTextPos(0,1,21);
     sprintf(conbuf,"player_rotation=%5.1f", player_rotation);
     nuDebConCPuts(0, conbuf);
@@ -1020,6 +1066,13 @@ void updateGame00(void)
 
     // If we're pushing on the stick, update the player's rotation
     if ((fabs_d(contdata->stick_x) > 0.01f) || (fabs_d(contdata->stick_y) > 0.01f)) {
+      if ((player_rotation < -(M_PI_2)) && (playerStickRot > (M_PI_2))) {
+        player_rotation += M_PI * 2.f;
+      } 
+      if ((player_rotation > (M_PI_2)) && (playerStickRot < -(M_PI_2))) {
+        player_rotation -= M_PI * 2.f;
+      }
+
       player_rotation = lerp(player_rotation, playerStickRot, 0.18f);
     }
 
@@ -1153,7 +1206,7 @@ void updateGame00(void)
   for (i = 0; i < EMITTER_COUNT; i++) {
     float dxSq = 9999.f;
     float dySq = 9999.f;
-    
+
     if (EmitterStates[i] == EMITTER_DEAD) {
       continue;
     }
@@ -1178,7 +1231,7 @@ void updateGame00(void)
       continue;
     }
 
-    if ((dySq + dxSq) >= PLAYER_HIT_RADIUS_SQ) {
+    if ((dySq + dxSq) >= EMITTER_RADIUS_SQ) {
       continue;
     }
 
@@ -1187,9 +1240,38 @@ void updateGame00(void)
 
   // Update aim emitters
   for (i = 0; i < AIM_EMITTER_COUNT; i++) {
-    if ((EmitterStates[AimEmitters[i].emitterIndex]) == EMITTER_DEAD) {
+    int newBulletIndex;
+    float theta;
+
+    if (AimEmitters[i].emitterIndex == -1) {
       continue;
     }
+
+    if ((EmitterStates[AimEmitters[i].emitterIndex]) == EMITTER_DEAD) {
+      AimEmitters[i].emitterIndex = -1;
+      continue;
+    }
+
+    AimEmitters[i].t += delta * 0.000001f;
+    if (AimEmitters[i].t < AimEmitters[i].period) {
+      continue;
+    }
+
+    // If we've made it here, fire
+    AimEmitters[i].t = 0;
+
+    // Skip if there are no available bullets
+    newBulletIndex = consumeNextBullet();
+    if (newBulletIndex == -1) {
+      continue;
+    }
+    BulletStates[newBulletIndex] = 1;
+    BulletPositions[newBulletIndex].x = EmitterPositions[AimEmitters[i].emitterIndex].x;
+    BulletPositions[newBulletIndex].y = EmitterPositions[AimEmitters[i].emitterIndex].y;
+    theta = Atan2f(player_y - BulletPositions[newBulletIndex].y, player_x - BulletPositions[newBulletIndex].x);
+    BulletVelocities[newBulletIndex].x = 0.11332f * cosf(theta);
+    BulletVelocities[newBulletIndex].y = 0.11332f * sinf(theta);
+
   }
   
 }
