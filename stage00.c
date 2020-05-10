@@ -20,6 +20,7 @@
 
 #define EMITTER_DEAD 0
 #define EMITTER_ALIVE 1
+#define EMITTER_OFFSCREEN 2
 
 typedef enum {
   Move,
@@ -51,13 +52,13 @@ static int newTileY;
 static OSTime time;
 static OSTime delta;
 
-#define BULLET_COUNT 100
+#define BULLET_COUNT 200
 #define EMITTER_COUNT 40
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
 #define CAMERA_DISTANCE 18.3f
-#define CAMERA_HEIGHT 29.3f
+#define CAMERA_HEIGHT 27.3f
 #define CAMERA_LERP 0.13f
 
 #define MAP_SIZE 100
@@ -65,6 +66,8 @@ static OSTime delta;
 #define INV_TILE_SIZE (1.0f / TILE_SIZE)
 
 #define RENDER_DISTANCE_IN_TILES 11
+#define RENDER_DISTANCE (RENDER_DISTANCE_IN_TILES * TILE_SIZE)
+#define RENDER_DISTANCE_SQ (RENDER_DISTANCE * RENDER_DISTANCE)
 
 typedef struct {
   float x;
@@ -440,7 +443,20 @@ int consumeNextBullet() {
   int result = -1;
 
   // Find the next bullet to shoot
-  for (iRaw = 0; iRaw < BULLET_COUNT; iRaw++) {
+
+
+  for (i = 0; i < BULLET_COUNT; i++) {
+    if (BulletStates[i] != 0) {
+      continue;
+    }
+
+
+    result = i;
+    NextBulletIndex = i;
+  }
+
+  /*
+  for (iRaw = 0; iRaw < BULLET_COUNT - 1; iRaw++) {
     i = (NextBulletIndex + iRaw + 1) % BULLET_COUNT;
 
     if (BulletStates[i] != 0) {
@@ -456,6 +472,7 @@ int consumeNextBullet() {
     result = NextBulletIndex;
     NextBulletIndex = nextCandidate;
   }
+  */
 
   return result;
 }
@@ -509,23 +526,25 @@ void initStage00(void)
     guMtxIdent(&(EmitterMatricies[i].mat));   
   }
 
-  EmitterStates[5] = EMITTER_ALIVE;
-  EmitterPositions[5].x = 6;
-  EmitterPositions[5].y = 10;
-  EmitterVelocities[5].x = 0.f;
-  EmitterVelocities[5].y = 0.f;
 
-  for (i = 0; i <AIM_EMITTER_COUNT; i++) {
-    AimEmitters[i].emitterIndex = 0;
-    AimEmitters[i].period = 0.6f;
+  for (i = 0; i < AIM_EMITTER_COUNT; i++) { 
+    AimEmitters[i].emitterIndex = -1;
+    AimEmitters[i].period = 1.4f;
     AimEmitters[i].shotsToFire = 1;
     AimEmitters[i].spreadSpeadInDegrees = 90.f;
-    AimEmitters[i].t = 0.f;
+    AimEmitters[i].t = 0.f + (guRandom() % 5);
   }
+  
 
-  AimEmitters[2].emitterIndex = 5;
-  AimEmitters[2].t = 0.f;
-  AimEmitters[2].shotsToFire = 1;
+  for (i = 0; i < 13; i++) {
+    EmitterStates[i] = EMITTER_ALIVE;
+    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.3525f));
+    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.3525f));
+    EmitterVelocities[i].x = 0.f;
+    EmitterVelocities[i].y = 0.f;
+
+    AimEmitters[i].emitterIndex = i;
+  }
 
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
@@ -1115,9 +1134,9 @@ void updateGame00(void)
 
     roll = guRandom() % 2;
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
-      player_sword[i].v.cn[0] = ((roll == 0) && (i % 2 == 0)) ? 200 : 0;
-      player_sword[i].v.cn[1] = 230;
-      player_sword[i].v.cn[2] = 230;
+      player_sword[i].v.cn[0] = (roll == 0) ? 255 : 0;
+      player_sword[i].v.cn[1] = (roll == 0) ? 200 : 0;
+      player_sword[i].v.cn[2] = (roll == 0) ? 200 : 0;
     }
 
   } else if (player_state == Landed) {
@@ -1250,6 +1269,7 @@ void updateGame00(void)
   for (i = 0; i < AIM_EMITTER_COUNT; i++) {
     int newBulletIndex;
     float theta;
+
 
     if (AimEmitters[i].emitterIndex == -1) {
       continue;
