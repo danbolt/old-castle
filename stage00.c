@@ -57,8 +57,8 @@ static OSTime delta;
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 18.3f
-#define CAMERA_HEIGHT 27.3f
+#define CAMERA_DISTANCE 19.23f
+#define CAMERA_HEIGHT 26.0f
 #define CAMERA_LERP 0.13f
 
 #define MAP_SIZE 100
@@ -234,6 +234,14 @@ static Vtx player_face[] = {
 { 5, -50, 130, 0, 0, 0, 52, 125, 201, 255 },
 { 11, -42, 178, 0, 0, 0, 19, 170, 255, 255 },
 { 41, 1, 188, 0, 0, 0, 19, 170, 255, 255 },
+{ 36, 41, 157, 0, 0, 0, 0, 0, 0, 255 },
+{ 43, 19, 157, 0, 0, 0, 0, 0, 0, 255 },
+{ 41, 34, 134, 0, 0, 0, 51, 153, 27, 255 },
+{ 47, 12, 134, 0, 0, 0, 255, 248, 253, 255 },
+{ 39, -36, 157, 0, 0, 0, 0, 0, 0, 255 },
+{ 45, -14, 157, 0, 0, 0, 0, 0, 0, 255 },
+{ 39, -27, 134, 0, 0, 0, 51, 153, 27, 255 },
+{ 45, -5, 134, 0, 0, 0, 255, 248, 253, 255 },
 };
 
 static Vtx player_legs[] = {
@@ -600,7 +608,7 @@ void addPlayerDisplayList()
   
   
 
-  gSPVertex(glistp++,&(player_face[0]), 17, 0);
+  gSPVertex(glistp++,&(player_face[0]), 25, 0);
   gSP2Triangles(glistp++, 2, 4, 5, 0, 10, 5, 16, 0);
   gSP2Triangles(glistp++, 9, 0, 11, 0, 2, 12, 1, 0);
   gSP2Triangles(glistp++, 0, 12, 11, 0, 1, 3, 4, 0);
@@ -612,6 +620,8 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 8, 15, 14, 0, 10, 16, 15, 0);
   gSP2Triangles(glistp++, 9, 11, 6, 0, 8, 7, 12, 0);
   gSP2Triangles(glistp++, 6, 11, 12, 0, 7, 14, 13, 0);
+  gSP2Triangles(glistp++, 18, 20, 19, 0, 17, 18, 19, 0);
+  gSP2Triangles(glistp++, 22, 23, 24, 0, 21, 23, 22, 0);
 
 
 
