@@ -623,6 +623,10 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 27, 20, 23, 0, 16, 27, 25, 0);
   gSP2Triangles(glistp++, 17, 26, 27, 0, 18, 28, 26, 0);
 
+  
+  
+  /*
+
   gSPVertex(glistp++,&(player_face[0]), 44, 0);
   gSP2Triangles(glistp++, 3, 5, 7, 0, 24, 7, 32, 0);
   gSP2Triangles(glistp++, 23, 0, 25, 0, 3, 26, 1, 0);
@@ -649,6 +653,8 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 31, 29, 30, 0, 29, 27, 28, 0);
   gSP2Triangles(glistp++, 21, 29, 31, 0, 20, 28, 27, 0);
   gSP2Triangles(glistp++, 19, 27, 29, 0, 36, 38, 39, 0);
+
+
 
   gSPVertex(glistp++,&(player_legs[0]), 52, 0);
   gSP2Triangles(glistp++, 1, 5, 4, 0, 7, 3, 2, 0);
@@ -677,6 +683,8 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 4, 9, 20, 0, 1, 4, 21, 0);
   gSP2Triangles(glistp++, 0, 6, 27, 0, 6, 7, 25, 0);
   gSP2Triangles(glistp++, 2, 0, 26, 0, 7, 2, 24, 0);
+
+  */
 }
 
 void addSwordDisplayList()
@@ -901,7 +909,7 @@ void makeDL00(void)
      switch display buffers */
   nuGfxTaskStart(&gfx_glist[gfx_gtask_no][0],
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
-		 NU_GFX_UCODE_F3DLX_REJ , NU_SC_NOSWAPBUFFER);
+		 NU_GFX_UCODE_F3DLX_NON , NU_SC_NOSWAPBUFFER);
 
   if(contPattern & 0x1)
   {
