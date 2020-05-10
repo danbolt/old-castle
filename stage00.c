@@ -529,11 +529,16 @@ void initStage00(void)
 
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
-      int roll = guRandom() % 30;
+      int roll;
+
+      if ((i == 0) || (i == MAP_SIZE - 1) || (j == 0) || (j == MAP_SIZE - 1)) {
+        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
+        continue;
+      }
+
+      roll = guRandom() % 30;
 
       if (roll == 0) {
-        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
-      } else if (roll == 1) {
         MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
       } else {
         MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
