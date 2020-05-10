@@ -5,7 +5,7 @@
 #include <gu.h>
 #include "os_time.h"
 
-#define PLAYER_MOVE_SPEED 0.0028753f
+#define PLAYER_MOVE_SPEED 0.134753f
 #define DEFAULT_TARGET_DISTANCE 9.9f
 #define JUMP_SPEED_PER_TICK 0.03115f
 #define LAND_SPEED_PER_TICK 0.035f
@@ -315,6 +315,26 @@ float cubic(float t) {
   return t * t * t;
 }
 
+/* copy-paste from the nusnake example */
+#define TOL ((float)1.0E-7)    /* Fix precision to 10^-7 because of the float type  */
+#define M_PI_2    1.57079632679489661923
+#define M_PI_4    0.78539816339744830962
+#define M_RTOD    (180.0/3.14159265358979323846)
+
+#define NRECTAB 100
+static float reciprocal_table_f[NRECTAB] = {
+    0,1.0/1.0,1.0/2.0,1.0/3.0,1.0/4.0,1.0/5.0,1.0/6.0,1.0/7.0,1.0/8.0,1.0/9.0,1.0/10.0,
+    1.0/11.0,1.0/12.0,1.0/13.0,1.0/14.0,1.0/15.0,1.0/16.0,1.0/17.0,1.0/18.0,1.0/19.0,1.0/20.0,
+    1.0/21.0,1.0/22.0,1.0/23.0,1.0/24.0,1.0/25.0,1.0/26.0,1.0/27.0,1.0/28.0,1.0/29.0,1.0/30.0,
+    1.0/31.0,1.0/32.0,1.0/33.0,1.0/34.0,1.0/35.0,1.0/36.0,1.0/37.0,1.0/38.0,1.0/39.0,1.0/40.0,
+    1.0/41.0,1.0/42.0,1.0/43.0,1.0/44.0,1.0/45.0,1.0/46.0,1.0/47.0,1.0/48.0,1.0/49.0,1.0/50.0,
+    1.0/51.0,1.0/52.0,1.0/53.0,1.0/54.0,1.0/55.0,1.0/56.0,1.0/57.0,1.0/58.0,1.0/59.0,1.0/60.0,
+    1.0/61.0,1.0/62.0,1.0/63.0,1.0/64.0,1.0/65.0,1.0/66.0,1.0/67.0,1.0/68.0,1.0/69.0,1.0/70.0,
+    1.0/71.0,1.0/72.0,1.0/73.0,1.0/74.0,1.0/75.0,1.0/76.0,1.0/77.0,1.0/78.0,1.0/79.0,1.0/80.0,
+    1.0/81.0,1.0/82.0,1.0/83.0,1.0/84.0,1.0/85.0,1.0/86.0,1.0/87.0,1.0/88.0,1.0/89.0,1.0/90.0,
+    1.0/91.0,1.0/92.0,1.0/93.0,1.0/94.0,1.0/95.0,1.0/96.0,1.0/97.0,1.0/89.0,1.0/99.0
+};
+
 void updateMapFromInfo() {
   int i;
 
@@ -517,10 +537,10 @@ void initStage00(void)
   }
   
 
-  for (i = 0; i < 13; i++) {
+  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
     EmitterStates[i] = EMITTER_ALIVE;
-    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.3525f));
-    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.3525f));
+    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
+    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
     EmitterVelocities[i].x = 0.f;
     EmitterVelocities[i].y = 0.f;
 
@@ -549,16 +569,17 @@ void initStage00(void)
 
 }
 
-void addCubeToDisplayList()
+void addBulletToDisplayList()
 {
-  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(bullet_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  int roll1 = guRandom() % 20;
+  int roll2 = guRandom() % 20;
+  int roll3 = guRandom() % 20;
+  int roll4 = guRandom() % 20;
+
+  gSP2Triangles(glistp++, roll1 + 0, roll1 + 1, roll1 + 2, 0, roll1 + 0, roll1 + 2, roll1 + 3, 0);
+  gSP2Triangles(glistp++, roll2 + 0, roll2 + 1, roll2 + 2, 0, roll2 + 0, roll2 + 2, roll2 + 3, 0);
+  gSP2Triangles(glistp++, roll3 + 0, roll3 + 1, roll3 + 2, 0, roll3 + 0, roll3 + 2, roll3 + 3, 0);
+  gSP2Triangles(glistp++, roll4 + 0, roll4 + 1, roll4 + 2, 0, roll4 + 0, roll4 + 2, roll4 + 3, 0);
 }
 
 void addEmitterToDisplayList()
@@ -819,7 +840,25 @@ void makeDL00(void)
 
   // Render Bullets
   for (i = 0; i < BULLET_COUNT; i++) {
+    float dxSq;
+    float dySq;
     if (BulletStates[i] == 0) {
+      continue;
+    }
+
+    dxSq = player_x - BulletPositions[i].x;
+    dxSq = dxSq * dxSq;
+    if (dxSq > RENDER_DISTANCE_SQ) {
+      continue;
+    }
+
+    dySq = player_y - BulletPositions[i].y;
+    dySq = dySq * dySq;
+    if (dySq > RENDER_DISTANCE_SQ) {
+      continue;
+    }
+
+    if ((dySq + dxSq) >= RENDER_DISTANCE_SQ) {
       continue;
     }
 
@@ -827,16 +866,34 @@ void makeDL00(void)
 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-    addCubeToDisplayList();
+    gSPVertex(glistp++,&(bullet_test_geom[0]), 23, 0);
 
-    gDPPipeSync(glistp++);
+    addBulletToDisplayList();
 
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
   // Render emitters
   for (i = 0; i < EMITTER_COUNT; i++) {
+    float dxSq;
+    float dySq;
     if (EmitterStates[i] == EMITTER_DEAD) {
+      continue;
+    }
+
+    dxSq = player_x - EmitterPositions[i].x;
+    dxSq = dxSq * dxSq;
+    if (dxSq > RENDER_DISTANCE_SQ) {
+      continue;
+    }
+
+    dySq = player_y - EmitterPositions[i].y;
+    dySq = dySq * dySq;
+    if (dySq > RENDER_DISTANCE_SQ) {
+      continue;
+    }
+
+    if ((dySq + dxSq) >= RENDER_DISTANCE_SQ) {
       continue;
     }
 
@@ -852,8 +909,8 @@ void makeDL00(void)
   }
 
   // Render map tiles
-  for (i = MAX(0, (int)((camera_x / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)((camera_x / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
-    for (j = MAX(0, (int)((camera_y / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)((camera_y / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
+  for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
+    for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
       gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * VERTS_PER_TILE]), IS_TILE_BLOCKED(i, j) ? 8 : 4, 0);
       gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
 
@@ -943,27 +1000,6 @@ void makeDL00(void)
   gfx_gtask_no ^= 1;
 }
 
-
-/* copy-paste from the nusnake example */
-#define TOL ((float)1.0E-7)    /* Fix precision to 10^-7 because of the float type  */
-#define M_PI_2    1.57079632679489661923
-#define M_PI_4    0.78539816339744830962
-#define M_RTOD    (180.0/3.14159265358979323846)
-
-#define NRECTAB 100
-static float reciprocal_table_f[NRECTAB] = {
-    0,1.0/1.0,1.0/2.0,1.0/3.0,1.0/4.0,1.0/5.0,1.0/6.0,1.0/7.0,1.0/8.0,1.0/9.0,1.0/10.0,
-    1.0/11.0,1.0/12.0,1.0/13.0,1.0/14.0,1.0/15.0,1.0/16.0,1.0/17.0,1.0/18.0,1.0/19.0,1.0/20.0,
-    1.0/21.0,1.0/22.0,1.0/23.0,1.0/24.0,1.0/25.0,1.0/26.0,1.0/27.0,1.0/28.0,1.0/29.0,1.0/30.0,
-    1.0/31.0,1.0/32.0,1.0/33.0,1.0/34.0,1.0/35.0,1.0/36.0,1.0/37.0,1.0/38.0,1.0/39.0,1.0/40.0,
-    1.0/41.0,1.0/42.0,1.0/43.0,1.0/44.0,1.0/45.0,1.0/46.0,1.0/47.0,1.0/48.0,1.0/49.0,1.0/50.0,
-    1.0/51.0,1.0/52.0,1.0/53.0,1.0/54.0,1.0/55.0,1.0/56.0,1.0/57.0,1.0/58.0,1.0/59.0,1.0/60.0,
-    1.0/61.0,1.0/62.0,1.0/63.0,1.0/64.0,1.0/65.0,1.0/66.0,1.0/67.0,1.0/68.0,1.0/69.0,1.0/70.0,
-    1.0/71.0,1.0/72.0,1.0/73.0,1.0/74.0,1.0/75.0,1.0/76.0,1.0/77.0,1.0/78.0,1.0/79.0,1.0/80.0,
-    1.0/81.0,1.0/82.0,1.0/83.0,1.0/84.0,1.0/85.0,1.0/86.0,1.0/87.0,1.0/88.0,1.0/89.0,1.0/90.0,
-    1.0/91.0,1.0/92.0,1.0/93.0,1.0/94.0,1.0/95.0,1.0/96.0,1.0/97.0,1.0/89.0,1.0/99.0
-};
-
 float
 atan2bodyf(float y,float x)
 { 
@@ -1030,9 +1066,11 @@ void updateGame00(void)
   float playerStickRot;
   int roll;
   OSTime newTime = OS_CYCLES_TO_USEC(osGetTime());
+  float deltaSeconds;
 
   delta = (newTime - time);
   time = newTime;
+  deltaSeconds = delta * 0.000001f;
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
@@ -1077,11 +1115,11 @@ void updateGame00(void)
         player_rotation -= M_PI * 2.f;
       }
 
-      player_rotation = lerp(player_rotation, playerStickRot, 0.18f);
+      player_rotation = lerp(player_rotation, playerStickRot, 0.342776562f);
     }
 
-    newX = player_x + player_facing_x * PLAYER_MOVE_SPEED;
-    newY = player_y + player_facing_y * PLAYER_MOVE_SPEED;
+    newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds;
+    newY = player_y + player_facing_y * PLAYER_MOVE_SPEED * deltaSeconds;
 
     if (contdata[0].trigger & A_BUTTON) {
       player_state = Jumping;
@@ -1177,8 +1215,8 @@ void updateGame00(void)
       continue;
     }
 
-    BulletPositions[i].x += BulletVelocities[i].x;
-    BulletPositions[i].y += BulletVelocities[i].y;
+    BulletPositions[i].x += BulletVelocities[i].x * deltaSeconds;
+    BulletPositions[i].y += BulletVelocities[i].y * deltaSeconds;
 
     // If the player's in the air or dead, there's no point in checking death
     if ((player_state == Jumping) || (player_state == Dead)) {
@@ -1215,8 +1253,8 @@ void updateGame00(void)
       continue;
     }
 
-    EmitterPositions[i].x += EmitterVelocities[i].x;
-    EmitterPositions[i].y += EmitterVelocities[i].y;
+    EmitterPositions[i].x += EmitterVelocities[i].x * deltaSeconds;
+    EmitterPositions[i].y += EmitterVelocities[i].y * deltaSeconds;
 
     // Kill an emitter if the player landed on it
     if (player_state != Landed) {
@@ -1257,7 +1295,7 @@ void updateGame00(void)
       continue;
     }
 
-    AimEmitters[i].t += delta * 0.000001f;
+    AimEmitters[i].t += deltaSeconds;
     if (AimEmitters[i].t < AimEmitters[i].period) {
       continue;
     }
@@ -1274,8 +1312,8 @@ void updateGame00(void)
     BulletPositions[newBulletIndex].x = EmitterPositions[AimEmitters[i].emitterIndex].x;
     BulletPositions[newBulletIndex].y = EmitterPositions[AimEmitters[i].emitterIndex].y;
     theta = Atan2f(player_y - BulletPositions[newBulletIndex].y, player_x - BulletPositions[newBulletIndex].x);
-    BulletVelocities[newBulletIndex].x = 0.11332f * cosf(theta);
-    BulletVelocities[newBulletIndex].y = 0.11332f * sinf(theta);
+    BulletVelocities[newBulletIndex].x = 5.831332f * cosf(theta);
+    BulletVelocities[newBulletIndex].y = 5.831332f * sinf(theta);
 
   }
   
