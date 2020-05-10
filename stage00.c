@@ -57,7 +57,7 @@ static OSTime delta;
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 19.23f
+#define CAMERA_DISTANCE 21.23f
 #define CAMERA_HEIGHT 26.0f
 #define CAMERA_LERP 0.13f
 
@@ -530,7 +530,7 @@ void initStage00(void)
 
   for (i = 0; i < AIM_EMITTER_COUNT; i++) { 
     AimEmitters[i].emitterIndex = -1;
-    AimEmitters[i].period = 1.4f;
+    AimEmitters[i].period = 2.0f;
     AimEmitters[i].shotsToFire = 1;
     AimEmitters[i].spreadSpeadInDegrees = 90.f;
     AimEmitters[i].t = 0.f + (guRandom() % 5);
@@ -788,16 +788,16 @@ void makeDL00(void)
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
     guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 10.f);
-    if (cubedScale < 0.5f) {
+    if (cubedScale < 0.3f) {
       float scale = lerp(1.0f, 0.7f, cubedScale);
       guScale(&(swordScale), scale, scale, scale);
-      guRotate(&(swordRotationX), lerp(5.f, -40.f, cubedScale * 2.f), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale * 2.f), 0.0f, 0.0f, 1.0f);
+      guRotate(&(swordRotationX), lerp(5.f, -180.f, cubedScale / 0.3f), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale / 0.3f), 0.0f, 0.0f, 1.0f);
     } else {
       float scale = lerp(0.7f, 2.1f, cubedScale);
       guScale(&(swordScale), scale, scale, scale);
-      guRotate(&(swordRotationX), lerp(-90.f, 90.f, (cubedScale - 0.5f) * 2.f), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), lerp(110.f, 0.f, (cubedScale - 0.5f) * 2.f), 0.0f, 0.0f, 1.0f);
+      guRotate(&(swordRotationX), lerp(-90.f, 90.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), lerp(110.f, 0.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 0.0f, 1.0f);
     }
   } else if (player_state == Landed) {
     float scale = lerp(2.0f, 1.0f, player_t);
@@ -937,6 +937,11 @@ void makeDL00(void)
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DLX_NON , NU_SC_NOSWAPBUFFER);
 
+  nuDebTaskPerfBar0(1, 200, NU_SC_SWAPBUFFER);
+
+
+
+  /*
   if(contPattern & 0x1)
   {
 
@@ -992,9 +997,10 @@ void makeDL00(void)
     nuDebConTextPos(0,9,24);
     nuDebConCPuts(0, "Controller 1 not connected; please restart");
   }
+
     
   /* Display characters on the frame buffer */
-  nuDebConDisp(NU_SC_SWAPBUFFER);
+  //nuDebConDisp(NU_SC_SWAPBUFFER);
 
   /* Switch display list buffers */
   gfx_gtask_no ^= 1;
@@ -1071,6 +1077,8 @@ void updateGame00(void)
   delta = (newTime - time);
   time = newTime;
   deltaSeconds = delta * 0.000001f;
+
+  nuDebPerfMarkSet(0);
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
@@ -1316,5 +1324,7 @@ void updateGame00(void)
     BulletVelocities[newBulletIndex].y = 5.831332f * sinf(theta);
 
   }
+
+  nuDebPerfMarkSet(1);
   
 }
