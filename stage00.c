@@ -5,6 +5,8 @@
 #include <gu.h>
 #include "os_time.h"
 
+#include "sample_tex.h"
+
 #define PLAYER_MOVE_SPEED 0.134753f
 #define DEFAULT_TARGET_DISTANCE 9.9f
 #define JUMP_SPEED_PER_TICK 0.03115f
@@ -14,13 +16,13 @@
 #define FLOOR_TILE 0
 #define LOW_WALL_TILE 1
 #define HIGH_WALL_TILE 2
+#define EMPTY_HIGH_WALL_TILE 3
 
 #define PLAYER_HIT_RADIUS 1
 #define PLAYER_HIT_RADIUS_SQ (PLAYER_HIT_RADIUS * PLAYER_HIT_RADIUS)
 
 #define EMITTER_DEAD 0
 #define EMITTER_ALIVE 1
-#define EMITTER_OFFSCREEN 2
 
 typedef enum {
   Move,
@@ -61,7 +63,8 @@ static OSTime delta;
 #define CAMERA_HEIGHT 26.0f
 #define CAMERA_LERP 0.13f
 
-#define MAP_SIZE 100
+#define MAP_SIZE 125
+#define ROOM_SIZE 25
 #define TILE_SIZE 2
 #define INV_TILE_SIZE (1.0f / TILE_SIZE)
 
@@ -478,11 +481,39 @@ int consumeNextBullet() {
   return result;
 }
 
+void initMap() {
+  int i;
+  int j;
+
+  for (i = 0; i < MAP_SIZE; i++) {
+    for (j = 0; j < MAP_SIZE; j++) {
+      int roomX = i % ROOM_SIZE;
+      int roomY = j % ROOM_SIZE;
+      int roll = guRandom() % 30;
+
+      if ((roomX == 0) || (roomX == ROOM_SIZE - 1) || (roomY == 0) || (roomY == ROOM_SIZE - 1)) {
+        MapInfo[j * MAP_SIZE + i] = EMPTY_HIGH_WALL_TILE;
+
+
+        if (roomX == 6 || roomY == 6) {
+          MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
+        }
+        continue;
+      }
+
+      if (roll == 0) {
+        MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
+      } else {
+        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
+      }
+    }
+  }
+}
+
 /* The initialization of stage 0 */
 void initStage00(void)
 {
   int i;
-  int j;
 
   player_x = 22.0f;
   player_y = 22.0f;
@@ -527,7 +558,6 @@ void initStage00(void)
     guMtxIdent(&(EmitterMatricies[i].mat));   
   }
 
-
   for (i = 0; i < AIM_EMITTER_COUNT; i++) { 
     AimEmitters[i].emitterIndex = -1;
     AimEmitters[i].period = 2.0f;
@@ -536,7 +566,8 @@ void initStage00(void)
     AimEmitters[i].t = 0.f + (guRandom() % 5);
   }
   
-
+  // TODO: temp this out until something better comes along
+  /*
   for (i = 0; i < AIM_EMITTER_COUNT; i++) {
     EmitterStates[i] = EMITTER_ALIVE;
     EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
@@ -546,27 +577,10 @@ void initStage00(void)
 
     AimEmitters[i].emitterIndex = i;
   }
+  */
 
-  for (i = 0; i < MAP_SIZE; i++) {
-    for (j = 0; j < MAP_SIZE; j++) {
-      int roll;
-
-      if ((i == 0) || (i == MAP_SIZE - 1) || (j == 0) || (j == MAP_SIZE - 1)) {
-        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
-        continue;
-      }
-
-      roll = guRandom() % 30;
-
-      if (roll == 0) {
-        MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
-      } else {
-        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
-      }
-    }
-  }
+  initMap();
   updateMapFromInfo();
-
 }
 
 void addBulletToDisplayList()
@@ -625,10 +639,6 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 27, 20, 23, 0, 16, 27, 25, 0);
   gSP2Triangles(glistp++, 17, 26, 27, 0, 18, 28, 26, 0);
 
-
-  
-  
-
   gSPVertex(glistp++,&(player_face[0]), 25, 0);
   gSP2Triangles(glistp++, 2, 4, 5, 0, 10, 5, 16, 0);
   gSP2Triangles(glistp++, 9, 0, 11, 0, 2, 12, 1, 0);
@@ -643,8 +653,6 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 6, 11, 12, 0, 7, 14, 13, 0);
   gSP2Triangles(glistp++, 18, 20, 19, 0, 17, 18, 19, 0);
   gSP2Triangles(glistp++, 22, 23, 24, 0, 21, 23, 22, 0);
-
-
 
   gSPVertex(glistp++,&(player_legs[0]), 28, 0);
   gSP2Triangles(glistp++, 1, 5, 4, 0, 7, 3, 2, 0);
@@ -673,8 +681,6 @@ void addPlayerDisplayList()
   gSP2Triangles(glistp++, 4, 9, 20, 0, 1, 4, 21, 0);
   gSP2Triangles(glistp++, 0, 6, 27, 0, 6, 7, 25, 0);
   gSP2Triangles(glistp++, 2, 0, 26, 0, 7, 2, 24, 0);
-
-  
 }
 
 void addSwordDisplayList()
@@ -911,6 +917,10 @@ void makeDL00(void)
   // Render map tiles
   for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
     for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
+      if (IS_TILE_BLOCKED(i, j) == EMPTY_HIGH_WALL_TILE) {
+        continue;
+      }
+
       gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * VERTS_PER_TILE]), IS_TILE_BLOCKED(i, j) ? 8 : 4, 0);
       gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
 
