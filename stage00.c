@@ -59,8 +59,8 @@ static OSTime delta;
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 21.23f
-#define CAMERA_HEIGHT 26.0f
+#define CAMERA_DISTANCE 13.23f
+#define CAMERA_HEIGHT 41.0f
 #define CAMERA_LERP 0.13f
 
 #define MAP_SIZE 125
@@ -68,7 +68,7 @@ static OSTime delta;
 #define TILE_SIZE 2
 #define INV_TILE_SIZE (1.0f / TILE_SIZE)
 
-#define RENDER_DISTANCE_IN_TILES 11
+#define RENDER_DISTANCE_IN_TILES 12
 #define RENDER_DISTANCE (RENDER_DISTANCE_IN_TILES * TILE_SIZE)
 #define RENDER_DISTANCE_SQ (RENDER_DISTANCE * RENDER_DISTANCE)
 
@@ -94,6 +94,26 @@ typedef struct {
   float period;
   float t;
 } AimEmitterData;
+
+// TODO: time to break into different translation units for sanity
+
+typedef enum {
+  StartingRoom, // The room where the player spawns
+  StaircaseRoom, // A room with a starcase to another floor
+  EnemyRoom, // A room full of enemies
+  RestRoom, // A room without enemies to take a break
+} RoomType;
+
+typedef struct {
+  u8 x;
+  u8 y;
+  u8 width;
+  u8 height;
+
+  RoomType type;
+} GeneratedRoom;
+
+#define NUMBER_OF_ROOMS_PER_FLOOR ((MAP_SIZE / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE))
 
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
@@ -459,29 +479,10 @@ int consumeNextBullet() {
     NextBulletIndex = i;
   }
 
-  /*
-  for (iRaw = 0; iRaw < BULLET_COUNT - 1; iRaw++) {
-    i = (NextBulletIndex + iRaw + 1) % BULLET_COUNT;
-
-    if (BulletStates[i] != 0) {
-      continue;
-    }
-
-    nextCandidate = i;
-    foundNewBullet = 1;
-    break;
-  }
-
-  if (foundNewBullet) {
-    result = NextBulletIndex;
-    NextBulletIndex = nextCandidate;
-  }
-  */
-
   return result;
 }
 
-void initMap() {
+void initMap(GeneratedRoom* rooms) {
   int i;
   int j;
 
@@ -489,24 +490,53 @@ void initMap() {
     for (j = 0; j < MAP_SIZE; j++) {
       int roomX = i % ROOM_SIZE;
       int roomY = j % ROOM_SIZE;
-      int roll = guRandom() % 30;
+      int roomIndex = ((i / ROOM_SIZE) + ((j / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE)));
 
-      if ((roomX == 0) || (roomX == ROOM_SIZE - 1) || (roomY == 0) || (roomY == ROOM_SIZE - 1)) {
-        MapInfo[j * MAP_SIZE + i] = EMPTY_HIGH_WALL_TILE;
+      MapInfo[j * MAP_SIZE + i] = EMPTY_HIGH_WALL_TILE;
 
+      // initalize room data here
+      if (roomX == 0 && roomY == 0) {
+        int w = 14 + (guRandom() % (ROOM_SIZE - 14));
+        int h = 14 + (guRandom() % (ROOM_SIZE - 14));
 
-        if (roomX == 6 || roomY == 6) {
-          MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
-        }
+        rooms[roomIndex].x = (ROOM_SIZE - w) / 2;
+        rooms[roomIndex].y = (ROOM_SIZE - h) / 2;
+        rooms[roomIndex].width = w;
+        rooms[roomIndex].height = h;
+        rooms[roomIndex].type = EnemyRoom;
+      }
+
+      // If we're outside the room, don't worry about it
+      if ((roomX < rooms[roomIndex].x) || (roomX >= (rooms[roomIndex].x + rooms[roomIndex].width)) || (roomY < rooms[roomIndex].y) || (roomY >= (rooms[roomIndex].y + rooms[roomIndex].height))) {
         continue;
       }
 
-      if (roll == 0) {
-        MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
-      } else {
-        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
+      if ((roomX == rooms[roomIndex].x) || (roomX == (rooms[roomIndex].x + rooms[roomIndex].width - 1)) || (roomY == rooms[roomIndex].y) || (roomY == (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
+        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
+      } else if ((roomX > rooms[roomIndex].x) && (roomX < (rooms[roomIndex].x + rooms[roomIndex].width - 1)) && (roomY > rooms[roomIndex].y) && (roomY < (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
+        int roll = guRandom() % 30;
+
+        if (roll == 0) {
+          MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
+        } else {
+          MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
+        }
       }
     }
+  }
+}
+
+void initEnemiesForMap(GeneratedRoom* rooms) {
+  int i;
+
+  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
+    EmitterStates[i] = EMITTER_ALIVE;
+    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
+    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
+    EmitterVelocities[i].x = 0.f;
+    EmitterVelocities[i].y = 0.f;
+
+    AimEmitters[i].emitterIndex = i;
   }
 }
 
@@ -514,9 +544,8 @@ void initMap() {
 void initStage00(void)
 {
   int i;
+  GeneratedRoom rooms[NUMBER_OF_ROOMS_PER_FLOOR];
 
-  player_x = 22.0f;
-  player_y = 22.0f;
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
   player_t = 0.f;
@@ -528,7 +557,7 @@ void initStage00(void)
   time = 0;
   delta = 0;
 
-  camera_rotation = 0.1f;
+  camera_rotation = 0.00001f;
   player_rotation = 0.f;
 
   for (i = 0; i < BULLET_COUNT; i++) {
@@ -565,22 +594,13 @@ void initStage00(void)
     AimEmitters[i].spreadSpeadInDegrees = 90.f;
     AimEmitters[i].t = 0.f + (guRandom() % 5);
   }
-  
-  // TODO: temp this out until something better comes along
-  /*
-  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
-    EmitterStates[i] = EMITTER_ALIVE;
-    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
-    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
-    EmitterVelocities[i].x = 0.f;
-    EmitterVelocities[i].y = 0.f;
 
-    AimEmitters[i].emitterIndex = i;
-  }
-  */
-
-  initMap();
+  initMap(rooms);
+  initEnemiesForMap(rooms);
   updateMapFromInfo();
+
+  player_x = rooms[0].x + (rooms[0].width / 2);
+  player_y = rooms[0].y + (rooms[0].height / 2);
 }
 
 void addBulletToDisplayList()
@@ -915,8 +935,8 @@ void makeDL00(void)
   }
 
   // Render map tiles
-  for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
-    for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 8.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
+  for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
+    for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
       if (IS_TILE_BLOCKED(i, j) == EMPTY_HIGH_WALL_TILE) {
         continue;
       }
@@ -1195,7 +1215,7 @@ void updateGame00(void)
       HIT_WALL_WHILE_JUMPING = 1;
     }
 
-      newX = player_x;
+    newX = player_x;
   }
   player_x = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newX));
 
