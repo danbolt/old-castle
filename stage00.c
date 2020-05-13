@@ -102,9 +102,13 @@ typedef enum {
   StaircaseRoom, // A room with a starcase to another floor
   EnemyRoom, // A room full of enemies
   RestRoom, // A room without enemies to take a break
+  NoRoom, // The void
+  HallwayRoom, // A room that's more of a hallawy to another room
 } RoomType;
 
 typedef struct {
+  u8 rawX;
+  u8 rawY;
   u8 x;
   u8 y;
   u8 width;
@@ -482,6 +486,7 @@ void initMap(GeneratedRoom* rooms) {
   int i;
   int j;
 
+  // Create the rooms
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
       int roomX = i % ROOM_SIZE;
@@ -495,11 +500,18 @@ void initMap(GeneratedRoom* rooms) {
         int w = 14 + (guRandom() % (ROOM_SIZE - 14));
         int h = 14 + (guRandom() % (ROOM_SIZE - 14));
 
+        rooms[roomIndex].rawX = i;
+        rooms[roomIndex].rawY = j;
         rooms[roomIndex].x = (ROOM_SIZE - w) / 2;
         rooms[roomIndex].y = (ROOM_SIZE - h) / 2;
         rooms[roomIndex].width = w;
         rooms[roomIndex].height = h;
         rooms[roomIndex].type = EnemyRoom;
+      }
+
+      if ((rooms[roomIndex].x == roomX) && (rooms[roomIndex].y == roomY)) {
+        rooms[roomIndex].rawX = i;
+        rooms[roomIndex].rawY = j;
       }
 
       // If we're outside the room, don't worry about it
@@ -517,6 +529,36 @@ void initMap(GeneratedRoom* rooms) {
         } else {
           MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
         }
+      }
+    }
+  }
+
+  // Connect adjacent rooms with pathways in a fun manner
+  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    GeneratedRoom* room = &rooms[i];
+    GeneratedRoom* east = (i % (MAP_SIZE / ROOM_SIZE) != ((MAP_SIZE / ROOM_SIZE) - 1)) ? &rooms[i + 1] : NULL;
+    GeneratedRoom* north = (i / (MAP_SIZE / ROOM_SIZE) != ((MAP_SIZE / ROOM_SIZE) - 1)) ? &rooms[i + (MAP_SIZE / ROOM_SIZE)] : NULL;
+
+    // Connect an east bridge
+    if (east != NULL) {
+      int i;
+      int midY = room->rawY + (room->height / 2) + (guRandom() % 4);
+
+      for (i = (room->rawX + room->width - 2); i < (east->rawX + 2); i++) {
+        MapInfo[((midY) * MAP_SIZE) + i] = FLOOR_TILE;
+        MapInfo[((midY - 1) * MAP_SIZE) + i] = FLOOR_TILE;
+        MapInfo[((midY - 2) * MAP_SIZE) + i] = FLOOR_TILE;
+      }
+    }
+
+    if (north != NULL) {
+      int i;
+      int midX = room->rawX + (room->width / 2) + (guRandom() % 4);
+
+      for (i = (room->rawY + room->height - 2); i < (north->rawY + 2); i++) {
+        MapInfo[(i * MAP_SIZE) + (midX - 0)] = FLOOR_TILE;
+        MapInfo[(i * MAP_SIZE) + (midX - 1)] = FLOOR_TILE;
+        MapInfo[(i * MAP_SIZE) + (midX - 2)] = FLOOR_TILE;
       }
     }
   }
@@ -743,6 +785,8 @@ void makeDL00(void)
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
 
+  nuDebPerfMarkSet(2);
+
   /* Specify the display list buffer */
   dynamicp = &gfx_dynamic[gfx_gtask_no];
   glistp = &gfx_glist[gfx_gtask_no][0];
@@ -792,6 +836,8 @@ void makeDL00(void)
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
   addPlayerDisplayList();
+
+  nuDebPerfMarkSet(3);
 
   // Determine sword display list
   guMtxIdent(&swordTranslation);
@@ -927,6 +973,8 @@ void makeDL00(void)
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
+  nuDebPerfMarkSet(4);
+
   // Render map tiles
   for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
     for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
@@ -947,6 +995,8 @@ void makeDL00(void)
     }
   }
 
+  nuDebPerfMarkSet(5);
+
   gDPPipeSync(glistp++);
 
   gDPFullSync(glistp++);
@@ -960,7 +1010,7 @@ void makeDL00(void)
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DLX_NON , NU_SC_NOSWAPBUFFER);
 
-  nuDebTaskPerfBar0(1, 200, NU_SC_SWAPBUFFER);
+  nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
 
 
