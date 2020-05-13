@@ -506,7 +506,7 @@ void initMap(GeneratedRoom* rooms) {
         rooms[roomIndex].y = (ROOM_SIZE - h) / 2;
         rooms[roomIndex].width = w;
         rooms[roomIndex].height = h;
-        rooms[roomIndex].type = EnemyRoom;
+        rooms[roomIndex].type = (roomIndex == 0) ? StartingRoom : EnemyRoom;
       }
 
       if ((rooms[roomIndex].x == roomX) && (rooms[roomIndex].y == roomY)) {
@@ -569,14 +569,16 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
   int nextEmitterIndex = 0;
 
   for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-    EmitterStates[nextEmitterIndex] = EMITTER_ALIVE;
-    EmitterPositions[nextEmitterIndex].x = (rooms[i].rawX + (rooms[i].width / 2)) * TILE_SIZE;
-    EmitterPositions[nextEmitterIndex].y = (rooms[i].rawY + (rooms[i].height / 2)) * TILE_SIZE;
-    EmitterVelocities[nextEmitterIndex].x = 0.f;
-    EmitterVelocities[nextEmitterIndex].y = 0.f;
+    if (rooms[i].type == EnemyRoom) {
+      EmitterStates[nextEmitterIndex] = EMITTER_ALIVE;
+      EmitterPositions[nextEmitterIndex].x = (rooms[i].rawX + (rooms[i].width / 2)) * TILE_SIZE;
+      EmitterPositions[nextEmitterIndex].y = (rooms[i].rawY + (rooms[i].height / 2)) * TILE_SIZE;
+      EmitterVelocities[nextEmitterIndex].x = 0.f;
+      EmitterVelocities[nextEmitterIndex].y = 0.f;
 
-    AimEmitters[nextEmitterIndex].emitterIndex = nextEmitterIndex;
-    nextEmitterIndex++;
+      AimEmitters[nextEmitterIndex].emitterIndex = nextEmitterIndex;
+      nextEmitterIndex++;
+    }
   }
 }
 
@@ -639,8 +641,8 @@ void initStage00(void)
   initEnemiesForMap(rooms);
   updateMapFromInfo();
 
-  player_x = rooms[0].x + (rooms[0].width / 2);
-  player_y = rooms[0].y + (rooms[0].height / 2);
+  player_x = (rooms[0].rawX + (rooms[0].width / 2)) * TILE_SIZE;
+  player_y = (rooms[0].rawY + (rooms[0].height / 2)) * TILE_SIZE;
 }
 
 void addBulletToDisplayList()
@@ -854,17 +856,17 @@ void makeDL00(void)
     }
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
-    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 10.f);
+    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 20.f);
     if (cubedScale < 0.3f) {
-      float scale = lerp(1.0f, 0.7f, cubedScale);
+      float scale = lerp(1.0f, 1.7f, cubedScale / 0.3f);
       guScale(&(swordScale), scale, scale, scale);
       guRotate(&(swordRotationX), lerp(5.f, -180.f, cubedScale / 0.3f), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale / 0.3f), 0.0f, 0.0f, 1.0f);
     } else {
-      float scale = lerp(0.7f, 2.1f, cubedScale);
+      float scale = lerp(1.7f, 2.1f, ((cubedScale - 0.3f) / 0.7f));
       guScale(&(swordScale), scale, scale, scale);
-      guRotate(&(swordRotationX), lerp(-90.f, 90.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), lerp(110.f, 0.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 0.0f, 1.0f);
+      guRotate(&(swordRotationX), lerp(-180.f, 90.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(swordRotationZ), lerp(90.f, 0.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 0.0f, 1.0f);
     }
   } else if (player_state == Landed) {
     float scale = lerp(2.0f, 1.0f, player_t);
