@@ -566,15 +566,17 @@ void initMap(GeneratedRoom* rooms) {
 
 void initEnemiesForMap(GeneratedRoom* rooms) {
   int i;
+  int nextEmitterIndex = 0;
 
-  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
-    EmitterStates[i] = EMITTER_ALIVE;
-    EmitterPositions[i].x = (MAP_SIZE * TILE_SIZE * 0.5f) + (sinf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
-    EmitterPositions[i].y = (MAP_SIZE * TILE_SIZE * 0.5f) + (cosf(((float)i) / 13 * M_PI * 2) * (MAP_SIZE * TILE_SIZE * 0.1525f));
-    EmitterVelocities[i].x = 0.f;
-    EmitterVelocities[i].y = 0.f;
+  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    EmitterStates[nextEmitterIndex] = EMITTER_ALIVE;
+    EmitterPositions[nextEmitterIndex].x = (rooms[i].rawX + (rooms[i].width / 2)) * TILE_SIZE;
+    EmitterPositions[nextEmitterIndex].y = (rooms[i].rawY + (rooms[i].height / 2)) * TILE_SIZE;
+    EmitterVelocities[nextEmitterIndex].x = 0.f;
+    EmitterVelocities[nextEmitterIndex].y = 0.f;
 
-    AimEmitters[i].emitterIndex = i;
+    AimEmitters[nextEmitterIndex].emitterIndex = nextEmitterIndex;
+    nextEmitterIndex++;
   }
 }
 
