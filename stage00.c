@@ -360,8 +360,13 @@ static float reciprocal_table_f[NRECTAB] = {
 
 #define DARKEN_VERT 0x20
 
-#define FLOOR_COLOR_1 0x62;
-#define FLOOR_COLOR_2 0x7f;
+#define FLOOR_COLOR_1 0x62
+#define FLOOR_COLOR_2 0x7f
+#define FLOOR_COLOR_2_VAR 0x0f
+
+#define WALL_COLOR_R 0x4f
+#define WALL_COLOR_G 0x4c
+#define WALL_COLOR_B 0x2f
 
 void updateMapFromInfo() {
   int i;
@@ -373,6 +378,8 @@ void updateMapFromInfo() {
     u8 tileType = IS_TILE_BLOCKED(x, y);
 
     if (tileType == FLOOR_TILE) {
+      int var = guRandom() % FLOOR_COLOR_2_VAR;
+
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = -1;
@@ -390,9 +397,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = FLOOR_COLOR_1 + var;
       map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -412,9 +419,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = FLOOR_COLOR_1 + var;
       map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -434,9 +441,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 5].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 5].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 5].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = FLOOR_COLOR_1 + var;
       map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE);
@@ -456,9 +463,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 7].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 7].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 7].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = FLOOR_COLOR_2;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = FLOOR_COLOR_2 + var;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = FLOOR_COLOR_1 + var;
       map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0xff;
 
       if ((y > 0) && IS_TILE_BLOCKED(x, (y - 1))) {
@@ -633,9 +640,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -644,9 +651,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -655,9 +662,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -666,9 +673,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
 
         offset += 4;
@@ -681,9 +688,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -692,9 +699,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -703,9 +710,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -714,9 +721,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
 
         offset += 4;
@@ -729,9 +736,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -740,9 +747,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -751,9 +758,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -762,9 +769,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
 
         offset += 4;
@@ -777,9 +784,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -788,9 +795,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -799,9 +806,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
-        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = WALL_COLOR_R - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = WALL_COLOR_G - DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = WALL_COLOR_B - DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
 
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE);
@@ -810,9 +817,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
-        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = WALL_COLOR_R;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = WALL_COLOR_G;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = WALL_COLOR_B;
         map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
 
         offset += 4;
