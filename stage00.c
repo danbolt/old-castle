@@ -1614,9 +1614,9 @@ void updateGame00(void)
 
     roll = guRandom() % 2;
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
-      player_sword[i].v.cn[0] = (roll == 0) ? 255 : 0;
-      player_sword[i].v.cn[1] = (roll == 0) ? 200 : 0;
-      player_sword[i].v.cn[2] = (roll == 0) ? 200 : 0;
+      player_sword[i].v.cn[0] = (roll == 0) ? 200 : 255;
+      player_sword[i].v.cn[1] = (roll == 0) ? 200 : 255;
+      player_sword[i].v.cn[2] = 255;
     }
 
   } else if (player_state == Landed) {
