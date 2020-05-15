@@ -138,7 +138,7 @@ static EntityTransform EmitterMatricies[EMITTER_COUNT];
 static u8 EmitterStates[EMITTER_COUNT];
 static u32 EmitterTicks[EMITTER_COUNT];
 
-static int MapInfo[MAP_SIZE * MAP_SIZE]; // 0 for empty, 1 for filled
+static u8 MapInfo[MAP_SIZE * MAP_SIZE]; // 0 for empty, 1 for filled
 
 #define VERTS_PER_TILE 8
 static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
@@ -358,6 +358,11 @@ static float reciprocal_table_f[NRECTAB] = {
     1.0/91.0,1.0/92.0,1.0/93.0,1.0/94.0,1.0/95.0,1.0/96.0,1.0/97.0,1.0/89.0,1.0/99.0
 };
 
+#define DARKEN_VERT 0x20
+
+#define FLOOR_COLOR_1 0x62;
+#define FLOOR_COLOR_2 0x7f;
+
 void updateMapFromInfo() {
   int i;
 
@@ -365,96 +370,453 @@ void updateMapFromInfo() {
     short x = i % MAP_SIZE;
     short y = i / MAP_SIZE;
 
-    int roll = guRandom() % 0x0f;
+    u8 tileType = IS_TILE_BLOCKED(x, y);
 
-    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x71 + 0x1a);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x44 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = (MapInfo[i] == 0) ? (0x3d + roll) : (0x12 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x00);
+    if (tileType == FLOOR_TILE) {
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = 0xff;
 
-    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x71 + 0x1a);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x44 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = (MapInfo[i] == 0) ? (0x3d + roll) : (0x12 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x00);
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + 1;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = 0xff;
 
-    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
-    map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x71 + 0x40);
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x44 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = (MapInfo[i] == 0) ? (0x3d + roll) : (0x12 + 0x40);
-    map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x40);
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = 0xff;
 
-    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
-    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = (MapInfo[i] == 0) ? -1 : (MapInfo[i] == LOW_WALL_TILE ? 1 : 10);
-    map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x71 + 0x1a);
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = (MapInfo[i] == 0) ? (0x60 + roll) : (0x44 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = (MapInfo[i] == 0) ? (0x3d + roll) : (0x12 + 0x00);
-    map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = (MapInfo[i] == 0) ? (0xff + roll) : (0x01 + 0x00);
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + 1;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = 0xff;
 
-    if (IS_TILE_BLOCKED(x, y)) {
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[1] = (y * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + 1;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[1] = (y * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[1] = (y * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[1] = (y * TILE_SIZE) + 1;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[2] = -1;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = FLOOR_COLOR_2;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0xff;
+
+      if ((y > 0) && IS_TILE_BLOCKED(x, (y - 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((y < (MAP_SIZE - 1)) && IS_TILE_BLOCKED(x, (y + 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((x > 0) && IS_TILE_BLOCKED((x - 1), y)) {
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((x < (MAP_SIZE - 1)) && IS_TILE_BLOCKED((x + 1), y)) {
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] -= DARKEN_VERT;
+
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] -= DARKEN_VERT;
+      }
+
+      if ((x > 0) && (y > 0) && IS_TILE_BLOCKED((x - 1), (y - 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((x > 0) && (y < (MAP_SIZE - 1)) && IS_TILE_BLOCKED((x - 1), (y + 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((x < (MAP_SIZE - 1)) && (y < (MAP_SIZE - 1)) && IS_TILE_BLOCKED((x + 1), (y + 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] -= DARKEN_VERT;
+      }
+      if ((x < (MAP_SIZE - 1)) && (y > 0) && IS_TILE_BLOCKED((x + 1), (y - 1))) {
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] -= DARKEN_VERT;
+      }
+
+    } else if (tileType == LOW_WALL_TILE) {
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = 1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = 0x5f;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = 0x54;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = 0x32;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = 1;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = 0x5f;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = 0x54;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = 0x32;
+      map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = 1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = 0x5f;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = 0x54;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = 0x32;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = 0xff;
+
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE);
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = 1;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = 0x5f;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = 0x54;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = 0x32;
+      map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = 0xff;
+
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[1] = (y * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 4].v.ob[2] = -1;
       map_geom[(i * VERTS_PER_TILE) + 4].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 4].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 4].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = 0x11;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = 0x24;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = 0x12;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0x01;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = 0x5f - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = 0x54 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = 0x32 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0xff - DARKEN_VERT;
 
-      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + 2;
       map_geom[(i * VERTS_PER_TILE) + 5].v.ob[1] = (y * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 5].v.ob[2] = -1;
       map_geom[(i * VERTS_PER_TILE) + 5].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 5].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 5].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = 0x11;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = 0x24;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = 0x12;
-      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0x01;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = 0x5f - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = 0x54 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = 0x32 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0xff - DARKEN_VERT;
 
-      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE) + TILE_SIZE;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE) + 2;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.ob[1] = (y * TILE_SIZE) + 2;
       map_geom[(i * VERTS_PER_TILE) + 6].v.ob[2] = -1;
       map_geom[(i * VERTS_PER_TILE) + 6].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 6].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 6].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = 0x11;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = 0x24;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = 0x12;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0x01;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = 0x5f - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = 0x54 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = 0x32 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0xff - DARKEN_VERT;
 
       map_geom[(i * VERTS_PER_TILE) + 7].v.ob[0] = (x * TILE_SIZE);
-      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[1] = (y * TILE_SIZE) + TILE_SIZE;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.ob[1] = (y * TILE_SIZE) + 2;
       map_geom[(i * VERTS_PER_TILE) + 7].v.ob[2] = -1;
       map_geom[(i * VERTS_PER_TILE) + 7].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 7].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 7].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = 0x11;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = 0x24;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = 0x12;
-      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0x01;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = 0x5f - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = 0x54 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = 0x32 - DARKEN_VERT;
+      map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0xff - DARKEN_VERT;
+    } else if (tileType == HIGH_WALL_TILE) {
+      int offset = 0;
+
+      if ((offset < 8) && (y > 0) && (((HIGH_WALL_TILE != IS_TILE_BLOCKED(x, (y - 1))) && (EMPTY_HIGH_WALL_TILE != IS_TILE_BLOCKED(x, (y - 1)))))) {
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
+
+        offset += 4;
+      }
+
+      if ((offset < 8) && (y < (MAP_SIZE - 1)) && (((HIGH_WALL_TILE != IS_TILE_BLOCKED(x, (y + 1))) && (EMPTY_HIGH_WALL_TILE != IS_TILE_BLOCKED(x, (y + 1)))))) {
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
+
+        offset += 4;
+      }
+
+      if ((offset < 8) && (x < (MAP_SIZE - 1)) && (((HIGH_WALL_TILE != IS_TILE_BLOCKED((x + 1), (y))) && (EMPTY_HIGH_WALL_TILE != IS_TILE_BLOCKED((x + 1), (y)))))) {
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
+
+        offset += 4;
+      }
+
+      if ((offset < 8) && (x > 0) && (((HIGH_WALL_TILE != IS_TILE_BLOCKED((x - 1), (y))) && (EMPTY_HIGH_WALL_TILE != IS_TILE_BLOCKED((x - 1), (y)))))) {
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 0 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[1] = (y * TILE_SIZE) + 2;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 1 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.ob[2] = -1;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[0] = 0x30;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[1] = 0x29;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 2 + offset].v.cn[3] = 0xff;
+
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[0] = (x * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[1] = (y * TILE_SIZE);
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.ob[2] = 3;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.flag = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[0] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.tc[1] = 0;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[0] = 0x4f;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[1] = 0x44;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[2] = 0x12;
+        map_geom[(i * VERTS_PER_TILE) + 3 + offset].v.cn[3] = 0xff;
+
+        offset += 4;
+      }
     }
   }
 }
@@ -544,10 +906,12 @@ void initMap(GeneratedRoom* rooms) {
       int i;
       int midY = room->rawY + (room->height / 2) + (guRandom() % 4);
 
-      for (i = (room->rawX + room->width - 2); i < (east->rawX + 2); i++) {
+      for (i = (room->rawX + room->width - 1); i < (east->rawX + 1); i++) {
+        MapInfo[((midY + 1) * MAP_SIZE) + i] = HIGH_WALL_TILE;
         MapInfo[((midY) * MAP_SIZE) + i] = FLOOR_TILE;
         MapInfo[((midY - 1) * MAP_SIZE) + i] = FLOOR_TILE;
         MapInfo[((midY - 2) * MAP_SIZE) + i] = FLOOR_TILE;
+        MapInfo[((midY - 3) * MAP_SIZE) + i] = HIGH_WALL_TILE;
       }
     }
 
@@ -555,10 +919,12 @@ void initMap(GeneratedRoom* rooms) {
       int i;
       int midX = room->rawX + (room->width / 2) + (guRandom() % 4);
 
-      for (i = (room->rawY + room->height - 2); i < (north->rawY + 2); i++) {
+      for (i = (room->rawY + room->height - 1); i < (north->rawY + 1); i++) {
+        MapInfo[(i * MAP_SIZE) + (midX + 1)] = HIGH_WALL_TILE;
         MapInfo[(i * MAP_SIZE) + (midX - 0)] = FLOOR_TILE;
         MapInfo[(i * MAP_SIZE) + (midX - 1)] = FLOOR_TILE;
         MapInfo[(i * MAP_SIZE) + (midX - 2)] = FLOOR_TILE;
+        MapInfo[(i * MAP_SIZE) + (midX - 3)] = FLOOR_TILE;
       }
     }
   }
@@ -744,7 +1110,7 @@ void addPlayerDisplayList()
 
 void addSwordDisplayList()
 {
-  gSPVertex(glistp++,&(player_sword[0]), 22, 0);
+  gSPVertex(glistp++,&(player_sword[0]), 21, 0);
   gSP2Triangles(glistp++, 14, 4, 15, 0, 2, 1, 0, 0);
   gSP2Triangles(glistp++, 11, 2, 0, 0, 14, 1, 3, 0);
   gSP2Triangles(glistp++, 0, 12, 11, 0, 15, 6, 19, 0);
@@ -982,19 +1348,27 @@ void makeDL00(void)
   // Render map tiles
   for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
     for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
-      if (IS_TILE_BLOCKED(i, j) == EMPTY_HIGH_WALL_TILE) {
+      int type = IS_TILE_BLOCKED(i, j);
+
+      if (type == EMPTY_HIGH_WALL_TILE) {
         continue;
       }
 
-      gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * VERTS_PER_TILE]), IS_TILE_BLOCKED(i, j) ? 8 : 4, 0);
-      gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+      gSPVertex(glistp++,&(map_geom[((j * MAP_SIZE) + i) * VERTS_PER_TILE]), 8, 0);
 
-      if (IS_TILE_BLOCKED(i, j)) {
+      if (type == FLOOR_TILE) {
+        gSP2Triangles(glistp++,7,0,1,0,1,2,3,0);
+        gSP2Triangles(glistp++,3,4,5,0,5,6,7,0);
+        gSP2Triangles(glistp++,7,1,5,0,5,1,3,0);
+      } else if (type == LOW_WALL_TILE) {
         gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-        gSP2Triangles(glistp++,2,1,5,0,2,5,6,0);
-        gSP2Triangles(glistp++,3,2,6,0,3,6,7,0);
+        gSP2Triangles(glistp++,0,4,1,0,4,5,1,0);
+        gSP2Triangles(glistp++,3,2,7,0,2,6,7,0);
+        gSP2Triangles(glistp++,2,1,6,0,6,1,5,0);
         gSP2Triangles(glistp++,0,3,7,0,0,7,4,0);
-        gSP2Triangles(glistp++,1,0,4,0,1,4,5,0);
+      } else if (type == HIGH_WALL_TILE) {
+        gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+        gSP2Triangles(glistp++,4,5,6,0,4,6,7,0);
       }
     }
   }
@@ -1014,14 +1388,13 @@ void makeDL00(void)
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DLX_NON , NU_SC_NOSWAPBUFFER);
 
-  nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
+  //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
 
 
-  /*
+
   if(contPattern & 0x1)
   {
-
     nuDebConTextPos(0,1,3);
     sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
     nuDebConCPuts(0, conbuf);
@@ -1077,7 +1450,7 @@ void makeDL00(void)
 
     
   /* Display characters on the frame buffer */
-  //nuDebConDisp(NU_SC_SWAPBUFFER);
+  nuDebConDisp(NU_SC_SWAPBUFFER);
 
   /* Switch display list buffers */
   gfx_gtask_no ^= 1;
