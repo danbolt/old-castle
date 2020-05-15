@@ -200,15 +200,14 @@ static Vtx emitter_test_geom[] =  {
 };
 
 static Vtx jump_target_geom[] =  {
+  {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
   {   1,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
-  {   0,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
-  {   0,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
-  {   1,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
-
-  {   0,  0, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
-  {  -1,  0, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
-  {  -1, -1, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
-  {   0, -1, 0, 0, 0, 0, 0, 0, 0xff, 0xff },
+  {   2,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   1,  -1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   0,  -2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   -1,  -1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   -2,  0, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
+  {   -1,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
 };
 
 static Vtx player_cloak[] = {
@@ -1152,7 +1151,7 @@ void makeDL00(void)
   Mtx playerJumpRotation;
   Mtx playerScale;
   Mtx targetTranslation;
-  Mtx targetScale;
+  Mtx targetRotation;
   Mtx swordTranslation;
   Mtx swordScale;
   Mtx swordRotationX;
@@ -1262,16 +1261,17 @@ void makeDL00(void)
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
-  guScale(&(targetScale), (sinf(player_x) * 0.6f + 0.5f) + 0.4f, (cosf(player_y) * 0.6f + 0.5f) + 0.4f, 0.f);
+  guRotate(&(targetRotation), ((float)time) * 0.0005f,  0.f, 0.f, 1.f);
 
   if (player_state == Move) { 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-    gSPVertex(glistp++, &(jump_target_geom[0]), 4, 0);
-    gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
-    gSPVertex(glistp++, &(jump_target_geom[4]), 4, 0);
-    gSP2Triangles(glistp++, 0,1,2,0,0,2,3,0);
+    gSPVertex(glistp++, &(jump_target_geom[0]), 8, 0);
+    gSP2Triangles(glistp++, 0,3,1,0,3,6,4,0);
+    //gSP2Triangles(glistp++, 0 + 1,3 + 1,1 + 1,0,3 + 1,6 + 1,4 + 1,0);
+    //gSP2Triangles(glistp++, 0 + 2,3 + 2,1 + 2,0,3 + 2, 0,4 + 2,0);
+    gSP1Triangle(glistp++, 0 + 2,3 + 2,1 + 2,0);
 
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
