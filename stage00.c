@@ -358,6 +358,33 @@ static Vtx trail_geo[] = {
 { 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
 };
 
+static Vtx player_land_effect[] = {
+{ 0, 54, 4, 0, 0, 0, 237, 69, 115, 255 },
+{ -38, 38, 4, 0, 0, 0, 237, 74, 33, 255 },
+{ -54, 0, 4, 0, 0, 0, 237, 69, 115, 255 },
+{ -38, -38, 4, 0, 0, 0, 237, 74, 33, 255 },
+{ 0, -54, 4, 0, 0, 0, 237, 69, 115, 255 },
+{ 38, -38, 4, 0, 0, 0, 237, 74, 33, 255 },
+{ 54, 0, 4, 0, 0, 0, 237, 69, 115, 255 },
+{ 38, 38, 4, 0, 0, 0, 237, 74, 33, 255 },
+{ 0, 112, 15, 0, 0, 0, 111, 237, 210, 255 },
+{ -79, 79, 15, 0, 0, 0, 237, 74, 33, 255 },
+{ -112, 0, 15, 0, 0, 0, 111, 237, 210, 255 },
+{ -79, -79, 15, 0, 0, 0, 237, 74, 33, 255 },
+{ 0, -112, 15, 0, 0, 0, 111, 237, 210, 255 },
+{ 79, -79, 15, 0, 0, 0, 237, 74, 33, 255 },
+{ 112, 0, 15, 0, 0, 0, 111, 237, 210, 255 },
+{ 79, 79, 15, 0, 0, 0, 237, 74, 33, 255 },
+{ 0, 105, -2, 0, 0, 0, 111, 237, 210, 255 },
+{ -74, 74, -2, 0, 0, 0, 237, 74, 33, 255 },
+{ -105, 0, -2, 0, 0, 0, 111, 237, 210, 255 },
+{ -74, -74, -2, 0, 0, 0, 237, 74, 33, 255 },
+{ 0, -105, -2, 0, 0, 0, 111, 237, 210, 255 },
+{ 74, -74, -2, 0, 0, 0, 237, 74, 33, 255 },
+{ 105, 0, -2, 0, 0, 0, 111, 237, 210, 255 },
+{ 74, 74, -2, 0, 0, 0, 237, 74, 33, 255 },
+};
+
 float fabs_d(float x) {
   if (x < 0.f) {
     return -x;
@@ -1179,7 +1206,26 @@ void addSwordDisplayList()
   gSP2Triangles(glistp++, 10, 17, 9, 0, 17, 21, 18, 0);
 }
 
-/* Make the display list and activate the task */
+void addLandEffectDisplayList() {
+  gSPVertex(glistp++,&(player_land_effect[0]), 24, 0);
+  gSP2Triangles(glistp++, 2, 9, 10, 0, 7, 14, 15, 0);
+  gSP2Triangles(glistp++, 5, 12, 13, 0, 3, 10, 11, 0);
+  gSP2Triangles(glistp++, 1, 8, 9, 0, 0, 15, 8, 0);
+  gSP2Triangles(glistp++, 6, 13, 14, 0, 4, 11, 12, 0);
+  gSP2Triangles(glistp++, 13, 20, 21, 0, 11, 18, 19, 0);
+  gSP2Triangles(glistp++, 9, 16, 17, 0, 8, 23, 16, 0);
+  gSP2Triangles(glistp++, 14, 21, 22, 0, 12, 19, 20, 0);
+  gSP2Triangles(glistp++, 10, 17, 18, 0, 15, 22, 23, 0);
+  gSP2Triangles(glistp++, 2, 1, 9, 0, 7, 6, 14, 0);
+  gSP2Triangles(glistp++, 5, 4, 12, 0, 3, 2, 10, 0);
+  gSP2Triangles(glistp++, 1, 0, 8, 0, 0, 7, 15, 0);
+  gSP2Triangles(glistp++, 6, 5, 13, 0, 4, 3, 11, 0);
+  gSP2Triangles(glistp++, 13, 12, 20, 0, 11, 10, 18, 0);
+  gSP2Triangles(glistp++, 9, 8, 16, 0, 8, 15, 23, 0);
+  gSP2Triangles(glistp++, 14, 13, 21, 0, 12, 11, 19, 0);
+  gSP2Triangles(glistp++, 10, 9, 17, 0, 15, 14, 22, 0);
+}
+
 void makeDL00(void)
 {
   Dynamic* dynamicp;
@@ -1197,6 +1243,8 @@ void makeDL00(void)
   Mtx particleScale;
   Mtx swordRotationX;
   Mtx swordRotationZ;
+  Mtx landEffectRotation;
+  Mtx landEffectScale;
   float ox, oy, oz; // for CPU transforming the sword trail
   int running = (fabs_d(player_facing_x) > 0.1f) || (fabs_d(player_facing_y) > 0.1f);
 
@@ -1353,6 +1401,19 @@ void makeDL00(void)
     gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
   }
   trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+
+  if (player_state == Landed) {
+    float hump = sinf((player_t) * M_PI);
+    guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
+    guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    addLandEffectDisplayList();
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
 
   gDPPipeSync(glistp++);
 
