@@ -135,6 +135,7 @@ static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 static Position EmitterPositions[EMITTER_COUNT];
 static Velocity EmitterVelocities[EMITTER_COUNT];
 static EntityTransform EmitterMatricies[EMITTER_COUNT];
+static EntityTransform EmitterRotations[EMITTER_COUNT];
 static u8 EmitterStates[EMITTER_COUNT];
 static u32 EmitterTicks[EMITTER_COUNT];
 
@@ -385,6 +386,38 @@ static Vtx player_land_effect[] = {
 { 74, 74, -27, 0, 0, 0, 221, 240, 255, 255 },
 };
 
+static Vtx thing_geom[] = {
+{ -108, -96, -113, 0, 0, 0, 33, 15, 84, 255 },
+{ -108, 120, -113, 0, 0, 0, 33, 15, 84, 255 },
+{ -108, 120, 54, 0, 0, 0, 33, 15, 84, 255 },
+{ 108, -96, -113, 0, 0, 0, 33, 15, 84, 255 },
+{ 108, 120, -113, 0, 0, 0, 33, 15, 84, 255 },
+{ 108, 120, 54, 0, 0, 0, 33, 15, 84, 255 },
+{ -82, 11, 146, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, 93, 146, 0, 0, 0, 33, 15, 84, 255 },
+{ 82, -70, 146, 0, 0, 0, 33, 15, 84, 255 },
+{ 82, 11, 146, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, 160, -145, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, 160, 85, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, -137, 4, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, -137, 85, 0, 0, 0, 36, 20, 84, 255 },
+{ -148, 11, -145, 0, 0, 0, 33, 15, 84, 255 },
+{ -148, 11, 85, 0, 0, 0, 33, 15, 84, 255 },
+{ 148, 11, -145, 0, 0, 0, 33, 15, 84, 255 },
+{ 148, 11, 85, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, 11, 168, 0, 0, 0, 33, 15, 84, 255 },
+{ 0, 11, -145, 0, 0, 0, 33, 15, 84, 255 },
+{ -103, -96, 12, 0, 0, 0, 33, 15, 84, 255 },
+{ -65, -111, 65, 0, 0, 0, 255, 239, 0, 255 },
+{ -92, -85, 94, 0, 0, 0, 255, 239, 0, 255 },
+{ -117, -57, 65, 0, 0, 0, 255, 239, 0, 255 },
+{ 92, -85, 94, 0, 0, 0, 255, 239, 0, 255 },
+{ 65, -111, 65, 0, 0, 0, 255, 239, 0, 255 },
+{ 103, -96, 12, 0, 0, 0, 33, 15, 84, 255 },
+{ 117, -57, 65, 0, 0, 0, 255, 239, 0, 255 },
+{ -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
+};
+
 float fabs_d(float x) {
   if (x < 0.f) {
     return -x;
@@ -419,6 +452,57 @@ static float reciprocal_table_f[NRECTAB] = {
     1.0/81.0,1.0/82.0,1.0/83.0,1.0/84.0,1.0/85.0,1.0/86.0,1.0/87.0,1.0/88.0,1.0/89.0,1.0/90.0,
     1.0/91.0,1.0/92.0,1.0/93.0,1.0/94.0,1.0/95.0,1.0/96.0,1.0/97.0,1.0/89.0,1.0/99.0
 };
+
+float
+atan2bodyf(float y,float x)
+{ 
+    float arg,ys,old;
+    float power, term, sum, z;
+    int i;
+
+    if ( y == 0.0f )
+      return 0.0f;
+
+    if ( x == 0.0f )
+      return (y > 0.0f)? (float)M_PI_2 : -(float)M_PI_2;
+
+    arg = y / x;
+
+    if ( arg == 1.0f )
+      return (y > 0.0f)? (float)M_PI_4 : -3.0f * (float)M_PI_4;
+ 
+    if ( arg == -1.0f )
+      return (x > 0.0f) ? -(float)M_PI_4 :  3.0f * (float)M_PI_4;
+
+    if ( arg > 1.0f || arg < -1.0f) {
+  sum = atan2bodyf(x, y);
+  if( x > 0.0f )
+    return (float)M_PI_2 - sum;
+  else         
+    return (y > 0.0f) ? (float)M_PI_2 - sum: -3.0f * (float)M_PI_2 -sum;
+    }
+
+    ys = arg * arg;
+    old = 1.0f / (1.0f + ys);
+    z = ys * old;
+    sum = 1.0f;
+    i = 4;
+    power = z * 2.0f / 3.0f;
+    while( i < NRECTAB-1) {
+  term = power;
+  sum += term;
+  if ( term >= -TOL && term <= TOL) break;
+  power *= ( z * (float)i * reciprocal_table_f[i+1] );
+  i += 2;
+    }
+    sum *= arg * old;
+    return ( x > 0.0f )? sum : ( y > 0.0f ) ? (float)M_PI + sum :-(float)M_PI + sum;
+}
+
+float nu_atan2(float y, float x)
+{
+    return atan2bodyf(y, x);
+}
 
 #define DARKEN_VERT 0x20
 
@@ -1099,14 +1183,35 @@ void addBulletToDisplayList()
 
 void addEmitterToDisplayList()
 {
-  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
-  gSPVertex(glistp++,&(emitter_test_geom[guRandom() % 21]), 4, 0);
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+  int i;
+  gSPVertex(glistp++,&(thing_geom[0]), 29, 0);
+gSP2Triangles(glistp++, 14, 2, 1, 0, 10, 5, 4, 0);
+gSP2Triangles(glistp++, 19, 3, 12, 0, 17, 5, 9, 0);
+gSP2Triangles(glistp++, 17, 8, 27, 0, 26, 13, 12, 0);
+gSP2Triangles(glistp++, 11, 2, 7, 0, 5, 7, 9, 0);
+gSP2Triangles(glistp++, 15, 28, 6, 0, 14, 12, 0, 0);
+gSP2Triangles(glistp++, 14, 15, 2, 0, 1, 11, 10, 0);
+gSP2Triangles(glistp++, 1, 19, 14, 0, 9, 7, 18, 0);
+gSP2Triangles(glistp++, 2, 6, 7, 0, 7, 6, 18, 0);
+gSP2Triangles(glistp++, 17, 26, 3, 0, 10, 16, 19, 0);
+gSP2Triangles(glistp++, 4, 17, 16, 0, 13, 20, 0, 0);
+gSP2Triangles(glistp++, 20, 22, 23, 0, 24, 26, 27, 0);
+gSP2Triangles(glistp++, 20, 15, 14, 0, 10, 11, 5, 0);
+gSP2Triangles(glistp++, 13, 25, 24, 0, 22, 21, 13, 0);
+gSP2Triangles(glistp++, 19, 16, 3, 0, 8, 24, 27, 0);
+gSP2Triangles(glistp++, 8, 17, 9, 0, 12, 3, 26, 0);
+gSP2Triangles(glistp++, 26, 25, 13, 0, 5, 11, 7, 0);
+gSP2Triangles(glistp++, 15, 23, 22, 0, 14, 19, 12, 0);
+gSP2Triangles(glistp++, 1, 2, 11, 0, 1, 10, 19, 0);
+gSP2Triangles(glistp++, 2, 15, 6, 0, 3, 16, 17, 0);
+gSP2Triangles(glistp++, 17, 27, 26, 0, 10, 4, 16, 0);
+gSP2Triangles(glistp++, 4, 5, 17, 0, 0, 12, 13, 0);
+gSP2Triangles(glistp++, 13, 21, 20, 0, 20, 21, 22, 0);
+gSP2Triangles(glistp++, 24, 25, 26, 0, 14, 0, 20, 0);
+gSP2Triangles(glistp++, 20, 23, 15, 0, 15, 22, 28, 0);
+gSP2Triangles(glistp++, 22, 13, 28, 0, 24, 8, 13, 0);
+gSP2Triangles(glistp++, 28, 13, 8, 0, 9, 18, 8, 0);
+gSP2Triangles(glistp++, 18, 6, 28, 0, 28, 8, 18, 0);
 }
 
 void addPlayerDisplayList()
@@ -1453,9 +1558,12 @@ void makeDL00(void)
   }
 
   // Render emitters
+
+  gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK);
   for (i = 0; i < EMITTER_COUNT; i++) {
     float dxSq;
     float dySq;
+    float dyRot;
     if (EmitterStates[i] == EMITTER_DEAD) {
       continue;
     }
@@ -1476,14 +1584,14 @@ void makeDL00(void)
       continue;
     }
 
+    dyRot = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x) + M_PI_2;
     guTranslate(&(EmitterMatricies[i].mat), EmitterPositions[i].x, EmitterPositions[i].y, 0.f);
+    guRotate(&(EmitterRotations[i].mat), dyRot / M_PI * 180, 0.f, 0.f, 1.f);
 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
-
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterRotations[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
     addEmitterToDisplayList();
-
-    gDPPipeSync(glistp++);
-
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
@@ -1600,58 +1708,6 @@ void makeDL00(void)
   gfx_gtask_no ^= 1;
 }
 
-float
-atan2bodyf(float y,float x)
-{ 
-    float arg,ys,old;
-    float power, term, sum, z;
-    int i;
-
-    if ( y == 0.0f )
-      return 0.0f;
-
-    if ( x == 0.0f )
-      return (y > 0.0f)? (float)M_PI_2 : -(float)M_PI_2;
-
-    arg = y / x;
-
-    if ( arg == 1.0f )
-      return (y > 0.0f)? (float)M_PI_4 : -3.0f * (float)M_PI_4;
- 
-    if ( arg == -1.0f )
-      return (x > 0.0f) ? -(float)M_PI_4 :  3.0f * (float)M_PI_4;
-
-    if ( arg > 1.0f || arg < -1.0f) {
-  sum = atan2bodyf(x, y);
-  if( x > 0.0f )
-    return (float)M_PI_2 - sum;
-  else         
-    return (y > 0.0f) ? (float)M_PI_2 - sum: -3.0f * (float)M_PI_2 -sum;
-    }
-
-    ys = arg * arg;
-    old = 1.0f / (1.0f + ys);
-    z = ys * old;
-    sum = 1.0f;
-    i = 4;
-    power = z * 2.0f / 3.0f;
-    while( i < NRECTAB-1) {
-  term = power;
-  sum += term;
-  if ( term >= -TOL && term <= TOL) break;
-  power *= ( z * (float)i * reciprocal_table_f[i+1] );
-  i += 2;
-    }
-    sum *= arg * old;
-    return ( x > 0.0f )? sum : ( y > 0.0f ) ? (float)M_PI + sum :-(float)M_PI + sum;
-}
-
-float
-Atan2f(float y, float x)
-{
-    return atan2bodyf(y, x);
-}
-
 void updateGame00(void)
 {  
   int i;
@@ -1725,7 +1781,7 @@ void updateGame00(void)
     deltaY = stickY * 127;
     player_facing_x = (deltaX * cosCamRot) + (deltaY * sinCamRot);
     player_facing_y = (-deltaX * sinCamRot) + (deltaY * cosCamRot);
-    playerStickRot = Atan2f(player_facing_y, player_facing_x);
+    playerStickRot = nu_atan2(player_facing_y, player_facing_x);
 
     // If we're pushing on the stick, update the player's rotation
     if ((fabs_d(stickX) > 0.01f) || (fabs_d(stickY) > 0.01f)) {
@@ -1939,7 +1995,7 @@ void updateGame00(void)
     BulletStates[newBulletIndex] = 1;
     BulletPositions[newBulletIndex].x = EmitterPositions[AimEmitters[i].emitterIndex].x;
     BulletPositions[newBulletIndex].y = EmitterPositions[AimEmitters[i].emitterIndex].y;
-    theta = Atan2f(player_y - BulletPositions[newBulletIndex].y, player_x - BulletPositions[newBulletIndex].x);
+    theta = nu_atan2(player_y - BulletPositions[newBulletIndex].y, player_x - BulletPositions[newBulletIndex].x);
     BulletVelocities[newBulletIndex].x = 5.831332f * cosf(theta);
     BulletVelocities[newBulletIndex].y = 5.831332f * sinf(theta);
 
