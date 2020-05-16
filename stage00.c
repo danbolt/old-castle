@@ -322,6 +322,42 @@ static Vtx player_sword[] = {
 { 365, 0, -4, 0, 0, 0, 40, 186, 168, 255 },
 };
 
+static u8 trail_geo_index;
+static Vtx trail_geo[] = {
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
+{ 8003, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 118, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+};
+
 float fabs_d(float x) {
   if (x < 0.f) {
     return -x;
@@ -360,6 +396,7 @@ static float reciprocal_table_f[NRECTAB] = {
 #define DARKEN_VERT 0x20
 
 #define FLOOR_COLOR_1 0x62
+#define FLOOR_COLOR_1_VAR 0x13
 #define FLOOR_COLOR_2 0x7f
 #define FLOOR_COLOR_2_VAR 0x0f
 
@@ -378,6 +415,7 @@ void updateMapFromInfo() {
 
     if (tileType == FLOOR_TILE) {
       int var = guRandom() % FLOOR_COLOR_2_VAR;
+      int var2 = guRandom() % FLOOR_COLOR_1_VAR;
 
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
@@ -385,9 +423,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = FLOOR_COLOR_1 + var2;
       map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + 1;
@@ -407,9 +445,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = FLOOR_COLOR_1 + var2;
       map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE) + 2;
@@ -429,9 +467,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 4].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 4].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 4].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = FLOOR_COLOR_1 + var2;
       map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + 1;
@@ -451,9 +489,9 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 6].v.flag = 0;
       map_geom[(i * VERTS_PER_TILE) + 6].v.tc[0] = 0;
       map_geom[(i * VERTS_PER_TILE) + 6].v.tc[1] = 0;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = FLOOR_COLOR_1;
-      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = FLOOR_COLOR_1;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = FLOOR_COLOR_1 + var2;
+      map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = FLOOR_COLOR_1 + var2;
       map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0xff;
 
       map_geom[(i * VERTS_PER_TILE) + 7].v.ob[0] = (x * TILE_SIZE);
@@ -965,6 +1003,8 @@ void initStage00(void)
   player_t = 0.f;
   HIT_WALL_WHILE_JUMPING = 0;
 
+  trail_geo_index = 0;
+
   camera_x = 0.0f;
   camera_y = 0.0f;
 
@@ -1154,8 +1194,10 @@ void makeDL00(void)
   Mtx targetRotation;
   Mtx swordTranslation;
   Mtx swordScale;
+  Mtx particleScale;
   Mtx swordRotationX;
   Mtx swordRotationZ;
+  float ox, oy, oz; // for CPU transforming the sword trail
   int running = (fabs_d(player_facing_x) > 0.1f) || (fabs_d(player_facing_y) > 0.1f);
 
   /* Perspective normal value; I don't know what this does yet. */
@@ -1221,7 +1263,7 @@ void makeDL00(void)
     guScale(&(swordScale), 0.9f, 0.9f, 0.8f);
     if (running) {
       guRotate(&(swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), 120.f + (6.3f * sinf(time / 180000.f)), 0.0f, 0.0f, 1.0f);
+      guRotate(&(swordRotationZ), 145.f + (6.3f * sinf(time / 200000.f)), 0.0f, 0.0f, 1.0f);
     } else {
       guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
@@ -1256,6 +1298,8 @@ void makeDL00(void)
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationX)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   addSwordDisplayList();
+
+
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
@@ -1277,6 +1321,38 @@ void makeDL00(void)
   }
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+  guMtxXFML(&(swordScale), 0.f , 0.f, 0.f, &ox, &oy, &oz);
+  guMtxXFML(&(swordRotationX), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(swordTranslation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerScale), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML((&(playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
+  trail_geo[trail_geo_index + 0].v.ob[0] = (short)ox;
+  trail_geo[trail_geo_index + 0].v.ob[1] = (short)oy;
+  trail_geo[trail_geo_index + 0].v.ob[2] = (short)oz;
+  guMtxXFML(&(swordScale),(player_state == Jumping) ? (400.f * player_t) : 320.f , 0.f, 0.f, &ox, &oy, &oz);
+  guMtxXFML(&(swordRotationX), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(swordTranslation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerScale), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(playerRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML((&(playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
+  trail_geo[trail_geo_index + 1].v.ob[0] = (short)ox;
+  trail_geo[trail_geo_index + 1].v.ob[1] = (short)oy;
+  trail_geo[trail_geo_index + 1].v.ob[2] = (short)oz;
+  gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
+  for (i = 0; i < 32; i += 2) {
+    int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i2 = (trail_geo_index + i - 1 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i3 = (trail_geo_index + i - 2 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i4 = (trail_geo_index + i - 3 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
+  }
+  trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
 
   gDPPipeSync(glistp++);
 
@@ -1531,6 +1607,9 @@ void updateGame00(void)
   OSTime newTime = OS_CYCLES_TO_USEC(osGetTime());
   float deltaSeconds;
 
+  float stickX = 0;
+  float stickY = 0;
+
   delta = (newTime - time);
   time = newTime;
   deltaSeconds = delta * 0.000001f;
@@ -1542,7 +1621,7 @@ void updateGame00(void)
 
   if (player_state == Move) {
     /* The reverse rotation by the A button */
-    if(contdata[0].button & L_TRIG)
+    if((contdata[0].button & L_TRIG) || (contdata[0].button & Z_TRIG))
     {
         camera_rotation += CAMERA_TURN_SPEED;
 
@@ -1562,17 +1641,33 @@ void updateGame00(void)
         }
     }
 
-    // Raw stick data (this should be adjusted for deadzones or emulator players on d-pads)
+    if (contdata[0].button & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
+      if (contdata[0].button & L_JPAD) {
+        stickX = -1.f;
+      } else if (contdata[0].button & R_JPAD) {
+        stickX = 1.f;
+      }
+
+      if (contdata[0].button & D_JPAD) {
+        stickY = -1.f;
+      } else if (contdata[0].button & U_JPAD) {
+        stickY = 1.f;
+      }
+    } else {
+      stickX = MAX(-61.f, MIN(61.f, (contdata->stick_x))) / 61.f;
+      stickY = MAX(-63.f, MIN(63.f, (contdata->stick_y))) / 63.f;
+    }
+
     cosCamRot = cosf(-camera_rotation);
     sinCamRot = sinf(-camera_rotation);
-    deltaX = contdata->stick_x;
-    deltaY = contdata->stick_y;
+    deltaX = stickX * 127;
+    deltaY = stickY * 127;
     player_facing_x = (deltaX * cosCamRot) + (deltaY * sinCamRot);
     player_facing_y = (-deltaX * sinCamRot) + (deltaY * cosCamRot);
     playerStickRot = Atan2f(player_facing_y, player_facing_x);
 
     // If we're pushing on the stick, update the player's rotation
-    if ((fabs_d(contdata->stick_x) > 0.01f) || (fabs_d(contdata->stick_y) > 0.01f)) {
+    if ((fabs_d(stickX) > 0.01f) || (fabs_d(stickY) > 0.01f)) {
       if ((player_rotation < -(M_PI_2)) && (playerStickRot > (M_PI_2))) {
         player_rotation += M_PI * 2.f;
       } 
@@ -1585,6 +1680,13 @@ void updateGame00(void)
 
     newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds;
     newY = player_y + player_facing_y * PLAYER_MOVE_SPEED * deltaSeconds;
+
+    roll = guRandom() % 2;
+    for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
+      player_sword[i].v.cn[0] = (roll == 0) ? 40  : 120;
+      player_sword[i].v.cn[1] = (roll == 0) ? 170  : 190;
+      player_sword[i].v.cn[2] = 213;
+    }
 
     if (contdata[0].trigger & A_BUTTON) {
       player_state = Jumping;
@@ -1614,9 +1716,9 @@ void updateGame00(void)
 
     roll = guRandom() % 2;
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
-      player_sword[i].v.cn[0] = (roll == 0) ? 200 : 255;
-      player_sword[i].v.cn[1] = (roll == 0) ? 200 : 255;
-      player_sword[i].v.cn[2] = 255;
+      player_sword[i].v.cn[0] = (roll == 0) ? 100  : 255;
+      player_sword[i].v.cn[1] = (roll == 0) ? 100  : 255;
+      player_sword[i].v.cn[2] = 243;
     }
 
   } else if (player_state == Landed) {
