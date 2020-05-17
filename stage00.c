@@ -55,7 +55,7 @@ static OSTime time;
 static OSTime delta;
 
 #define BULLET_COUNT 200
-#define EMITTER_COUNT 40
+#define EMITTER_COUNT 64
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
@@ -126,7 +126,7 @@ static u8 BulletRadiiSquared[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
 static int NextBulletIndex;
 
-#define AIM_EMITTER_COUNT 32
+#define AIM_EMITTER_COUNT 64
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 
 #define EMITTER_RADIUS 4.f
@@ -1039,13 +1039,7 @@ void initMap(GeneratedRoom* rooms) {
       if ((roomX == rooms[roomIndex].x) || (roomX == (rooms[roomIndex].x + rooms[roomIndex].width - 1)) || (roomY == rooms[roomIndex].y) || (roomY == (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
         MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
       } else if ((roomX > rooms[roomIndex].x) && (roomX < (rooms[roomIndex].x + rooms[roomIndex].width - 1)) && (roomY > rooms[roomIndex].y) && (roomY < (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
-        int roll = guRandom() % 30;
-
-        if (roll == 0) {
-          MapInfo[j * MAP_SIZE + i] = LOW_WALL_TILE;
-        } else {
-          MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
-        }
+        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
       }
     }
   }
@@ -1080,6 +1074,7 @@ void initMap(GeneratedRoom* rooms) {
         MapInfo[(i * MAP_SIZE) + (midX - 1)] = FLOOR_TILE;
         MapInfo[(i * MAP_SIZE) + (midX - 2)] = FLOOR_TILE;
         MapInfo[(i * MAP_SIZE) + (midX - 3)] = FLOOR_TILE;
+        MapInfo[(i * MAP_SIZE) + (midX - 4)] = HIGH_WALL_TILE;
       }
     }
   }
@@ -1091,14 +1086,26 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
 
   for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
-      EmitterStates[nextEmitterIndex] = EMITTER_ALIVE;
-      EmitterPositions[nextEmitterIndex].x = (rooms[i].rawX + (rooms[i].width / 2)) * TILE_SIZE;
-      EmitterPositions[nextEmitterIndex].y = (rooms[i].rawY + (rooms[i].height / 2)) * TILE_SIZE;
-      EmitterVelocities[nextEmitterIndex].x = 0.f;
-      EmitterVelocities[nextEmitterIndex].y = 0.f;
+      int emittersToPlace = (guRandom() % 3);
+      int iEmit;
+      for (iEmit = 0; ((iEmit < emittersToPlace) && (nextEmitterIndex < AIM_EMITTER_COUNT)); iEmit++) {
+        int xEnemyPos = 4 + (guRandom() % (rooms[i].width - 8));
+        int yEnemyPos = 4 + (guRandom() % (rooms[i].height - 8));
+        EmitterStates[nextEmitterIndex] = EMITTER_ALIVE;
+        EmitterPositions[nextEmitterIndex].x = (rooms[i].rawX + xEnemyPos) * TILE_SIZE;
+        EmitterPositions[nextEmitterIndex].y = (rooms[i].rawY + yEnemyPos) * TILE_SIZE;
+        EmitterVelocities[nextEmitterIndex].x = 0.f;
+        EmitterVelocities[nextEmitterIndex].y = 0.f;
 
-      AimEmitters[nextEmitterIndex].emitterIndex = nextEmitterIndex;
-      nextEmitterIndex++;
+        AimEmitters[nextEmitterIndex].emitterIndex = nextEmitterIndex;
+        nextEmitterIndex++;
+      }
+      
+
+      MapInfo[((rooms[i].rawY + 4) * MAP_SIZE) + (rooms[i].rawX + 4)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].rawY + 4) * MAP_SIZE) + (rooms[i].rawX + rooms[i].width - 5)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].rawY + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].rawX + 4)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].rawY + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].rawX + rooms[i].width - 5)] = LOW_WALL_TILE;
     }
   }
 }
@@ -1792,7 +1799,7 @@ void updateGame00(void)
         player_rotation -= M_PI * 2.f;
       }
 
-      player_rotation = lerp(player_rotation, playerStickRot, 0.342776562f);
+      player_rotation = lerp(player_rotation, playerStickRot, 0.542776562f);
     }
 
     newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds;
@@ -1969,13 +1976,17 @@ void updateGame00(void)
     int newBulletIndex;
     float theta;
 
-
     if (AimEmitters[i].emitterIndex == -1) {
       continue;
     }
 
     if ((EmitterStates[AimEmitters[i].emitterIndex]) == EMITTER_DEAD) {
       AimEmitters[i].emitterIndex = -1;
+      continue;
+    }
+
+    // if we're really far away, don't worry about updating for now
+    if ((fabs_d(player_y - EmitterPositions[AimEmitters[i].emitterIndex].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[AimEmitters[i].emitterIndex].x) > (RENDER_DISTANCE * 2))) {
       continue;
     }
 
@@ -1986,6 +1997,17 @@ void updateGame00(void)
 
     // If we've made it here, fire
     AimEmitters[i].t = 0;
+
+    // If the player's just about to land on or near us, we should avoid making a cruel shot
+    if ((fabs_d(player_y - BulletPositions[newBulletIndex].y) < 1.3f) || (fabs_d(player_x - BulletPositions[newBulletIndex].x) < 1.3f)) {
+      if ((player_state == Jumping) && (player_t > 0.8f)) {
+        continue;
+      }
+
+      if ((player_state == Landed) && (player_t > 0.5f)) {
+        continue;
+      }
+    }
 
     // Skip if there are no available bullets
     newBulletIndex = consumeNextBullet();
