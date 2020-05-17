@@ -113,6 +113,8 @@ typedef struct {
   u8 y;
   u8 width;
   u8 height;
+  u8 east;
+  u8 north;
 
   RoomType type;
 } GeneratedRoom;
@@ -1002,6 +1004,44 @@ int consumeNextBullet() {
 void initMap(GeneratedRoom* rooms) {
   int i;
   int j;
+  u8 upIndices[MAP_SIZE / ROOM_SIZE];
+  int prev = 0;
+
+  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    rooms[i].east = 0;
+    rooms[i].north = 0;
+  } 
+
+  for (i = 0; i < (MAP_SIZE / ROOM_SIZE); i++) {
+    int evenRow = (i % 2 == 0);
+    int high =  (!evenRow) ? prev : (MAP_SIZE / ROOM_SIZE) - (guRandom() % 3);
+    int low = (evenRow) ? prev : (guRandom() % 3);
+
+    for (j = 0; j < (MAP_SIZE / ROOM_SIZE); j++) {
+      rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = EnemyRoom;
+
+      // If we're in between the high and the low, fill in horizontal corridors
+      if ((j < high) && (j >= low)) {
+        // If we're on the bottom-left corner, that's where we start
+        if ((j == low) && (i == 0)) {
+          rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = StartingRoom;
+        }
+
+        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].east = 1;
+
+        if ((j == low) && !(evenRow)) {
+          rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 1;
+          prev = j;
+        }
+      } else if ((j == high) && evenRow) {
+        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 1;
+        prev = j;
+      } else {
+        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].east = 0;
+        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 0;
+      }
+    }
+  }
 
   // Create the rooms
   for (i = 0; i < MAP_SIZE; i++) {
@@ -1023,7 +1063,10 @@ void initMap(GeneratedRoom* rooms) {
         rooms[roomIndex].y = (ROOM_SIZE - h) / 2;
         rooms[roomIndex].width = w;
         rooms[roomIndex].height = h;
-        rooms[roomIndex].type = (roomIndex == 0) ? StartingRoom : EnemyRoom;
+      }
+
+      if (rooms[roomIndex].type == NoRoom) {
+        continue;
       }
 
       if ((rooms[roomIndex].x == roomX) && (rooms[roomIndex].y == roomY)) {
@@ -1051,7 +1094,7 @@ void initMap(GeneratedRoom* rooms) {
     GeneratedRoom* north = (i / (MAP_SIZE / ROOM_SIZE) != ((MAP_SIZE / ROOM_SIZE) - 1)) ? &rooms[i + (MAP_SIZE / ROOM_SIZE)] : NULL;
 
     // Connect an east bridge
-    if (east != NULL) {
+    if (room->east && east != NULL && (east->type != NoRoom)) {
       int i;
       int midY = room->rawY + (room->height / 2) + (guRandom() % 4);
 
@@ -1064,7 +1107,7 @@ void initMap(GeneratedRoom* rooms) {
       }
     }
 
-    if (north != NULL) {
+    if (room->north && north != NULL && (north->type != NoRoom)) {
       int i;
       int midX = room->rawX + (room->width / 2) + (guRandom() % 4);
 
@@ -1086,7 +1129,7 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
 
   for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
-      int emittersToPlace = (guRandom() % 3);
+      int emittersToPlace = (guRandom() % 3) + 1;
       int iEmit;
       for (iEmit = 0; ((iEmit < emittersToPlace) && (nextEmitterIndex < AIM_EMITTER_COUNT)); iEmit++) {
         int xEnemyPos = 4 + (guRandom() % (rooms[i].width - 8));
