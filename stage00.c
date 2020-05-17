@@ -18,8 +18,14 @@
 #define HIGH_WALL_TILE 2
 #define EMPTY_HIGH_WALL_TILE 3
 
+#define POINTS_PER_BULLET 10
+#define JUMP_COST 50
+
 #define PLAYER_HIT_RADIUS 1
 #define PLAYER_HIT_RADIUS_SQ (PLAYER_HIT_RADIUS * PLAYER_HIT_RADIUS)
+
+#define SWORD_RADUS 8
+#define SWORD_RADUS_SQ (SWORD_RADUS * SWORD_RADUS)
 
 #define EMITTER_DEAD 0
 #define EMITTER_ALIVE 1
@@ -28,7 +34,8 @@ typedef enum {
   Move,
   Jumping,
   Landed,
-  Dead
+  Dead,
+  Holding
 } PlayerState;
 
 static float player_x;
@@ -41,6 +48,8 @@ static float target_distance;
 static PlayerState player_state;
 static float player_t;
 static int HIT_WALL_WHILE_JUMPING;
+static float player_sword_angle;
+static u8 player_bullets_collected;
 
 static float camera_rotation;
 static float player_rotation;
@@ -1130,7 +1139,7 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
 
   for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
-      int emittersToPlace = (guRandom() % 3) + 1;
+      int emittersToPlace = (guRandom() % 7) + 1;
       int iEmit;
       for (iEmit = 0; ((iEmit < emittersToPlace) && (nextEmitterIndex < AIM_EMITTER_COUNT)); iEmit++) {
         int xEnemyPos = 4 + (guRandom() % (rooms[i].width - 8));
@@ -1164,6 +1173,8 @@ void initStage00(void)
   player_state = Move;
   player_t = 0.f;
   HIT_WALL_WHILE_JUMPING = 0;
+  player_sword_angle = 0.f;
+  player_bullets_collected = 0;
 
   trail_geo_index = 0;
 
@@ -1320,27 +1331,39 @@ gSP2Triangles(glistp++, 15, 16, 29, 0, 16, 5, 29, 0);
 
 void addSwordDisplayList()
 {
+  int i;
   gSPVertex(glistp++,&(player_sword[0]), 21, 0);
-  gSP2Triangles(glistp++, 14, 4, 15, 0, 2, 1, 0, 0);
-  gSP2Triangles(glistp++, 11, 2, 0, 0, 14, 1, 3, 0);
-  gSP2Triangles(glistp++, 0, 12, 11, 0, 15, 6, 19, 0);
-  gSP2Triangles(glistp++, 2, 18, 5, 0, 3, 5, 4, 0);
-  gSP2Triangles(glistp++, 21, 19, 6, 0, 4, 5, 6, 0);
-  gSP2Triangles(glistp++, 5, 21, 6, 0, 14, 3, 4, 0);
-  gSP2Triangles(glistp++, 2, 3, 1, 0, 11, 13, 2, 0);
-  gSP2Triangles(glistp++, 14, 12, 1, 0, 0, 1, 12, 0);
-  gSP2Triangles(glistp++, 15, 4, 6, 0, 2, 13, 18, 0);
-  gSP2Triangles(glistp++, 3, 2, 5, 0, 5, 18, 21, 0);
-  gSP2Triangles(glistp++, 14, 15, 16, 0, 9, 7, 8, 0);
-  gSP2Triangles(glistp++, 11, 7, 9, 0, 14, 10, 8, 0);
-  gSP2Triangles(glistp++, 7, 11, 12, 0, 15, 19, 20, 0);
-  gSP2Triangles(glistp++, 9, 17, 18, 0, 10, 16, 17, 0);
-  gSP2Triangles(glistp++, 21, 20, 19, 0, 16, 20, 17, 0);
-  gSP2Triangles(glistp++, 17, 20, 21, 0, 14, 16, 10, 0);
-  gSP2Triangles(glistp++, 9, 8, 10, 0, 11, 9, 13, 0);
-  gSP2Triangles(glistp++, 14, 8, 12, 0, 7, 12, 8, 0);
-  gSP2Triangles(glistp++, 15, 20, 16, 0, 9, 18, 13, 0);
-  gSP2Triangles(glistp++, 10, 17, 9, 0, 17, 21, 18, 0);
+  if (player_state == Holding) {
+    for (i = 0; i < 21; i++) {
+      int ir;
+      int rolls[6];
+      for (ir = 0; ir < 6; ir++) {
+        rolls[ir] = guRandom() % 26;
+      }
+      gSP2Triangles(glistp++, rolls[0], rolls[1], rolls[2], 0, rolls[3], rolls[4], rolls[5], 0);
+    }
+  } else {
+    gSP2Triangles(glistp++, 14, 4, 15, 0, 2, 1, 0, 0);
+    gSP2Triangles(glistp++, 11, 2, 0, 0, 14, 1, 3, 0);
+    gSP2Triangles(glistp++, 0, 12, 11, 0, 15, 6, 19, 0);
+    gSP2Triangles(glistp++, 2, 18, 5, 0, 3, 5, 4, 0);
+    gSP2Triangles(glistp++, 21, 19, 6, 0, 4, 5, 6, 0);
+    gSP2Triangles(glistp++, 5, 21, 6, 0, 14, 3, 4, 0);
+    gSP2Triangles(glistp++, 2, 3, 1, 0, 11, 13, 2, 0);
+    gSP2Triangles(glistp++, 14, 12, 1, 0, 0, 1, 12, 0);
+    gSP2Triangles(glistp++, 15, 4, 6, 0, 2, 13, 18, 0);
+    gSP2Triangles(glistp++, 3, 2, 5, 0, 5, 18, 21, 0);
+    gSP2Triangles(glistp++, 14, 15, 16, 0, 9, 7, 8, 0);
+    gSP2Triangles(glistp++, 11, 7, 9, 0, 14, 10, 8, 0);
+    gSP2Triangles(glistp++, 7, 11, 12, 0, 15, 19, 20, 0);
+    gSP2Triangles(glistp++, 9, 17, 18, 0, 10, 16, 17, 0);
+    gSP2Triangles(glistp++, 21, 20, 19, 0, 16, 20, 17, 0);
+    gSP2Triangles(glistp++, 17, 20, 21, 0, 14, 16, 10, 0);
+    gSP2Triangles(glistp++, 9, 8, 10, 0, 11, 9, 13, 0);
+    gSP2Triangles(glistp++, 14, 8, 12, 0, 7, 12, 8, 0);
+    gSP2Triangles(glistp++, 15, 20, 16, 0, 9, 18, 13, 0);
+    gSP2Triangles(glistp++, 10, 17, 9, 0, 17, 20, 18, 0);
+  }
 }
 
 void addLandEffectDisplayList() {
@@ -1426,6 +1449,8 @@ void makeDL00(void)
     } else {
       guRotate(&(playerJumpRotation), 5.f, 0.0f, 1.0f, 0.0f);
     }
+  } else if (player_state == Holding) {
+    guMtxIdent(&(playerJumpRotation));
   } else if (player_state == Landed) {
     guRotate(&(playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
   } else if (player_state == Dead) {
@@ -1445,7 +1470,11 @@ void makeDL00(void)
   // Determine sword display list
   guMtxIdent(&swordTranslation);
   if (player_state == Move) {
-    guScale(&(swordScale), 0.9f, 0.9f, 0.8f);
+    if (player_bullets_collected >= JUMP_COST) {
+      guScale(&(swordScale), 0.9f, 0.9f, 0.8f);
+    } else {
+      guScale(&swordScale, 0.f, 0.f, 0.f);
+    }
     if (running) {
       guRotate(&(swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), 145.f + (6.3f * sinf(time / 200000.f)), 0.0f, 0.0f, 1.0f);
@@ -1453,6 +1482,12 @@ void makeDL00(void)
       guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
       guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
     }
+  } else if (player_state == Holding) {
+      float extra = 0.1f * sinf(time * 0.000004f);
+      guTranslate(&swordTranslation, -100.f, 0.f, 0.f);
+      guScale(&(swordScale), 1.8f + extra, 1.2152f + extra, 1.4f + extra);
+      guMtxIdent(&(swordRotationX));
+      guRotate(&(swordRotationZ), player_sword_angle / M_PI * 180, 0.0f, 0.0f, 1.0f);
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
     guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 20.f);
@@ -1640,33 +1675,35 @@ void makeDL00(void)
     }
   }
 
-  if (time % 2 == 0) {
-    gDPSetRenderMode(glistp++, G_RM_ZB_XLU_SURF, G_RM_ZB_XLU_SURF2);
-  }
-  gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
-  for (i = 0; i < 32; i += 2) {
-    int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i2 = (trail_geo_index + i - 1 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i3 = (trail_geo_index + i - 2 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i4 = (trail_geo_index + i - 3 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
-  }
-  trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-  if (time % 2 == 0) {
-    gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
-  }
+  if (player_state == Jumping || player_state == Landed || player_state == Holding) {
+    if (time % 2 == 0) {
+      gDPSetRenderMode(glistp++, G_RM_ZB_XLU_SURF, G_RM_ZB_XLU_SURF2);
+    }
+    gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
+    for (i = 0; i < 32; i += 2) {
+      int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+      int i2 = (trail_geo_index + i - 1 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+      int i3 = (trail_geo_index + i - 2 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+      int i4 = (trail_geo_index + i - 3 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+      gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
+    }
+    trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    if (time % 2 == 0) {
+      gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
+    }
 
-  if (player_state == Landed) {
-    float hump = sinf((player_t) * M_PI);
-    guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
-    guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    if (player_state == Landed) {
+      float hump = sinf((player_t) * M_PI);
+      guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
+      guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-    addLandEffectDisplayList();
+      addLandEffectDisplayList();
 
-    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+      gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+    }
   }
 
   nuDebPerfMarkSet(5);
@@ -1709,7 +1746,7 @@ void makeDL00(void)
 
 
     nuDebConTextPos(0,1,21);
-    sprintf(conbuf,"player_rotation=%5.1f", player_rotation);
+    sprintf(conbuf,"points=%d", player_bullets_collected);
     nuDebConCPuts(0, conbuf);
 
     nuDebConTextPos(0,1,22);
@@ -1780,7 +1817,7 @@ void updateGame00(void)
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
 
-  if (player_state == Move) {
+  if ((player_state == Move) || (player_state == Holding)) {
     /* The reverse rotation by the A button */
     if((contdata[0].button & L_TRIG) || (contdata[0].button & Z_TRIG))
     {
@@ -1819,6 +1856,18 @@ void updateGame00(void)
       stickY = MAX(-63.f, MIN(63.f, (contdata->stick_y))) / 63.f;
     }
 
+    if (contdata[0].button & B_BUTTON) {
+      player_state = Holding;
+
+      for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
+        player_sword[i].v.cn[0] = (roll == 0) ? 180  : 255;
+        player_sword[i].v.cn[1] = (roll == 0) ? 180  : 255;
+        player_sword[i].v.cn[2] = 255;
+      }
+    } else if (player_state == Holding) {
+      player_state = Move;
+    }
+
     cosCamRot = cosf(-camera_rotation);
     sinCamRot = sinf(-camera_rotation);
     deltaX = stickX * 127;
@@ -1836,11 +1885,13 @@ void updateGame00(void)
         player_rotation -= M_PI * 2.f;
       }
 
-      player_rotation = lerp(player_rotation, playerStickRot, 0.542776562f);
+      player_rotation = lerp(player_rotation, playerStickRot, 0.342776562f);
     }
 
-    newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds;
-    newY = player_y + player_facing_y * PLAYER_MOVE_SPEED * deltaSeconds;
+    
+
+    newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds * (player_state == Holding ? 0.5f : 1.f);
+    newY = player_y + player_facing_y * PLAYER_MOVE_SPEED * deltaSeconds * (player_state == Holding ? 0.5f : 1.f);
 
     roll = guRandom() % 2;
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
@@ -1849,7 +1900,8 @@ void updateGame00(void)
       player_sword[i].v.cn[2] = 213;
     }
 
-    if (contdata[0].trigger & A_BUTTON) {
+    if ((contdata[0].trigger & A_BUTTON) && (player_bullets_collected >= JUMP_COST)) {
+      player_bullets_collected = MAX(0, (player_bullets_collected - JUMP_COST));
       player_state = Jumping;
       player_t = 0.f;
       player_jump_x = player_x;
@@ -1928,6 +1980,7 @@ void updateGame00(void)
   for (i = 0; i < BULLET_COUNT; i++) {
     float dxSq = 9999.f;
     float dySq = 9999.f;
+    u8 computedRadiusForHoldingAlready = 0;
 
     if (BulletStates[i] == 0) {
       continue;
@@ -1951,14 +2004,39 @@ void updateGame00(void)
       continue;
     }
 
-    dxSq = player_x - BulletPositions[i].x;
-    dxSq = dxSq * dxSq;
+    if (player_state == Holding) {
+      dxSq = player_x - BulletPositions[i].x;
+      dxSq = dxSq * dxSq;
+      dySq = player_y - BulletPositions[i].y;
+      dySq = dySq * dySq;
+      computedRadiusForHoldingAlready = 1;
+
+      if ((dxSq + dySq) <= SWORD_RADUS_SQ) {
+        float angleToPlayer = nu_atan2(player_y - BulletPositions[i].y, player_x - BulletPositions[i].x);
+        float angleDelta = fabs_d(angleToPlayer + player_rotation);
+
+        if ((angleDelta < 0.3f)
+          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.63f)) && (angleDelta < M_PI_4)
+          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.23f)) && (angleDelta < M_PI)) {
+          BulletStates[i] = 0;
+          player_bullets_collected = MIN(100, (player_bullets_collected + POINTS_PER_BULLET));
+        continue;
+        }
+      }
+    }
+
+    if (!computedRadiusForHoldingAlready) {
+      dxSq = player_x - BulletPositions[i].x;
+      dxSq = dxSq * dxSq;
+    }
     if (dxSq > BulletRadiiSquared[i]) {
       continue;
     }
 
-    dySq = player_y - BulletPositions[i].y;
-    dySq = dySq * dySq;
+    if (!computedRadiusForHoldingAlready) {
+      dySq = player_y - BulletPositions[i].y;
+      dySq = dySq * dySq;
+    }
     if (dySq > BulletRadiiSquared[i]) {
       continue;
     }
