@@ -327,38 +327,38 @@ static Vtx player_sword[] = {
 
 static u8 trail_geo_index;
 static Vtx trail_geo[] = {
-{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
-{ 8003, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 118, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 255 },
-{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
-{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 255 },
-{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 255 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 150 },
+{ 8003, -22, 12, 0, 0, 0, 215, 215, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 118, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 215, 215, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 0, 198, 215, 150 },
+{ 803, -22, -12, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
+{ 803, -22, 12, 0, 0, 0, 40, 198, 215, 150 },
+{ 1018, -25, -11, 0, 0, 0, 215, 215, 215, 150 },
 };
 
 static Vtx player_land_effect[] = {
@@ -623,9 +623,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] -= DARKEN_VERT;
 
-        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] -= DARKEN_VERT * 2;
 
         map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] -= DARKEN_VERT;
@@ -636,9 +636,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] -= DARKEN_VERT;
 
-        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] -= DARKEN_VERT * 2;
 
         map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] -= DARKEN_VERT;
@@ -649,9 +649,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] -= DARKEN_VERT;
 
-        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] -= DARKEN_VERT * 2;
 
         map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] -= DARKEN_VERT;
@@ -662,9 +662,9 @@ void updateMapFromInfo() {
         map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] -= DARKEN_VERT;
 
-        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] -= DARKEN_VERT;
-        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] -= DARKEN_VERT;
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] -= DARKEN_VERT * 2;
+        map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] -= DARKEN_VERT * 2;
 
         map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] -= DARKEN_VERT;
         map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] -= DARKEN_VERT;
@@ -1037,6 +1037,7 @@ void initMap(GeneratedRoom* rooms) {
         rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 1;
         prev = j;
       } else {
+        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = NoRoom;
         rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].east = 0;
         rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 0;
       }
@@ -1235,33 +1236,14 @@ void addEmitterToDisplayList()
 {
   int i;
   gSPVertex(glistp++,&(thing_geom[0]), 29, 0);
-gSP2Triangles(glistp++, 14, 2, 1, 0, 10, 5, 4, 0);
-gSP2Triangles(glistp++, 19, 3, 12, 0, 17, 5, 9, 0);
-gSP2Triangles(glistp++, 17, 8, 27, 0, 26, 13, 12, 0);
-gSP2Triangles(glistp++, 11, 2, 7, 0, 5, 7, 9, 0);
-gSP2Triangles(glistp++, 15, 28, 6, 0, 14, 12, 0, 0);
-gSP2Triangles(glistp++, 14, 15, 2, 0, 1, 11, 10, 0);
-gSP2Triangles(glistp++, 1, 19, 14, 0, 9, 7, 18, 0);
-gSP2Triangles(glistp++, 2, 6, 7, 0, 7, 6, 18, 0);
-gSP2Triangles(glistp++, 17, 26, 3, 0, 10, 16, 19, 0);
-gSP2Triangles(glistp++, 4, 17, 16, 0, 13, 20, 0, 0);
-gSP2Triangles(glistp++, 20, 22, 23, 0, 24, 26, 27, 0);
-gSP2Triangles(glistp++, 20, 15, 14, 0, 10, 11, 5, 0);
-gSP2Triangles(glistp++, 13, 25, 24, 0, 22, 21, 13, 0);
-gSP2Triangles(glistp++, 19, 16, 3, 0, 8, 24, 27, 0);
-gSP2Triangles(glistp++, 8, 17, 9, 0, 12, 3, 26, 0);
-gSP2Triangles(glistp++, 26, 25, 13, 0, 5, 11, 7, 0);
-gSP2Triangles(glistp++, 15, 23, 22, 0, 14, 19, 12, 0);
-gSP2Triangles(glistp++, 1, 2, 11, 0, 1, 10, 19, 0);
-gSP2Triangles(glistp++, 2, 15, 6, 0, 3, 16, 17, 0);
-gSP2Triangles(glistp++, 17, 27, 26, 0, 10, 4, 16, 0);
-gSP2Triangles(glistp++, 4, 5, 17, 0, 0, 12, 13, 0);
-gSP2Triangles(glistp++, 13, 21, 20, 0, 20, 21, 22, 0);
-gSP2Triangles(glistp++, 24, 25, 26, 0, 14, 0, 20, 0);
-gSP2Triangles(glistp++, 20, 23, 15, 0, 15, 22, 28, 0);
-gSP2Triangles(glistp++, 22, 13, 28, 0, 24, 8, 13, 0);
-gSP2Triangles(glistp++, 28, 13, 8, 0, 9, 18, 8, 0);
-gSP2Triangles(glistp++, 18, 6, 28, 0, 28, 8, 18, 0);
+  for (i = 0; i < 21; i++) {
+    int ir;
+    int rolls[6];
+    for (ir = 0; ir < 6; ir++) {
+      rolls[ir] = guRandom() % 29;
+    }
+    gSP2Triangles(glistp++, rolls[0], rolls[1], rolls[2], 0, rolls[3], rolls[4], rolls[5], 0);
+  }
 }
 
 void addPlayerDisplayList()
@@ -1547,28 +1529,6 @@ void makeDL00(void)
   trail_geo[trail_geo_index + 1].v.ob[0] = (short)ox;
   trail_geo[trail_geo_index + 1].v.ob[1] = (short)oy;
   trail_geo[trail_geo_index + 1].v.ob[2] = (short)oz;
-  gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
-  for (i = 0; i < 32; i += 2) {
-    int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i2 = (trail_geo_index + i - 1 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i3 = (trail_geo_index + i - 2 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    int i4 = (trail_geo_index + i - 3 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
-  }
-  trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-
-  if (player_state == Landed) {
-    float hump = sinf((player_t) * M_PI);
-    guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
-    guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-
-    addLandEffectDisplayList();
-
-    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-  }
 
   gDPPipeSync(glistp++);
 
@@ -1608,8 +1568,10 @@ void makeDL00(void)
   }
 
   // Render emitters
-
-  gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK);
+  gDPSetCombineLERP(glistp++, NOISE,    0, SHADE,     0,
+                                  0,    0,     0, SHADE,
+                              NOISE,    0, SHADE,     0,
+                                  0,    0,     0, SHADE);
   for (i = 0; i < EMITTER_COUNT; i++) {
     float dxSq;
     float dySq;
@@ -1645,6 +1607,9 @@ void makeDL00(void)
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
+
+  gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
+
   nuDebPerfMarkSet(4);
 
   // Render map tiles
@@ -1673,6 +1638,35 @@ void makeDL00(void)
         gSP2Triangles(glistp++,4,5,6,0,4,6,7,0);
       }
     }
+  }
+
+  if (time % 2 == 0) {
+    gDPSetRenderMode(glistp++, G_RM_ZB_XLU_SURF, G_RM_ZB_XLU_SURF2);
+  }
+  gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
+  for (i = 0; i < 32; i += 2) {
+    int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i2 = (trail_geo_index + i - 1 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i3 = (trail_geo_index + i - 2 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    int i4 = (trail_geo_index + i - 3 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+    gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
+  }
+  trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
+  if (time % 2 == 0) {
+    gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
+  }
+
+  if (player_state == Landed) {
+    float hump = sinf((player_t) * M_PI);
+    guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
+    guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    addLandEffectDisplayList();
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
   nuDebPerfMarkSet(5);
