@@ -1487,7 +1487,7 @@ void makeDL00(void)
       guTranslate(&swordTranslation, -100.f, 0.f, 0.f);
       guScale(&(swordScale), 1.8f + extra, 1.2152f + extra, 1.4f + extra);
       guMtxIdent(&(swordRotationX));
-      guRotate(&(swordRotationZ), player_sword_angle / M_PI * 180, 0.0f, 0.0f, 1.0f);
+      guRotate(&(swordRotationZ), (player_sword_angle - player_rotation) / M_PI * 180, 0.0f, 0.0f, 1.0f);
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
     guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 20.f);
@@ -1762,7 +1762,7 @@ void makeDL00(void)
     nuDebConCPuts(0, conbuf);
 
     nuDebConTextPos(0,1,25);
-    sprintf(conbuf,"camR=%5.1f", camera_rotation);
+    sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
     nuDebConCPuts(0, conbuf);
 
 
@@ -1857,6 +1857,9 @@ void updateGame00(void)
     }
 
     if (contdata[0].button & B_BUTTON) {
+      if (player_state == Move) {
+        player_sword_angle = player_rotation;
+      }
       player_state = Holding;
 
       for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
@@ -1886,9 +1889,30 @@ void updateGame00(void)
       }
 
       player_rotation = lerp(player_rotation, playerStickRot, 0.342776562f);
-    }
 
-    
+      if (player_state == Holding) {
+        // We need to keep the sword angle in the right range of the player angle
+        if (fabs_d(player_sword_angle - player_rotation) > M_PI * 2.f) {
+          if (player_sword_angle > player_rotation) {
+            player_sword_angle -= M_PI * 2.f;
+          } else {
+            player_sword_angle += M_PI * 2.f;
+          }
+        }
+
+        if (player_sword_angle > M_PI) {
+          player_sword_angle -= M_PI * 2.f;
+        } else if (player_sword_angle < (-M_PI)) {
+          player_sword_angle += M_PI * 2.f;
+        }
+
+        if (player_sword_angle > player_rotation) {
+          player_sword_angle = lerp( player_sword_angle, player_rotation + M_PI, 0.092553f);
+        } else {
+          player_sword_angle = lerp( player_sword_angle, player_rotation - M_PI, 0.092553f);
+        }
+      }
+    }
 
     newX = player_x + player_facing_x * PLAYER_MOVE_SPEED * deltaSeconds * (player_state == Holding ? 0.5f : 1.f);
     newY = player_y + player_facing_y * PLAYER_MOVE_SPEED * deltaSeconds * (player_state == Holding ? 0.5f : 1.f);
@@ -2012,12 +2036,12 @@ void updateGame00(void)
       computedRadiusForHoldingAlready = 1;
 
       if ((dxSq + dySq) <= SWORD_RADUS_SQ) {
-        float angleToPlayer = nu_atan2(player_y - BulletPositions[i].y, player_x - BulletPositions[i].x);
-        float angleDelta = fabs_d(angleToPlayer + player_rotation);
+        float angleToPlayer = nu_atan2(BulletPositions[i].y - player_y, BulletPositions[i].x - player_x);
+        float angleDelta = fabs_d(angleToPlayer - player_sword_angle);
 
-        if ((angleDelta < 0.3f)
-          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.63f)) && (angleDelta < M_PI_4)
-          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.23f)) && (angleDelta < M_PI)) {
+        if ((angleDelta < 0.1f)
+          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.63f)) && (angleDelta < 0.2f)
+          || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.23f)) && (angleDelta < 0.3f)) {
           BulletStates[i] = 0;
           player_bullets_collected = MIN(100, (player_bullets_collected + POINTS_PER_BULLET));
         continue;
