@@ -1333,7 +1333,7 @@ void addSwordDisplayList()
 {
   int i;
   gSPVertex(glistp++,&(player_sword[0]), 21, 0);
-  if (player_state == Holding) {
+  if (player_state == Holding && (player_bullets_collected < JUMP_COST )) {
     for (i = 0; i < 21; i++) {
       int ir;
       int rolls[6];
@@ -1862,6 +1862,7 @@ void updateGame00(void)
       }
       player_state = Holding;
 
+      roll = guRandom() % 2;
       for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
         player_sword[i].v.cn[0] = (roll == 0) ? 180  : 255;
         player_sword[i].v.cn[1] = (roll == 0) ? 180  : 255;
@@ -2044,6 +2045,26 @@ void updateGame00(void)
           || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.23f)) && (angleDelta < 0.3f)) {
           BulletStates[i] = 0;
           player_bullets_collected = MIN(100, (player_bullets_collected + POINTS_PER_BULLET));
+
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = BulletPositions[i].x;
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = BulletPositions[i].y;
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 0;
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = BulletPositions[i].x;
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = BulletPositions[i].y;
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 0;
+          trail_geo[(trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = ((BulletPositions[i].x + player_x + ((guRandom() % 3) - 2)) * 0.5f);
+          trail_geo[(trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = ((BulletPositions[i].y + player_y) * 0.5f);
+          trail_geo[(trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 2 + (guRandom() % 3);
+          trail_geo[(trail_geo_index + 3) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = ((BulletPositions[i].x + player_x) * 0.5f);
+          trail_geo[(trail_geo_index + 3) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = ((BulletPositions[i].y + player_y + ((guRandom() % 3) - 2)) * 0.5f);
+          trail_geo[(trail_geo_index + 3) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 2 + (guRandom() % 3);
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = player_x + (3.f * cosf(player_sword_angle));
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = player_y + (3.f * sinf(player_sword_angle));
+          trail_geo[(trail_geo_index + 0) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 0;
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[0] = player_x + (3.f * cosf(player_sword_angle));
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[1] = player_y + (3.f * sinf(player_sword_angle));
+          trail_geo[(trail_geo_index + 1) % (sizeof(trail_geo) / sizeof(trail_geo[0]))].v.ob[2] = 0;
+          trail_geo_index = (trail_geo_index + 6) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
         continue;
         }
       }
