@@ -1017,43 +1017,14 @@ void initMap(GeneratedRoom* rooms) {
   int prev = 0;
 
   for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-    rooms[i].east = 0;
-    rooms[i].north = 0;
+
+    rooms[i].type = i == 0 ? StartingRoom : EnemyRoom;
+
+    rooms[i].east = 1;
+    rooms[i].north = 1;
   } 
 
-  for (i = 0; i < (MAP_SIZE / ROOM_SIZE); i++) {
-    int evenRow = (i % 2 == 0);
-    int high =  (!evenRow) ? prev : (MAP_SIZE / ROOM_SIZE) - (guRandom() % 3);
-    int low = (evenRow) ? prev : (guRandom() % 3);
-
-    for (j = 0; j < (MAP_SIZE / ROOM_SIZE); j++) {
-      rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = EnemyRoom;
-
-      // If we're in between the high and the low, fill in horizontal corridors
-      if ((j < high) && (j >= low)) {
-        // If we're on the bottom-left corner, that's where we start
-        if ((j == low) && (i == 0)) {
-          rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = StartingRoom;
-        }
-
-        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].east = 1;
-
-        if ((j == low) && !(evenRow)) {
-          rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 1;
-          prev = j;
-        }
-      } else if ((j == high) && evenRow) {
-        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 1;
-        prev = j;
-      } else {
-        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].type = NoRoom;
-        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].east = 0;
-        rooms[(i * (MAP_SIZE / ROOM_SIZE)) + j].north = 0;
-      }
-    }
-  }
-
-  // Create the rooms
+  // "Dig out" the rooms
   for (i = 0; i < MAP_SIZE; i++) {
     for (j = 0; j < MAP_SIZE; j++) {
       int roomX = i % ROOM_SIZE;
