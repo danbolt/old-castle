@@ -20,7 +20,7 @@
 #define RENDER_DISTANCE (RENDER_DISTANCE_IN_TILES * TILE_SIZE)
 #define RENDER_DISTANCE_SQ (RENDER_DISTANCE * RENDER_DISTANCE)
 
-#define NUMBER_OF_ROOMS_PER_FLOOR ((MAP_SIZE / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE))
+#define MAX_NUMBER_OF_ROOMS_PER_FLOOR ((MAP_SIZE / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE))
 
 typedef enum {
   StartingRoom, // The room where the player spawns
@@ -32,14 +32,10 @@ typedef enum {
 } RoomType;
 
 typedef struct {
-  u8 rawX;
-  u8 rawY;
   u8 x;
   u8 y;
   u8 width;
   u8 height;
-  u8 east;
-  u8 north;
 
   RoomType type;
 } GeneratedRoom;

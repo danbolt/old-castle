@@ -261,7 +261,7 @@ static Vtx thing_geom[] = {
 void initStage00(void)
 {
   int i;
-  GeneratedRoom rooms[NUMBER_OF_ROOMS_PER_FLOOR];
+  GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
@@ -288,8 +288,8 @@ void initStage00(void)
   initEnemiesForMap(rooms);
   updateMapFromInfo();
 
-  player_x = (rooms[0].rawX + (rooms[0].width / 2)) * TILE_SIZE;
-  player_y = (rooms[0].rawY + (rooms[0].height / 2)) * TILE_SIZE;
+  player_x = (rooms[0].x + (rooms[0].width / 2)) * TILE_SIZE;
+  player_y = (rooms[0].y + (rooms[0].height / 2)) * TILE_SIZE;
 }
 
 void addBulletToDisplayList()

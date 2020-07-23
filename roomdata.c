@@ -23,119 +23,82 @@ static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define VERTS_PER_TILE 8
 static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 
+
+void fillInRooms(GeneratedRoom* rooms, int roomCount) {
+	int i;
+	int x;
+	int y;
+
+	for (i = 0; i < roomCount; i++) {
+		GeneratedRoom* room = &(rooms[i]);
+
+		for (x = room->x; x < (room->x + room->width); x++) {
+			for (y = room->y; y < (room->y + room->height); y++) {
+				MapInfo[(y * MAP_SIZE) + x] = FLOOR_TILE;
+			}
+		}
+	}
+}
+
+
+// Creates the "room layout" consisting of two main rooms and optional side corridors
+int generateFloorInStyleA(GeneratedRoom* rooms) {
+	int i;
+
+	int mainCorridorLength = (guRandom() % 60) + 20;
+
+	rooms[0].x = (MAP_SIZE / 2) - 4;
+	rooms[0].y = MAP_SIZE - 10;
+	rooms[0].width = 8;
+	rooms[0].height = 8;
+	rooms[0].type = StartingRoom;
+
+	rooms[1].x = (MAP_SIZE / 2) - 2;
+	rooms[1].y = MAP_SIZE - 10 - (u8)mainCorridorLength;
+	rooms[1].width = 4;
+	rooms[1].height = (u8)mainCorridorLength;
+	rooms[1].type = HallwayRoom;
+
+	rooms[2].x = (MAP_SIZE / 2) - 12;
+	rooms[2].y = MAP_SIZE - 10 - (u8)mainCorridorLength - 33;
+	rooms[2].width = 24;
+	rooms[2].height = 33;
+	rooms[2].type = EnemyRoom;
+
+	fillInRooms(rooms, 3);
+
+	// Fill in Style A hallways
+}
+
 void initMap(GeneratedRoom* rooms) {
   int i;
-  int j;
-  u8 upIndices[MAP_SIZE / ROOM_SIZE];
-  int prev = 0;
 
-  // "Connect" the rooms 
-  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-
-    rooms[i].type = i == 0 ? StartingRoom : EnemyRoom;
-
-    rooms[i].east = 1;
-    rooms[i].north = 1;
-  } 
-
-  // "Dig out" the rooms
-  for (i = 0; i < MAP_SIZE; i++) {
-    for (j = 0; j < MAP_SIZE; j++) {
-      int roomX = i % ROOM_SIZE;
-      int roomY = j % ROOM_SIZE;
-      int roomIndex = ((i / ROOM_SIZE) + ((j / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE)));
-
-      MapInfo[j * MAP_SIZE + i] = EMPTY_HIGH_WALL_TILE;
-
-      // initalize room data here
-      if (roomX == 0 && roomY == 0) {
-        int w = 14 + (guRandom() % (ROOM_SIZE - 14));
-        int h = 14 + (guRandom() % (ROOM_SIZE - 14));
-
-        rooms[roomIndex].rawX = i;
-        rooms[roomIndex].rawY = j;
-        rooms[roomIndex].x = (ROOM_SIZE - w) / 2;
-        rooms[roomIndex].y = (ROOM_SIZE - h) / 2;
-        rooms[roomIndex].width = w;
-        rooms[roomIndex].height = h;
-      }
-
-      if (rooms[roomIndex].type == NoRoom) {
-        continue;
-      }
-
-      if ((rooms[roomIndex].x == roomX) && (rooms[roomIndex].y == roomY)) {
-        rooms[roomIndex].rawX = i;
-        rooms[roomIndex].rawY = j;
-      }
-
-      // If we're outside the room, don't worry about it
-      if ((roomX < rooms[roomIndex].x) || (roomX >= (rooms[roomIndex].x + rooms[roomIndex].width)) || (roomY < rooms[roomIndex].y) || (roomY >= (rooms[roomIndex].y + rooms[roomIndex].height))) {
-        continue;
-      }
-
-      if ((roomX == rooms[roomIndex].x) || (roomX == (rooms[roomIndex].x + rooms[roomIndex].width - 1)) || (roomY == rooms[roomIndex].y) || (roomY == (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
-        MapInfo[j * MAP_SIZE + i] = HIGH_WALL_TILE;
-      } else if ((roomX > rooms[roomIndex].x) && (roomX < (rooms[roomIndex].x + rooms[roomIndex].width - 1)) && (roomY > rooms[roomIndex].y) && (roomY < (rooms[roomIndex].y + rooms[roomIndex].height - 1))) {
-        MapInfo[j * MAP_SIZE + i] = FLOOR_TILE;
-      }
-    }
+  // "Fill in" impassible tiles everywhere to start
+  for (i = 0; i < (MAP_SIZE * MAP_SIZE); i++) {
+  	MapInfo[i] = EMPTY_HIGH_WALL_TILE;
   }
 
-  // "Dig out" adjacent rooms with pathways in a fun manner
-  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-    GeneratedRoom* room = &rooms[i];
-    GeneratedRoom* east = (i % (MAP_SIZE / ROOM_SIZE) != ((MAP_SIZE / ROOM_SIZE) - 1)) ? &rooms[i + 1] : NULL;
-    GeneratedRoom* north = (i / (MAP_SIZE / ROOM_SIZE) != ((MAP_SIZE / ROOM_SIZE) - 1)) ? &rooms[i + (MAP_SIZE / ROOM_SIZE)] : NULL;
-
-    // Connect an east bridge
-    if (room->east && east != NULL && (east->type != NoRoom)) {
-      int i;
-      int midY = room->rawY + (room->height / 2) + (guRandom() % 4);
-
-      for (i = (room->rawX + room->width - 1); i < (east->rawX + 1); i++) {
-        MapInfo[((midY + 1) * MAP_SIZE) + i] = HIGH_WALL_TILE;
-        MapInfo[((midY) * MAP_SIZE) + i] = FLOOR_TILE;
-        MapInfo[((midY - 1) * MAP_SIZE) + i] = FLOOR_TILE;
-        MapInfo[((midY - 2) * MAP_SIZE) + i] = FLOOR_TILE;
-        MapInfo[((midY - 3) * MAP_SIZE) + i] = HIGH_WALL_TILE;
-      }
-    }
-
-    if (room->north && north != NULL && (north->type != NoRoom)) {
-      int i;
-      int midX = room->rawX + (room->width / 2) + (guRandom() % 4);
-
-      for (i = (room->rawY + room->height - 1); i < (north->rawY + 1); i++) {
-        MapInfo[(i * MAP_SIZE) + (midX + 1)] = HIGH_WALL_TILE;
-        MapInfo[(i * MAP_SIZE) + (midX - 0)] = FLOOR_TILE;
-        MapInfo[(i * MAP_SIZE) + (midX - 1)] = FLOOR_TILE;
-        MapInfo[(i * MAP_SIZE) + (midX - 2)] = FLOOR_TILE;
-        MapInfo[(i * MAP_SIZE) + (midX - 3)] = FLOOR_TILE;
-        MapInfo[(i * MAP_SIZE) + (midX - 4)] = HIGH_WALL_TILE;
-      }
-    }
-  }
+  generateFloorInStyleA(rooms);
 }
 
 void initEnemiesForMap(GeneratedRoom* rooms) {
   int i;
 
-  for (i = 0; i < NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+  for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
       int emittersToPlace = (guRandom() % 7) + 1;
       int iEmit;
       for (iEmit = 0; iEmit < emittersToPlace; iEmit++) {
         int xEnemyPos = 4 + (guRandom() % (rooms[i].width - 8));
         int yEnemyPos = 4 + (guRandom() % (rooms[i].height - 8));
-        generateAimEmitterEntity((rooms[i].rawX + xEnemyPos) * TILE_SIZE, (rooms[i].rawY + yEnemyPos) * TILE_SIZE);
+        generateAimEmitterEntity((rooms[i].x + xEnemyPos) * TILE_SIZE, (rooms[i].y + yEnemyPos) * TILE_SIZE);
       }
       
 
-      MapInfo[((rooms[i].rawY + 4) * MAP_SIZE) + (rooms[i].rawX + 4)] = LOW_WALL_TILE;
-      MapInfo[((rooms[i].rawY + 4) * MAP_SIZE) + (rooms[i].rawX + rooms[i].width - 5)] = LOW_WALL_TILE;
-      MapInfo[((rooms[i].rawY + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].rawX + 4)] = LOW_WALL_TILE;
-      MapInfo[((rooms[i].rawY + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].rawX + rooms[i].width - 5)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].y + 4) * MAP_SIZE) + (rooms[i].x + 4)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].y + 4) * MAP_SIZE) + (rooms[i].x + rooms[i].width - 5)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].y + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].x + 4)] = LOW_WALL_TILE;
+      MapInfo[((rooms[i].y + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].x + rooms[i].width - 5)] = LOW_WALL_TILE;
     }
   }
 }
