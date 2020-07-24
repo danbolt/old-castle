@@ -9,6 +9,7 @@
 #include "EntityData.h"
 #include "RoomData.h"
 #include "game_math.h"
+#include "tex/letters.h"
 
 static float player_x;
 static float player_y;
@@ -293,6 +294,10 @@ void initStage00(void)
 
   camera_x = player_x;
   camera_y = player_y;
+
+  for (i = 0; i < letters_bin_len; i++) {
+     (((unsigned char*)(0x80200000))[i]) = letters_bin[i];
+  }
 }
 
 void addBulletToDisplayList()
@@ -677,6 +682,19 @@ void makeDL00(void)
 
   gDPPipeSync(glistp++);
 
+  gDPSetCycleType(glistp++, G_CYC_1CYCLE);
+  gDPSetTextureFilter(glistp++, G_TF_POINT);
+  gDPSetRenderMode(glistp++, G_RM_TEX_EDGE, G_RM_TEX_EDGE);
+
+  gSPTexture(glistp++, 0xffff, 0xffff, 0, G_TX_RENDERTILE, G_ON);
+  gDPSetCombineMode(glistp++,G_CC_DECALRGBA, G_CC_DECALRGBA);
+  gDPSetTexturePersp(glistp++, G_TP_NONE);
+
+  gDPLoadTextureBlock_4b(glistp++, letters_bin, G_IM_FMT_IA, 90, 90, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(90) << 2, (int)(90) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 10), (int)(1 << 10));
+
+  gDPPipeSync(glistp++);
+
   gDPFullSync(glistp++);
   gSPEndDisplayList(glistp++);
 
@@ -690,67 +708,64 @@ void makeDL00(void)
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
+  // if(contPattern & 0x1)
+  // {
+  //   nuDebConTextPos(0,1,3);
+  //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,4);
+  //   sprintf(conbuf,"time=%llu", time);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,5);
+  //   sprintf(conbuf,"delta=%llu", delta);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,6);
+  //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,8);
+  //   sprintf(conbuf,"test=%5.2f", test);
+  //   nuDebConCPuts(0, conbuf);
+
+
+  //   nuDebConTextPos(0,1,21);
+  //   sprintf(conbuf,"points=%d", player_bullets_collected);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,22);
+  //   sprintf(conbuf,"PlayerState=%d", player_state);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,23);
+  //   sprintf(conbuf,"plrX=%5.1f", player_x);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,24);
+  //   sprintf(conbuf,"plrY=%5.1f", player_y);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,25);
+  //   sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
+  //   nuDebConCPuts(0, conbuf);
 
 
 
-  if(contPattern & 0x1)
-  {
-    nuDebConTextPos(0,1,3);
-    sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,26);
+  //   sprintf(conbuf,"camX=%5.1f", camera_x);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,4);
-    sprintf(conbuf,"time=%llu", time);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,5);
-    sprintf(conbuf,"delta=%llu", delta);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,6);
-    sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,8);
-    sprintf(conbuf,"test=%5.2f", test);
-    nuDebConCPuts(0, conbuf);
-
-
-    nuDebConTextPos(0,1,21);
-    sprintf(conbuf,"points=%d", player_bullets_collected);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,22);
-    sprintf(conbuf,"PlayerState=%d", player_state);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,23);
-    sprintf(conbuf,"plrX=%5.1f", player_x);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,24);
-    sprintf(conbuf,"plrY=%5.1f", player_y);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,25);
-    sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
-    nuDebConCPuts(0, conbuf);
-
-
-
-    nuDebConTextPos(0,1,26);
-    sprintf(conbuf,"camX=%5.1f", camera_x);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,27);
-    sprintf(conbuf,"camY=%5.1f", camera_y);
-    nuDebConCPuts(0, conbuf);
-  }
-  else
-  {
-    nuDebConTextPos(0,9,24);
-    nuDebConCPuts(0, "Controller 1 not connected; please restart");
-  }
+  //   nuDebConTextPos(0,1,27);
+  //   sprintf(conbuf,"camY=%5.1f", camera_y);
+  //   nuDebConCPuts(0, conbuf);
+  // }
+  // else
+  // {
+  //   nuDebConTextPos(0,9,24);
+  //   nuDebConCPuts(0, "Controller 1 not connected; please restart");
+  // }
 
     
   /* Display characters on the frame buffer */
