@@ -45,7 +45,7 @@ void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 int generateFloorInStyleA(GeneratedRoom* rooms) {
 	int i;
 
-	int mainCorridorLength = (guRandom() % 60) + 20;
+	int mainCorridorLength = (guRandom() % 25) + 25;
 
 	rooms[0].x = (MAP_SIZE / 2) - 4;
 	rooms[0].y = MAP_SIZE - 10;
@@ -65,7 +65,27 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[2].height = 33;
 	rooms[2].type = EnemyRoom;
 
-	fillInRooms(rooms, 3);
+	rooms[3].x = MAP_SIZE / 4;
+	rooms[3].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2);
+	rooms[3].width = MAP_SIZE / 2;
+	rooms[3].height = 4;
+	rooms[3].type = HallwayRoom;
+
+	// Side room A
+	rooms[4].x = 8;
+	rooms[4].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2) - 7;
+	rooms[4].width = (MAP_SIZE / 4) - 8;
+	rooms[4].height = 14;
+	rooms[4].type = EnemyRoom;
+
+	// Side room B
+	rooms[5].x = (MAP_SIZE / 4) + (MAP_SIZE / 2);
+	rooms[5].y = MAP_SIZE - 10 - (mainCorridorLength / 2) - 7;
+	rooms[5].width = 14;
+	rooms[5].height = 14;
+	rooms[5].type = EnemyRoom;
+
+	fillInRooms(rooms, 6);
 
 	// Fill in Style A hallways
 }

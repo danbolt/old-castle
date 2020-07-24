@@ -290,6 +290,9 @@ void initStage00(void)
 
   player_x = (rooms[0].x + (rooms[0].width / 2)) * TILE_SIZE;
   player_y = (rooms[0].y + (rooms[0].height / 2)) * TILE_SIZE;
+
+  camera_x = player_x;
+  camera_y = player_y;
 }
 
 void addBulletToDisplayList()
