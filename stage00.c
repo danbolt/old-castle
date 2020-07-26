@@ -690,8 +690,8 @@ void makeDL00(void)
   gDPSetCombineMode(glistp++,G_CC_DECALRGBA, G_CC_DECALRGBA);
   gDPSetTexturePersp(glistp++, G_TP_NONE);
 
-  gDPLoadTextureBlock_4b(glistp++, letters_bin, G_IM_FMT_IA, 64, 80, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(64) << 2, (int)(80) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 10), (int)(1 << 10));
+  gDPLoadTextureBlock_4b(glistp++, test2_bin, G_IM_FMT_IA, 64, 80, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(128) << 2, (int)(160) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 9), (int)(1 << 9));
 
   gDPPipeSync(glistp++);
 

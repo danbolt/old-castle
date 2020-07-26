@@ -27,18 +27,18 @@ pathsToConvert.forEach((path) => {
       var blue = this.bitmap.data[idx + 2];
       var alpha = this.bitmap.data[idx + 3];
 
-      const whiteVal = ~~((Math.min(254, alpha) / 255) * 8);
+      const whiteVal = ~~((Math.min(254, alpha) / 255) * 4) + 4;
 
       if ((i % 2) === 0) {
         holder = whiteVal;
         holder = (holder << 1);
-        if (alpha > 0) {
+        if (alpha > 20) {
           holder = (holder | 0x1);
         }
 
       } else {
-        let holder2 = holder << 1;
-        if (alpha > 0) {
+        let holder2 = whiteVal << 1;
+        if (alpha > 20) {
           holder2 = (holder2 | 0x1);
         }
 
