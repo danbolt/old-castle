@@ -258,6 +258,8 @@ static Vtx thing_geom[] = {
 { -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
 };
 
+static unsigned char foo[4050];
+
 /* The initialization of stage 0 */
 void initStage00(void)
 {
@@ -294,10 +296,6 @@ void initStage00(void)
 
   camera_x = player_x;
   camera_y = player_y;
-
-  for (i = 0; i < letters_bin_len; i++) {
-     (((unsigned char*)(0x80200000))[i]) = letters_bin[i];
-  }
 }
 
 void addBulletToDisplayList()
@@ -680,7 +678,9 @@ void makeDL00(void)
 
   nuDebPerfMarkSet(5);
 
+
   gDPPipeSync(glistp++);
+
 
   gDPSetCycleType(glistp++, G_CYC_1CYCLE);
   gDPSetTextureFilter(glistp++, G_TF_POINT);
@@ -690,8 +690,8 @@ void makeDL00(void)
   gDPSetCombineMode(glistp++,G_CC_DECALRGBA, G_CC_DECALRGBA);
   gDPSetTexturePersp(glistp++, G_TP_NONE);
 
-  gDPLoadTextureBlock_4b(glistp++, letters_bin, G_IM_FMT_IA, 90, 90, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(90) << 2, (int)(90) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 10), (int)(1 << 10));
+  gDPLoadTextureBlock_4b(glistp++, letters_bin, G_IM_FMT_IA, 64, 80, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(64) << 2, (int)(80) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 10), (int)(1 << 10));
 
   gDPPipeSync(glistp++);
 

@@ -1,0 +1,12 @@
+{
+  "name": "font-conv",
+  "version": "1.0.0",
+  "description": "Converting an image to 4-bit IA",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Daniel Savage",
+  "license": "MIT",
+  "dependencies": {
+    "jimp": "^0.14.0"
+  }
+}
