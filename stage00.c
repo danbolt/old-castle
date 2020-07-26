@@ -258,7 +258,45 @@ static Vtx thing_geom[] = {
 { -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
 };
 
-static unsigned char foo[4050];
+#define TEXT_REQUEST_BUF_SIZE 16
+typedef struct {
+  int enable;
+  const char* text;
+  int x;
+  int y;
+  int cutoff; // -1 to disable
+  double typewriterTick;
+  // TODO: add scalng
+  // TODO: add some sort of "timeout"
+  // TODO: make typewriter effect globally disable-able for accessibility
+} TextRequest;
+static TextRequest textRequests[TEXT_REQUEST_BUF_SIZE];
+
+int indexForChar(const char letter) {
+  int result = -1;
+
+  if ((letter >= 'A') && (letter <= 'Z')) {
+    result = (letter - 65);
+  } else if ((letter >= 'a') && (letter <= 'z')) {
+    result = (letter - 97) + 26;
+  } else if ((letter >= '0') && (letter <= '9')) {
+    result = (letter - 48) + 52;
+  } else if (letter == '?') {
+    result = 63;
+  } else if (letter == '!') {
+    result = 64;
+  } else if (letter == '"') {
+    result = 65;
+  } else if (letter == '.') {
+    result = 66;
+  } else if (letter == ',') {
+    result = 67;
+  } else if (letter == '-') {
+    result = 68;
+  }
+
+  return result;
+}
 
 /* The initialization of stage 0 */
 void initStage00(void)
@@ -284,6 +322,17 @@ void initStage00(void)
 
   camera_rotation = 0.00001f;
   player_rotation = 0.f;
+
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    textRequests[i].enable = 0;
+  }
+
+  textRequests[0].enable = 1;
+  textRequests[0].text = "I felt my flesh\n\nbecome the food of my fears\n\nonce again";
+  textRequests[0].x = 32;
+  textRequests[0].y = 64;
+  textRequests[0].cutoff = 0;
+  textRequests[0].typewriterTick = 0;
 
   initializeEntityData();
 
@@ -683,7 +732,7 @@ void makeDL00(void)
 
 
   gDPSetCycleType(glistp++, G_CYC_1CYCLE);
-  gDPSetTextureFilter(glistp++, G_TF_POINT);
+  gDPSetTextureFilter(glistp++, G_TF_AVERAGE);
   gDPSetRenderMode(glistp++, G_RM_TEX_EDGE, G_RM_TEX_EDGE);
 
   gSPTexture(glistp++, 0xffff, 0xffff, 0, G_TX_RENDERTILE, G_ON);
@@ -691,7 +740,38 @@ void makeDL00(void)
   gDPSetTexturePersp(glistp++, G_TP_NONE);
 
   gDPLoadTextureBlock_4b(glistp++, test2_bin, G_IM_FMT_IA, 64, 80, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-  gSPTextureRectangle(glistp++, (int)(0) << 2, (int)(0) << 2, (int)(128) << 2, (int)(160) << 2, G_TX_RENDERTILE, (0 << 5), (0 << 5), (int)(1 << 9), (int)(1 << 9));
+  
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    int letterIndex = 0;
+    int xSpot = textRequests[i].x;
+    int ySpot = textRequests[i].y;
+    if (textRequests[i].enable == 0) {
+      continue;
+    }
+
+    // TODO: we should make this more safe later
+    while (textRequests[i].text[letterIndex] != '\0') {
+      if ((textRequests[i].cutoff >= 0) && (letterIndex == textRequests[i].cutoff)) {
+        break;
+      } 
+      
+      if (textRequests[i].text[letterIndex] == ' ') {
+        xSpot += 8;
+      } else if (textRequests[i].text[letterIndex] == '\n') {
+        xSpot = textRequests[i].x;
+        ySpot += 8;
+      } else {
+        int textureIndex = indexForChar(textRequests[i].text[letterIndex]);
+        int u = (textureIndex % 8) * 8;
+        int v = (textureIndex / 8) * 8;
+
+        gSPTextureRectangle(glistp++, (int)(xSpot) << 2, (int)(ySpot) << 2, (int)(xSpot + 8) << 2, (int)(ySpot + 8) << 2, G_TX_RENDERTILE, (u << 5), (v << 5), (int)(1 << 10), (int)(1 << 10));
+        xSpot += 8;
+      }
+
+      letterIndex++;
+    }
+  }
 
   gDPPipeSync(glistp++);
 
@@ -798,6 +878,29 @@ void updateGame00(void)
   deltaSeconds = delta * 0.000001f;
 
   nuDebPerfMarkSet(0);
+
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    if (textRequests[i].enable == 0) {
+      continue;
+    }
+
+    if (textRequests[i].cutoff < 0) {
+      continue;
+    }
+
+    // If we're here, tick the cutoff marker
+    textRequests[i].typewriterTick += deltaSeconds;
+    if (textRequests[i].typewriterTick > 0.07436f) {
+      textRequests[i].typewriterTick = 0.f;
+
+      textRequests[i].cutoff++;
+
+      // If we've reached the null-terminator, please stop
+      if (textRequests[i].text[textRequests[i].cutoff] == '\0') {
+        textRequests[i].cutoff = -1;
+      }
+    }
+  }
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
