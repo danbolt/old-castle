@@ -112,13 +112,65 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[5].height = 14;
 	rooms[5].type = EnemyRoom;
 
-	fillInRooms(rooms, 6);
+	// A's subrooms
+	rooms[6].x = rooms[4].x;
+	rooms[6].y = rooms[4].y - 25;
+	rooms[6].width = (MAP_SIZE / 4) - 8;
+	rooms[6].height = 9 + (guRandom() % 7);
+	rooms[6].type = EnemyRoom;
+
+	rooms[7].x = rooms[4].x + 4 + (guRandom() % 6);
+	rooms[7].y = (rooms[6].y + rooms[6].height);
+	rooms[7].width = 3;
+	rooms[7].height = rooms[4].y - (rooms[6].y + rooms[6].height);
+	rooms[7].type = HallwayRoom;
+
+	rooms[8].x = rooms[4].x + 4;
+	rooms[8].y = rooms[4].y + rooms[4].height + 10;
+	rooms[8].width = (MAP_SIZE / 4) - 8;
+	rooms[8].height = 7 + (guRandom() % 5);
+	rooms[8].type = EnemyRoom;
+
+	rooms[9].x = rooms[4].x + 4 + (guRandom() % 6);
+	rooms[9].y = (rooms[4].y + rooms[4].height);
+	rooms[9].width = 3;
+	rooms[9].height = rooms[4].y - (rooms[6].y + rooms[6].height);
+	rooms[9].type = HallwayRoom;
+
+	// B's subrooms
+	rooms[10].x = rooms[5].x;
+	rooms[10].y = rooms[5].y - 25;
+	rooms[10].width = (MAP_SIZE / 4) - 8;
+	rooms[10].height = 9 + (guRandom() % 7);
+	rooms[10].type = EnemyRoom;
+
+	rooms[11].x = rooms[5].x + 4 + (guRandom() % 6);
+	rooms[11].y = (rooms[10].y + rooms[10].height);
+	rooms[11].width = 3;
+	rooms[11].height = rooms[5].y - (rooms[10].y + rooms[10].height);
+	rooms[11].type = HallwayRoom;
+
+	rooms[12].x = rooms[5].x + 4;
+	rooms[12].y = rooms[5].y + rooms[5].height + 10;
+	rooms[12].width = (MAP_SIZE / 4) - 8;
+	rooms[12].height = 7 + (guRandom() % 5);
+	rooms[12].type = EnemyRoom;
+
+	rooms[13].x = rooms[5].x + 4 + (guRandom() % 6);
+	rooms[13].y = (rooms[5].y + rooms[5].height);
+	rooms[13].width = 3;
+	rooms[13].height = rooms[5].y - (rooms[10].y + rooms[10].height);
+	rooms[13].type = HallwayRoom;
+
+	fillInRooms(rooms, 14);
 
 	fillInHighWalls();
 }
 
 void initMap(GeneratedRoom* rooms) {
   int i;
+
+  guRandom();
 
   // "Fill in" impassible tiles everywhere to start
   for (i = 0; i < (MAP_SIZE * MAP_SIZE); i++) {

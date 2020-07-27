@@ -328,7 +328,7 @@ void initStage00(void)
   }
 
   textRequests[0].enable = 1;
-  textRequests[0].text = "I felt my flesh\n\nbecome the food of my fears\n\nonce again";
+  textRequests[0].text = "Winners don't do drugs!\n\n-- The Fed";
   textRequests[0].x = 32;
   textRequests[0].y = 64;
   textRequests[0].cutoff = 0;
@@ -754,7 +754,7 @@ void makeDL00(void)
       if ((textRequests[i].cutoff >= 0) && (letterIndex == textRequests[i].cutoff)) {
         break;
       } 
-      
+
       if (textRequests[i].text[letterIndex] == ' ') {
         xSpot += 8;
       } else if (textRequests[i].text[letterIndex] == '\n') {
