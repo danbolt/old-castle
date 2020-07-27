@@ -17,6 +17,8 @@ void initStage00(void);
 void makeDL00(void);
 void updateGame00(void);
 
+volatile int resetStageFlag;
+
 /* The global variable  */
 NUContData	contdata[1]; /* Read data of 1 controller  */
 u8 contPattern;		     /* The pattern connected to the controller  */
@@ -32,15 +34,20 @@ void mainproc(void)
   /* The initialization of the controller manager  */
   contPattern = nuContInit();
 
-  /* The initialization for stage00()  */
-  initStage00();
-  /* Register call-back  */
-  nuGfxFuncSet((NUGfxFunc)stage00);
-  /* The screen display is ON */
-  nuGfxDisplayOn();
+  while (1) {
+    resetStageFlag = 0;
+    /* The initialization for stage00()  */
+    initStage00();
+    /* Register call-back  */
+    nuGfxFuncSet((NUGfxFunc)stage00);
+    /* The screen display is ON */
+    nuGfxDisplayOn();
 
-  while(1)
-    ;
+    while(resetStageFlag == 0)
+      ;
+
+    nuGfxDisplayOff();
+  }
 }
 
 /*-----------------------------------------------------------------------------

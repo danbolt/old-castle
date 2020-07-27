@@ -29,6 +29,7 @@ void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 	int x;
 	int y;
 
+	int staircasesPlaced = 0;
 	for (i = 0; i < roomCount; i++) {
 		GeneratedRoom* room = &(rooms[i]);
 
@@ -36,6 +37,16 @@ void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 			for (y = room->y; y < (room->y + room->height); y++) {
 				MapInfo[(y * MAP_SIZE) + x] = FLOOR_TILE;
 			}
+		}
+
+		if (room->type == StaircaseRoom) {
+			int midX = (room->x + (room->width / 2));
+			int midY = (room->y + (room->height / 2));
+
+			MapInfo[(midY * MAP_SIZE) + (midX - 1)] = STAIRCASE_A + staircasesPlaced;
+			MapInfo[(midY * MAP_SIZE) + midX] = STAIRCASE_A + staircasesPlaced;
+			MapInfo[(midY * MAP_SIZE) + (midX + 1)] = STAIRCASE_A + staircasesPlaced;
+			staircasesPlaced++;
 		}
 	}
 }
@@ -117,7 +128,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[6].y = rooms[4].y - 25;
 	rooms[6].width = (MAP_SIZE / 4) - 8;
 	rooms[6].height = 9 + (guRandom() % 7);
-	rooms[6].type = EnemyRoom;
+	rooms[6].type = StaircaseRoom;
 
 	rooms[7].x = rooms[4].x + 4 + (guRandom() % 6);
 	rooms[7].y = (rooms[6].y + rooms[6].height);
@@ -129,7 +140,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[8].y = rooms[4].y + rooms[4].height + 10;
 	rooms[8].width = (MAP_SIZE / 4) - 8;
 	rooms[8].height = 7 + (guRandom() % 5);
-	rooms[8].type = EnemyRoom;
+	rooms[8].type = StaircaseRoom;
 
 	rooms[9].x = rooms[4].x + 4 + (guRandom() % 6);
 	rooms[9].y = (rooms[4].y + rooms[4].height);
@@ -142,7 +153,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[10].y = rooms[5].y - 25;
 	rooms[10].width = (MAP_SIZE / 4) - 8;
 	rooms[10].height = 9 + (guRandom() % 7);
-	rooms[10].type = EnemyRoom;
+	rooms[10].type = StaircaseRoom;
 
 	rooms[11].x = rooms[5].x + 4 + (guRandom() % 6);
 	rooms[11].y = (rooms[10].y + rooms[10].height);
@@ -154,7 +165,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[12].y = rooms[5].y + rooms[5].height + 10;
 	rooms[12].width = (MAP_SIZE / 4) - 8;
 	rooms[12].height = 7 + (guRandom() % 5);
-	rooms[12].type = EnemyRoom;
+	rooms[12].type = StaircaseRoom;
 
 	rooms[13].x = rooms[5].x + 4 + (guRandom() % 6);
 	rooms[13].y = (rooms[5].y + rooms[5].height);
@@ -553,6 +564,94 @@ void updateMapFromInfo() {
       map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = 0x54 - DARKEN_VERT;
       map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = 0x32 - DARKEN_VERT;
       map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0xff - DARKEN_VERT;
+    } else if (tileType >= STAIRCASE_A && tileType <= STAIRCASE_E) {
+    	map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 0].v.ob[2] = -1;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 0].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 1].v.ob[0] = (x * TILE_SIZE) + 2;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.ob[1] = (y * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 1].v.ob[2] = -1;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 1].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 2].v.ob[0] = (x * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 2].v.ob[1] = (y * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 2].v.ob[2] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 2].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 3].v.ob[0] = (x * TILE_SIZE) + 2;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.ob[1] = (y * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 3].v.ob[2] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 3].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 4].v.ob[0] = (x * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 4].v.ob[1] = (y * TILE_SIZE) + 1;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.ob[2] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 4].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 5].v.ob[0] = (x * TILE_SIZE) + 2;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.ob[1] = (y * TILE_SIZE) + 1;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.ob[2] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 5].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 6].v.ob[0] = (x * TILE_SIZE);
+		map_geom[(i * VERTS_PER_TILE) + 6].v.ob[1] = (y * TILE_SIZE) + 1;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.ob[2] = 1;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 6].v.cn[3] = 0xff;
+
+		map_geom[(i * VERTS_PER_TILE) + 7].v.ob[0] = (x * TILE_SIZE) + 2;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.ob[1] = (y * TILE_SIZE) + 1;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.ob[2] = 1;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.flag = 0;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.tc[0] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.tc[1] = 0;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.cn[0] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.cn[1] = 0x00;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.cn[2] = 0xFF;
+		map_geom[(i * VERTS_PER_TILE) + 7].v.cn[3] = 0xff;
     }
   }
 }
@@ -587,6 +686,10 @@ void renderMapTiles(float camera_x, float camera_y, float camera_rotation) {
 		    gSP2Triangles(glistp++,3,2,7,0,2,6,7,0);
 		    gSP2Triangles(glistp++,2,1,6,0,6,1,5,0);
 		    gSP2Triangles(glistp++,0,3,7,0,0,7,4,0);
+		  } else if (type >= STAIRCASE_A && type <= STAIRCASE_E) {
+		  	gSP2Triangles(glistp++,0,1,2,0,2,1,3,0);
+		  	gSP2Triangles(glistp++,2,3,4,0,4,3,5,0);
+		  	gSP2Triangles(glistp++,4,5,6,0,6,5,7,0);
 		  }
 		}
 	}

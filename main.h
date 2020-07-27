@@ -13,6 +13,8 @@
 extern NUContData	contdata[1]; /* Read data of the controller  */
 extern u8 contPattern;		     /* The pattern of the connected controller  */
 
+extern volatile int resetStageFlag;
+
 #endif /* _LANGUAGE_C */
 #endif /* MAIN_H */
 

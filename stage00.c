@@ -527,6 +527,11 @@ void makeDL00(void)
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
+  
+
+  if (resetStageFlag == 1) {
+    return;
+  }
 
   nuDebPerfMarkSet(2);
 
@@ -877,6 +882,10 @@ void updateGame00(void)
   time = newTime;
   deltaSeconds = delta * 0.000001f;
 
+  if (resetStageFlag == 1) {
+    return;
+  }
+
   nuDebPerfMarkSet(0);
 
   for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
@@ -1063,6 +1072,12 @@ void updateGame00(void)
 
   newTileX = (int)(newX * INV_TILE_SIZE);
   newTileY = (int)(newY * INV_TILE_SIZE);
+
+  if ((isTileBlocked(newTileX, newTileY) >= STAIRCASE_A) && (isTileBlocked(newTileX, newTileY) <= STAIRCASE_E)) {
+    // TODO: time this out
+    resetStageFlag = 1;
+    return;
+  }
 
   // step x
   if ((newTileX < (MAP_SIZE * TILE_SIZE)) && (newTileX >= 0) && (isTileBlocked(newTileX, (int)(player_y * INV_TILE_SIZE)))) {
