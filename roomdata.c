@@ -5,6 +5,7 @@
 #include "EntityData.h"
 #include "game_math.h"
 #include "graphic.h"
+#include "xorshift.h"
 
 static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
@@ -23,6 +24,7 @@ static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define VERTS_PER_TILE 8
 static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 
+static xorshift32_state roomGeneratorState;
 
 void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 	int i;
@@ -83,7 +85,7 @@ void fillInHighWalls() {
 int generateFloorInStyleA(GeneratedRoom* rooms) {
 	int i;
 
-	int mainCorridorLength = (guRandom() % 25) + 25;
+	int mainCorridorLength = (xorshift32(&roomGeneratorState) % 25) + 25;
 
 	rooms[0].x = (MAP_SIZE / 2) - 4;
 	rooms[0].y = MAP_SIZE - 10;
@@ -127,10 +129,10 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[6].x = rooms[4].x;
 	rooms[6].y = rooms[4].y - 25;
 	rooms[6].width = (MAP_SIZE / 4) - 8;
-	rooms[6].height = 9 + (guRandom() % 7);
+	rooms[6].height = 9 + (xorshift32(&roomGeneratorState) % 7);
 	rooms[6].type = StaircaseRoom;
 
-	rooms[7].x = rooms[4].x + 4 + (guRandom() % 6);
+	rooms[7].x = rooms[4].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[7].y = (rooms[6].y + rooms[6].height);
 	rooms[7].width = 3;
 	rooms[7].height = rooms[4].y - (rooms[6].y + rooms[6].height);
@@ -139,10 +141,10 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[8].x = rooms[4].x + 4;
 	rooms[8].y = rooms[4].y + rooms[4].height + 10;
 	rooms[8].width = (MAP_SIZE / 4) - 8;
-	rooms[8].height = 7 + (guRandom() % 5);
+	rooms[8].height = 7 + (xorshift32(&roomGeneratorState) % 5);
 	rooms[8].type = StaircaseRoom;
 
-	rooms[9].x = rooms[4].x + 4 + (guRandom() % 6);
+	rooms[9].x = rooms[4].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[9].y = (rooms[4].y + rooms[4].height);
 	rooms[9].width = 3;
 	rooms[9].height = rooms[4].y - (rooms[6].y + rooms[6].height);
@@ -152,10 +154,10 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[10].x = rooms[5].x;
 	rooms[10].y = rooms[5].y - 25;
 	rooms[10].width = (MAP_SIZE / 4) - 8;
-	rooms[10].height = 9 + (guRandom() % 7);
+	rooms[10].height = 9 + (xorshift32(&roomGeneratorState) % 7);
 	rooms[10].type = StaircaseRoom;
 
-	rooms[11].x = rooms[5].x + 4 + (guRandom() % 6);
+	rooms[11].x = rooms[5].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[11].y = (rooms[10].y + rooms[10].height);
 	rooms[11].width = 3;
 	rooms[11].height = rooms[5].y - (rooms[10].y + rooms[10].height);
@@ -164,10 +166,10 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[12].x = rooms[5].x + 4;
 	rooms[12].y = rooms[5].y + rooms[5].height + 10;
 	rooms[12].width = (MAP_SIZE / 4) - 8;
-	rooms[12].height = 7 + (guRandom() % 5);
+	rooms[12].height = 7 + (xorshift32(&roomGeneratorState) % 5);
 	rooms[12].type = StaircaseRoom;
 
-	rooms[13].x = rooms[5].x + 4 + (guRandom() % 6);
+	rooms[13].x = rooms[5].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[13].y = (rooms[5].y + rooms[5].height);
 	rooms[13].width = 3;
 	rooms[13].height = rooms[5].y - (rooms[10].y + rooms[10].height);
@@ -181,7 +183,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 void initMap(GeneratedRoom* rooms) {
   int i;
 
-  guRandom();
+  roomGeneratorState.a = 81645372;
 
   // "Fill in" impassible tiles everywhere to start
   for (i = 0; i < (MAP_SIZE * MAP_SIZE); i++) {
@@ -196,11 +198,11 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
-      int emittersToPlace = (guRandom() % 7) + 1;
+      int emittersToPlace = (xorshift32(&roomGeneratorState) % 7) + 1;
       int iEmit;
       for (iEmit = 0; iEmit < emittersToPlace; iEmit++) {
-        int xEnemyPos = 4 + (guRandom() % (rooms[i].width - 8));
-        int yEnemyPos = 4 + (guRandom() % (rooms[i].height - 8));
+        int xEnemyPos = 4 + (xorshift32(&roomGeneratorState) % (rooms[i].width - 8));
+        int yEnemyPos = 4 + (xorshift32(&roomGeneratorState) % (rooms[i].height - 8));
         generateAimEmitterEntity((rooms[i].x + xEnemyPos) * TILE_SIZE, (rooms[i].y + yEnemyPos) * TILE_SIZE);
       }
       
@@ -223,8 +225,8 @@ void updateMapFromInfo() {
     u8 tileType = IS_TILE_BLOCKED(x, y);
 
     if (tileType == FLOOR_TILE) {
-      int var = guRandom() % FLOOR_COLOR_2_VAR;
-      int var2 = guRandom() % FLOOR_COLOR_1_VAR;
+      int var = xorshift32(&roomGeneratorState) % FLOOR_COLOR_2_VAR;
+      int var2 = xorshift32(&roomGeneratorState) % FLOOR_COLOR_1_VAR;
 
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[0] = (x * TILE_SIZE);
       map_geom[(i * VERTS_PER_TILE) + 0].v.ob[1] = (y * TILE_SIZE);

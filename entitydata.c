@@ -93,8 +93,6 @@ void initializeEntityData() {
 
 	// Initialize bullets
 	for (i = 0; i < BULLET_COUNT; i++) {
-		float r = i / (float)((guRandom() % 10 / 10.f) * M_PI * 2.f);
-
 		BulletPositions[i].x = MAP_SIZE * TILE_SIZE * 0.15f;
 		BulletPositions[i].y = MAP_SIZE * TILE_SIZE * 0.15f;
 
