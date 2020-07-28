@@ -13,7 +13,7 @@
 void stage00(int);
 
 /* Declaration of the external function  */
-void initStage00(void);
+void initStage00(int floorNumber);
 void makeDL00(void);
 void updateGame00(void);
 
@@ -28,6 +28,8 @@ u8 contPattern;		     /* The pattern connected to the controller  */
 xorshift32_state grandSeed;
 xorshift32_state roomSeeds[NUMBER_OF_FLOORS];
 
+int currentFloor;
+
 /*------------------------
 	Main
 --------------------------*/
@@ -41,10 +43,12 @@ void mainproc(void)
   /* The initialization of the controller manager  */
   contPattern = nuContInit();
 
+
   // TODO: randomize this per tick + input
   grandSeed.a = 82675341;
 
   // TODO: have this begin when the player "starts a new game"
+  currentFloor = 0;
   for (i = 0; i < NUMBER_OF_FLOORS; i++) {
     roomSeeds[i].a = xorshift32(&grandSeed);
   }
@@ -53,7 +57,7 @@ void mainproc(void)
     resetStageFlag = 0; // change this to 0 to cause a loop to wait
 
     /* The initialization for stage00()  */
-    initStage00();
+    initStage00(currentFloor);
     /* Register call-back  */
     nuGfxFuncSet((NUGfxFunc)stage00);
     /* The screen display is ON */
@@ -61,6 +65,8 @@ void mainproc(void)
 
     while(resetStageFlag == 0)
       ;
+
+    currentFloor = 1;
 
     nuGfxFuncRemove();
     nuGfxDisplayOff();

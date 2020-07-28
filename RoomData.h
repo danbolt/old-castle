@@ -47,7 +47,7 @@ typedef struct {
   RoomType type;
 } GeneratedRoom;
 
-void initMap(GeneratedRoom* rooms, xorshift32_state* seed);
+void initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
 
 void initEnemiesForMap(GeneratedRoom* rooms);
 

@@ -179,7 +179,21 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	fillInHighWalls();
 }
 
-void initMap(GeneratedRoom* rooms, xorshift32_state* seed) {
+int generateBasementStyleFloor(GeneratedRoom* rooms) {
+	int i;
+
+	rooms[0].x = 1;
+	rooms[0].y = 1;
+	rooms[0].width = 10;
+	rooms[0].height = 10;
+	rooms[0].type = StartingRoom;
+
+	fillInRooms(rooms, 1);
+
+	fillInHighWalls();
+}
+
+void initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   int i;
 
   roomGeneratorState = *seed;
@@ -189,7 +203,12 @@ void initMap(GeneratedRoom* rooms, xorshift32_state* seed) {
   	MapInfo[i] = EMPTY_HIGH_WALL_TILE;
   }
 
-  generateFloorInStyleA(rooms);
+  //TODO: Turn the floor numbers from magic numbers into #define constants
+  if (floorNumber == 0) {
+  	generateFloorInStyleA(rooms);
+  } else {
+  	generateBasementStyleFloor(rooms);
+  }
 }
 
 void initEnemiesForMap(GeneratedRoom* rooms) {

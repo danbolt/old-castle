@@ -299,7 +299,7 @@ int indexForChar(const char letter) {
 }
 
 /* The initialization of stage 0 */
-void initStage00(void)
+void initStage00(int floorNumber)
 {
   int i;
   GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
@@ -337,7 +337,7 @@ void initStage00(void)
   initializeEntityData();
 
   // TODO: create a variable for this to change
-  initMap(rooms, &(roomSeeds[0]));
+  initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
   initEnemiesForMap(rooms);
   updateMapFromInfo();
 
