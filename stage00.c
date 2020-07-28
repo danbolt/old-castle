@@ -527,11 +527,6 @@ void makeDL00(void)
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
-  
-
-  if (resetStageFlag == 1) {
-    return;
-  }
 
   nuDebPerfMarkSet(2);
 
@@ -882,10 +877,6 @@ void updateGame00(void)
   time = newTime;
   deltaSeconds = delta * 0.000001f;
 
-  if (resetStageFlag == 1) {
-    return;
-  }
-
   nuDebPerfMarkSet(0);
 
   for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
@@ -913,6 +904,11 @@ void updateGame00(void)
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
+
+  if ((contdata[0].trigger & START_BUTTON)) {
+    resetStageFlag = 1;
+    return;
+  }
 
   if ((player_state == Move) || (player_state == Holding)) {
     /* The reverse rotation by the A button */

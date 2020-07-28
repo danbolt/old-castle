@@ -35,7 +35,8 @@ void mainproc(void)
   contPattern = nuContInit();
 
   while (1) {
-    resetStageFlag = 0;
+    resetStageFlag = 0; // change this to 0 to cause a loop to wait
+
     /* The initialization for stage00()  */
     initStage00();
     /* Register call-back  */
@@ -46,6 +47,7 @@ void mainproc(void)
     while(resetStageFlag == 0)
       ;
 
+    nuGfxFuncRemove();
     nuGfxDisplayOff();
   }
 }
@@ -61,7 +63,7 @@ void stage00(int pendingGfx)
 {
   /* Provide the display process if 2 or less RCP tasks are processing or
 	waiting for the process.  */
-  if(pendingGfx < 3)
+  if( (resetStageFlag == 0) && (pendingGfx < 3))
     makeDL00();		
 
   /* The process of game progress  */
