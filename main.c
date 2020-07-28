@@ -23,16 +23,31 @@ volatile int resetStageFlag;
 NUContData	contdata[1]; /* Read data of 1 controller  */
 u8 contPattern;		     /* The pattern connected to the controller  */
 
+// TODO: move these to their own functionality
+#define NUMBER_OF_FLOORS 12
+xorshift32_state grandSeed;
+xorshift32_state roomSeeds[NUMBER_OF_FLOORS];
+
 /*------------------------
 	Main
 --------------------------*/
 void mainproc(void)
 {
+  int i;
+
   /* The initialization of graphic  */
   nuGfxInit();
 
   /* The initialization of the controller manager  */
   contPattern = nuContInit();
+
+  // TODO: randomize this per tick + input
+  grandSeed.a = 82675341;
+
+  // TODO: have this begin when the player "starts a new game"
+  for (i = 0; i < NUMBER_OF_FLOORS; i++) {
+    roomSeeds[i].a = xorshift32(&grandSeed);
+  }
 
   while (1) {
     resetStageFlag = 0; // change this to 0 to cause a loop to wait

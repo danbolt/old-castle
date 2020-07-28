@@ -336,7 +336,8 @@ void initStage00(void)
 
   initializeEntityData();
 
-  initMap(rooms);
+  // TODO: create a variable for this to change
+  initMap(rooms, &(roomSeeds[0]));
   initEnemiesForMap(rooms);
   updateMapFromInfo();
 

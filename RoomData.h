@@ -6,6 +6,8 @@
 
 #include <nusys.h>
 
+#include "xorshift.h"
+
 #define MAP_SIZE 125
 #define ROOM_SIZE 25
 #define TILE_SIZE 2
@@ -45,7 +47,7 @@ typedef struct {
   RoomType type;
 } GeneratedRoom;
 
-void initMap(GeneratedRoom* rooms);
+void initMap(GeneratedRoom* rooms, xorshift32_state* seed);
 
 void initEnemiesForMap(GeneratedRoom* rooms);
 

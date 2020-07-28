@@ -5,7 +5,6 @@
 #include "EntityData.h"
 #include "game_math.h"
 #include "graphic.h"
-#include "xorshift.h"
 
 static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
@@ -180,10 +179,10 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	fillInHighWalls();
 }
 
-void initMap(GeneratedRoom* rooms) {
+void initMap(GeneratedRoom* rooms, xorshift32_state* seed) {
   int i;
 
-  roomGeneratorState.a = 81645372;
+  roomGeneratorState = *seed;
 
   // "Fill in" impassible tiles everywhere to start
   for (i = 0; i < (MAP_SIZE * MAP_SIZE); i++) {
