@@ -12,6 +12,12 @@
 #include "tex/letters.h"
 #include "floordata.h"
 
+#define CAMERA_MOVE_SPEED 0.01726f
+#define CAMERA_TURN_SPEED 0.03826f
+#define CAMERA_DISTANCE 2.23f
+#define CAMERA_HEIGHT 19.0f
+#define CAMERA_LERP 0.13f
+
 static float player_x;
 static float player_y;
 static float player_jump_x;
@@ -313,7 +319,7 @@ void initStage00(int floorNumber)
   player_t = 0.f;
   HIT_WALL_WHILE_JUMPING = 0;
   player_sword_angle = 0.f;
-  player_bullets_collected = 0;
+  player_bullets_collected = 50;
 
   trail_geo_index = 0;
 
@@ -324,7 +330,7 @@ void initStage00(int floorNumber)
   delta = 0;
   deltaSeconds = 0.f;
 
-  camera_rotation = 0.00001f;
+  camera_rotation = M_PI;
   player_rotation = 0.f;
 
   for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
@@ -560,7 +566,7 @@ void makeDL00(void)
   gfxClearCfb();
 
   /* projection,modeling matrix set */
-  guPerspective(&dynamicp->projection, &perspNorm, 35.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
+  guPerspective(&dynamicp->projection, &perspNorm, 80.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
   guLookAt(&dynamicp->viewing, camera_x + (cosf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), camera_y + (sinf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
 
   gSPPerspNormalize(glistp++, perspNorm);
@@ -714,9 +720,6 @@ void makeDL00(void)
   renderMapTiles(camera_x, camera_y, camera_rotation);
 
   if (player_state == Jumping || player_state == Landed || player_state == Holding) {
-    if (time % 2 == 0) {
-      gDPSetRenderMode(glistp++, G_RM_ZB_XLU_SURF, G_RM_ZB_XLU_SURF2);
-    }
     gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
     for (i = 0; i < 32; i += 2) {
       int i1 = (trail_geo_index + i - 0 + (sizeof(trail_geo) / sizeof(trail_geo[0]))) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
@@ -726,14 +729,11 @@ void makeDL00(void)
       gSP2Triangles(glistp++, i1, i2, i3, 0, i1, i2, i4, 0);
     }
     trail_geo_index = (trail_geo_index + 2) % (sizeof(trail_geo) / sizeof(trail_geo[0]));
-    if (time % 2 == 0) {
-      gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
-    }
 
     if (player_state == Landed) {
       float hump = sinf((player_t) * M_PI);
       guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
-      guScale(&landEffectScale, cubic(hump + 0.5f) * 0.009523f, cubic(hump + 0.5f) * 0.009523f, (hump + 0.7f) * 0.02f);
+      guScale(&landEffectScale, cubic(hump + 0.5f) * 0.014523f, cubic(hump + 0.5f) * 0.014523f, (hump + 0.7f) * 0.02f);
       gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
       gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
       gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
@@ -932,25 +932,25 @@ void updateGame00(void)
 
   if ((player_state == Move) || (player_state == Holding)) {
     /* The reverse rotation by the A button */
-    if((contdata[0].button & L_TRIG) || (contdata[0].button & Z_TRIG))
-    {
-        camera_rotation += CAMERA_TURN_SPEED;
+    // if((contdata[0].button & L_TRIG) || (contdata[0].button & Z_TRIG))
+    // {
+    //     camera_rotation += CAMERA_TURN_SPEED;
 
-        if (camera_rotation > (M_PI * 2.0f))
-        {
-          camera_rotation -= M_PI * 2.0f;
-        } 
-    }
+    //     if (camera_rotation > (M_PI * 2.0f))
+    //     {
+    //       camera_rotation -= M_PI * 2.0f;
+    //     } 
+    // }
 
-    if(contdata[0].button & R_TRIG)
-    {
-        camera_rotation -= CAMERA_TURN_SPEED;
+    // if(contdata[0].button & R_TRIG)
+    // {
+    //     camera_rotation -= CAMERA_TURN_SPEED;
 
-        if (camera_rotation < 0.f)
-        {
-          camera_rotation += M_PI * 2.0f;
-        }
-    }
+    //     if (camera_rotation < 0.f)
+    //     {
+    //       camera_rotation += M_PI * 2.0f;
+    //     }
+    // }
 
     if (contdata[0].button & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
       if (contdata[0].button & L_JPAD) {

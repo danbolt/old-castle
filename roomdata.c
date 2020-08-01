@@ -704,8 +704,8 @@ void renderMapTiles(float camera_x, float camera_y, float camera_rotation) {
 	int i;
 	int j;
 
-	for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); i++) {
-		for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - RENDER_DISTANCE_IN_TILES)); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + RENDER_DISTANCE_IN_TILES)); j++) {
+	for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - (RENDER_DISTANCE_IN_TILES + 1))); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + (RENDER_DISTANCE_IN_TILES + 1))); i++) {
+		for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - (RENDER_DISTANCE_IN_TILES - 4))); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + (RENDER_DISTANCE_IN_TILES))); j++) {
 		  int type = IS_TILE_BLOCKED(i, j);
 
 		  if (type == EMPTY_HIGH_WALL_TILE) {

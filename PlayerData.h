@@ -17,13 +17,6 @@
 #define SWORD_RADUS 8
 #define SWORD_RADUS_SQ (SWORD_RADUS * SWORD_RADUS)
 
-// Todo: CameraData.h ?
-#define CAMERA_MOVE_SPEED 0.01726f
-#define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 13.23f
-#define CAMERA_HEIGHT 41.0f
-#define CAMERA_LERP 0.13f
-
 typedef enum {
   Move,
   Jumping,
