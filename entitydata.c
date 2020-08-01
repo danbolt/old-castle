@@ -9,6 +9,7 @@
 #define BULLET_COUNT 200
 #define EMITTER_COUNT 64
 #define AIM_EMITTER_COUNT 64
+#define SPIN_EMITTER_COUNT 64
 #define EMITTER_RADIUS 4.f
 #define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
 
@@ -25,6 +26,9 @@ int NextBulletIndex;
 
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 static int NextAimEmitterIndex;
+
+static SpinEmitterData SpinEmitters[SPIN_EMITTER_COUNT];
+static int NextSpinEmitterIndex;
 
 static Position EmitterPositions[EMITTER_COUNT];
 static Velocity EmitterVelocities[EMITTER_COUNT];
@@ -128,6 +132,15 @@ void initializeEntityData() {
 		AimEmitters[i].t = 0.f + (guRandom() % 5);
 	}
 	NextAimEmitterIndex = 0;
+
+  // Initialize spin emitters
+  for (i = 0; i < SPIN_EMITTER_COUNT; i++) { 
+    SpinEmitters[i].emitterIndex = -1;
+    SpinEmitters[i].period = 0.4f;
+    SpinEmitters[i].spinSpeed = 60.f;
+    SpinEmitters[i].t = 0.f + (guRandom() % 5);
+  }
+  NextSpinEmitterIndex = 0;
 }
 
 int generateAimEmitterEntity(float x, float y) {
@@ -154,6 +167,32 @@ int generateAimEmitterEntity(float x, float y) {
     NextAimEmitterIndex++;
 
 	return newAimEmitterIndex;
+}
+
+int generateSpinEmitterEntity(float x, float y) {
+    int newEmitterIndex = NextEmitterIndex;
+    int newSpinEmitterIndex = NextSpinEmitterIndex;
+
+    if (newEmitterIndex == EMITTER_COUNT) {
+      return -1;
+    }
+
+    if (newSpinEmitterIndex == SPIN_EMITTER_COUNT) {
+      return -2;
+    }
+
+    EmitterStates[newEmitterIndex] = EMITTER_ALIVE;
+    EmitterPositions[newEmitterIndex].x = x;
+    EmitterPositions[newEmitterIndex].y = y;
+    EmitterVelocities[newEmitterIndex].x = 0.f;
+    EmitterVelocities[newEmitterIndex].y = 0.f;
+    NextEmitterIndex++;
+
+    SpinEmitters[newSpinEmitterIndex].emitterIndex = newEmitterIndex;
+    SpinEmitters[newSpinEmitterIndex].totalTime = 0;
+    NextSpinEmitterIndex++;
+
+  return newSpinEmitterIndex;
 }
 
 extern float test;
@@ -203,7 +242,7 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
     int newBulletIndex;
     float theta;
     Position* bulletPosition = NULL;
-	Velocity* bulletVelocity = NULL;
+    Velocity* bulletVelocity = NULL;
 
     if (AimEmitters[i].emitterIndex == -1) {
       continue;
@@ -243,14 +282,58 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
     if (newBulletIndex == -1) {
       continue;
     }
-	bulletPosition = getBulletPosition(newBulletIndex);
-	bulletVelocity = getBulletVelocity(newBulletIndex);
-	setBulletState(newBulletIndex, 1);
-	bulletPosition->x = EmitterPositions[AimEmitters[i].emitterIndex].x;
-	bulletPosition->y = EmitterPositions[AimEmitters[i].emitterIndex].y;
-	theta = nu_atan2(player_y - bulletPosition->y, player_x - bulletPosition->x);
-	bulletVelocity->x = 5.831332f * cosf(theta);
-	bulletVelocity->y = 5.831332f * sinf(theta);
+  	bulletPosition = getBulletPosition(newBulletIndex);
+  	bulletVelocity = getBulletVelocity(newBulletIndex);
+  	setBulletState(newBulletIndex, 1);
+  	bulletPosition->x = EmitterPositions[AimEmitters[i].emitterIndex].x;
+  	bulletPosition->y = EmitterPositions[AimEmitters[i].emitterIndex].y;
+  	theta = nu_atan2(player_y - bulletPosition->y, player_x - bulletPosition->x);
+  	bulletVelocity->x = 5.831332f * cosf(theta);
+  	bulletVelocity->y = 5.831332f * sinf(theta);
+  }
+
+  // Update spin emitters
+  for (i = 0; i < SPIN_EMITTER_COUNT; i++) {
+    int newBulletIndex;
+    float theta;
+    Position* bulletPosition = NULL;
+    Velocity* bulletVelocity = NULL;
+
+    if (SpinEmitters[i].emitterIndex == -1) {
+      continue;
+    }
+
+    if ((EmitterStates[SpinEmitters[i].emitterIndex]) == EMITTER_DEAD) {
+      SpinEmitters[i].emitterIndex = -1;
+      continue;
+    }
+
+    // if we're really far away, don't worry about updating for now
+    if ((fabs_d(player_y - EmitterPositions[SpinEmitters[i].emitterIndex].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[SpinEmitters[i].emitterIndex].x) > (RENDER_DISTANCE * 2))) {
+      continue;
+    }
+
+    SpinEmitters[i].t += deltaSeconds;
+    SpinEmitters[i].totalTime += deltaSeconds;
+    if (SpinEmitters[i].t < SpinEmitters[i].period) {
+      continue;
+    }
+
+    // If we've made it here, fire
+    SpinEmitters[i].t = 0;
+
+    // Skip if there are no available bullets
+    newBulletIndex = consumeNextBullet();
+    if (newBulletIndex == -1) {
+      continue;
+    }
+    bulletPosition = getBulletPosition(newBulletIndex);
+    bulletVelocity = getBulletVelocity(newBulletIndex);
+    setBulletState(newBulletIndex, 1);
+    bulletPosition->x = EmitterPositions[SpinEmitters[i].emitterIndex].x;
+    bulletPosition->y = EmitterPositions[SpinEmitters[i].emitterIndex].y;
+    bulletVelocity->x = 8.4f * cosf(SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed);
+    bulletVelocity->y = 8.4f * sinf(SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed);
   }
 }
 

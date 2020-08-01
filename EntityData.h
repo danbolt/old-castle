@@ -28,9 +28,20 @@ typedef struct {
 
   u8 shotsToFire;
   u8 spreadSpeadInDegrees;
+
   float period;
   float t;
 } AimEmitterData;
+
+typedef struct {
+  s8 emitterIndex;
+
+  float spinSpeed; // Radians
+  float totalTime;
+
+  float period;
+  float t;
+} SpinEmitterData;
 
 // Clears all entity data; this should be done on level start
 void initializeEntityData();
@@ -39,6 +50,7 @@ void initializeEntityData();
 // Returns -1 if there's no room in emitter memory (for positon, state, etc.)
 // Returns -2 if there's no room in aim emitter memory (aiming logic)
 int generateAimEmitterEntity(float x, float y);
+int generateSpinEmitterEntity(float x, float y);
 
 void tickAimEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);
 void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale);
