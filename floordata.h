@@ -3,6 +3,8 @@
 
 #include "xorshift.h"
 
+#define NO_PREVIOUS_FLOOR -1
+
 #define NUMBER_OF_FLOORS 16
 extern xorshift32_state grandSeed; // The seed of the entire playthrough
 extern xorshift32_state roomSeeds[NUMBER_OF_FLOORS]; // The individual seeds for each floor

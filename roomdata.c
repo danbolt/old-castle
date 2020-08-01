@@ -44,9 +44,7 @@ void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 			int midX = (room->x + (room->width / 2));
 			int midY = (room->y + (room->height / 2));
 
-			MapInfo[(midY * MAP_SIZE) + (midX - 1)] = STAIRCASE_A + staircasesPlaced;
-			MapInfo[(midY * MAP_SIZE) + midX] = STAIRCASE_A + staircasesPlaced;
-			MapInfo[(midY * MAP_SIZE) + (midX + 1)] = STAIRCASE_A + staircasesPlaced;
+			MapInfo[(midY * MAP_SIZE) + midX] = STAIRCASE_A + room->stairsDirectionIndex;
 			staircasesPlaced++;
 		}
 	}
@@ -130,6 +128,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[6].width = (MAP_SIZE / 4) - 8;
 	rooms[6].height = 9 + (xorshift32(&roomGeneratorState) % 7);
 	rooms[6].type = StaircaseRoom;
+  rooms[6].stairsDirectionIndex = 0;
 
 	rooms[7].x = rooms[4].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[7].y = (rooms[6].y + rooms[6].height);
@@ -142,6 +141,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[8].width = (MAP_SIZE / 4) - 8;
 	rooms[8].height = 7 + (xorshift32(&roomGeneratorState) % 5);
 	rooms[8].type = StaircaseRoom;
+  rooms[8].stairsDirectionIndex = 1;
 
 	rooms[9].x = rooms[4].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[9].y = (rooms[4].y + rooms[4].height);
@@ -155,6 +155,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[10].width = (MAP_SIZE / 4) - 8;
 	rooms[10].height = 9 + (xorshift32(&roomGeneratorState) % 7);
 	rooms[10].type = StaircaseRoom;
+  rooms[10].stairsDirectionIndex = 2;
 
 	rooms[11].x = rooms[5].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[11].y = (rooms[10].y + rooms[10].height);
@@ -167,6 +168,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[12].width = (MAP_SIZE / 4) - 8;
 	rooms[12].height = 7 + (xorshift32(&roomGeneratorState) % 5);
 	rooms[12].type = StaircaseRoom;
+  rooms[12].stairsDirectionIndex = 3;
 
 	rooms[13].x = rooms[5].x + 4 + (xorshift32(&roomGeneratorState) % 6);
 	rooms[13].y = (rooms[5].y + rooms[5].height);
@@ -177,6 +179,8 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	fillInRooms(rooms, 14);
 
 	fillInHighWalls();
+
+  return 14;
 }
 
 int generateBasementStyleFloor(GeneratedRoom* rooms) {
@@ -186,15 +190,32 @@ int generateBasementStyleFloor(GeneratedRoom* rooms) {
 	rooms[0].y = 1;
 	rooms[0].width = 10;
 	rooms[0].height = 10;
-	rooms[0].type = StartingRoom;
+	rooms[0].type = StaircaseRoom;
+  rooms[0].stairsDirectionIndex = 0;
 
-	fillInRooms(rooms, 1);
+  rooms[1].x = 15;
+  rooms[1].y = 1;
+  rooms[1].width = 10;
+  rooms[1].height = 10;
+  rooms[1].type = StaircaseRoom;
+  rooms[1].stairsDirectionIndex = 1;
+
+  rooms[2].x = 11;
+  rooms[2].y = 1;
+  rooms[2].width = 4;
+  rooms[2].height = 2;
+  rooms[2].type = HallwayRoom;
+
+	fillInRooms(rooms, 3);
 
 	fillInHighWalls();
+
+  return 3;
 }
 
-void initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
+int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   int i;
+  int numberOfGeneratedRooms = 0;
 
   roomGeneratorState = *seed;
 
@@ -203,12 +224,18 @@ void initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   	MapInfo[i] = EMPTY_HIGH_WALL_TILE;
   }
 
+  for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    rooms[i].stairsDirectionIndex = NO_STAIRS_DIRECTION;
+  }
+
   //TODO: Turn the floor numbers from magic numbers into #define constants
   if (floorNumber == 0) {
-  	generateFloorInStyleA(rooms);
+  	numberOfGeneratedRooms = generateFloorInStyleA(rooms);
   } else {
-  	generateBasementStyleFloor(rooms);
+  	numberOfGeneratedRooms = generateBasementStyleFloor(rooms);
   }
+
+  return numberOfGeneratedRooms;
 }
 
 void initEnemiesForMap(GeneratedRoom* rooms) {

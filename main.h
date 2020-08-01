@@ -15,6 +15,10 @@ extern u8 contPattern;		     /* The pattern of the connected controller  */
 
 extern volatile int resetStageFlag;
 
+extern volatile int nextRoomRequest;
+extern volatile int currentFloor;
+extern volatile int previousFloor;
+
 #endif /* _LANGUAGE_C */
 #endif /* MAIN_H */
 

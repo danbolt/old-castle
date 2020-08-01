@@ -10,6 +10,7 @@
 #include "RoomData.h"
 #include "game_math.h"
 #include "tex/letters.h"
+#include "floordata.h"
 
 static float player_x;
 static float player_y;
@@ -39,6 +40,8 @@ static OSTime delta;
 float deltaSeconds;
 
 float test;
+
+char testStringBuf[64];
 
 static Vtx jump_target_geom[] =  {
   {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
@@ -302,6 +305,7 @@ int indexForChar(const char letter) {
 void initStage00(int floorNumber)
 {
   int i;
+  int numberOfGeneratedRooms;
   GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
   target_distance = DEFAULT_TARGET_DISTANCE;
@@ -327,22 +331,36 @@ void initStage00(int floorNumber)
     textRequests[i].enable = 0;
   }
 
+  sprintf(testStringBuf, "curr. floor is %d", currentFloor);
+
   textRequests[0].enable = 1;
-  textRequests[0].text = "Winners don't do drugs!\n\n-- The Fed";
-  textRequests[0].x = 32;
-  textRequests[0].y = 64;
+  textRequests[0].text = testStringBuf;
+  textRequests[0].x = 16;
+  textRequests[0].y = 16;
   textRequests[0].cutoff = 0;
   textRequests[0].typewriterTick = 0;
 
   initializeEntityData();
 
   // TODO: create a variable for this to change
-  initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
+  numberOfGeneratedRooms =initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
   initEnemiesForMap(rooms);
   updateMapFromInfo();
 
-  player_x = (rooms[0].x + (rooms[0].width / 2)) * TILE_SIZE;
-  player_y = (rooms[0].y + (rooms[0].height / 2)) * TILE_SIZE;
+  if (previousFloor == NO_PREVIOUS_FLOOR) {
+    // If we have no previous floor, let's simply place ourself in the lobby
+    player_x = (rooms[0].x + (rooms[0].width / 2)) * TILE_SIZE;
+    player_y = (rooms[0].y + (rooms[0].height / 2)) * TILE_SIZE;
+  } else {
+    for (i = 0; i < numberOfGeneratedRooms; i++) {
+      if (rooms[i].type == StaircaseRoom) {
+        if (exitMap[currentFloor][rooms[i].stairsDirectionIndex] == previousFloor) {
+          player_x = (rooms[i].x + (rooms[i].width / 2) + 2) * TILE_SIZE;
+          player_y = (rooms[i].y + (rooms[i].height / 2)) * TILE_SIZE;
+        }
+      }
+    }
+  }
 
   camera_x = player_x;
   camera_y = player_y;
@@ -908,6 +926,7 @@ void updateGame00(void)
 
   if ((contdata[0].trigger & START_BUTTON)) {
     resetStageFlag = 1;
+    nextRoomRequest = -1;
     return;
   }
 
@@ -1073,6 +1092,7 @@ void updateGame00(void)
   if ((isTileBlocked(newTileX, newTileY) >= STAIRCASE_A) && (isTileBlocked(newTileX, newTileY) <= STAIRCASE_E)) {
     // TODO: time this out
     resetStageFlag = 1;
+    nextRoomRequest = exitMap[currentFloor][isTileBlocked(newTileX, newTileY) - STAIRCASE_A];
     return;
   }
 

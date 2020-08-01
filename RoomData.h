@@ -38,16 +38,18 @@ typedef enum {
   HallwayRoom, // A room that's more of a hallawy to another room
 } RoomType;
 
+#define NO_STAIRS_DIRECTION -1
 typedef struct {
   u8 x;
   u8 y;
   u8 width;
   u8 height;
+  s8 stairsDirectionIndex; // used if this is a staircaseRoom
 
   RoomType type;
 } GeneratedRoom;
 
-void initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
+int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
 
 void initEnemiesForMap(GeneratedRoom* rooms);
 

@@ -26,8 +26,9 @@ volatile int resetStageFlag;
 NUContData	contdata[1]; /* Read data of 1 controller  */
 u8 contPattern;		     /* The pattern connected to the controller  */
 
-
-int currentFloor;
+volatile int currentFloor;
+volatile int previousFloor;
+volatile int nextRoomRequest;
 
 /*------------------------
 	Main
@@ -45,7 +46,9 @@ void mainproc(void)
   initalizeConnections();
 
   // TODO: have this begin when the player "starts a new game"
+  nextRoomRequest = NO_PREVIOUS_FLOOR;
   currentFloor = 0;
+  previousFloor = NO_PREVIOUS_FLOOR;
 
   while (1) {
     resetStageFlag = 0; // change this to 0 to cause a loop to wait
@@ -60,7 +63,12 @@ void mainproc(void)
     while(resetStageFlag == 0)
       ;
 
-    currentFloor = 1;
+    previousFloor = currentFloor;
+    if (nextRoomRequest == -1) {
+      previousFloor = NO_PREVIOUS_FLOOR;
+      nextRoomRequest = 0;
+    }
+    currentFloor = nextRoomRequest;
 
     nuGfxFuncRemove();
     nuGfxDisplayOff();
