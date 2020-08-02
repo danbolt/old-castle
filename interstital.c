@@ -26,7 +26,7 @@ void initInterstitial(void) {
 	resetTextRequests();
 
 	getTextRequest(0)->enable = 1;
-	getTextRequest(0)->text = "How do we feel about this?\n\nDoes it work okay?\n\nPress A";
+	getTextRequest(0)->text = "How do we feel about this?\nDoes it work okay?\n\n\n\nPress A";
 	getTextRequest(0)->x = 16;
 	getTextRequest(0)->y = 16;
 	getTextRequest(0)->cutoff = 0;

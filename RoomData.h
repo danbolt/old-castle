@@ -55,7 +55,7 @@ void initEnemiesForMap(GeneratedRoom* rooms);
 
 void updateMapFromInfo();
 
-void renderMapTiles(float camera_x, float camera_y, float camera_rotation);
+void renderMapTiles(float camera_x, float camera_y, float camera_rotation, float warp);
 
 int isTileBlocked(int x, int y);
 

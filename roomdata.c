@@ -6,6 +6,8 @@
 #include "game_math.h"
 #include "graphic.h"
 
+#define WARP_EPSILON 0.001f
+
 static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
 
@@ -24,6 +26,8 @@ static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 static Vtx map_geom[MAP_SIZE * MAP_SIZE * VERTS_PER_TILE];
 
 static xorshift32_state roomGeneratorState;
+
+static Mtx tilesWarp[(RENDER_DISTANCE_IN_TILES + 2) * 2];
 
 void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 	int i;
@@ -700,11 +704,18 @@ void updateMapFromInfo() {
   }
 }
 
-void renderMapTiles(float camera_x, float camera_y, float camera_rotation) {
+void renderMapTiles(float camera_x, float camera_y, float camera_rotation, float warp) {
 	int i;
 	int j;
+  int rowIndex = 0;
 
 	for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - (RENDER_DISTANCE_IN_TILES + 1))); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + (RENDER_DISTANCE_IN_TILES + 1))); i++) {
+    if (warp > WARP_EPSILON) {
+      int tileDelta = rowIndex - RENDER_DISTANCE_IN_TILES;
+      guTranslate(&(tilesWarp[rowIndex]), warp * (tileDelta) * 2, 0, (warp * warp) * -2.f);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(tilesWarp[rowIndex])), G_MTX_PUSH | G_MTX_MODELVIEW);
+    }
+
 		for (j = MAX(0, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - (RENDER_DISTANCE_IN_TILES - 4))); j < MIN(MAP_SIZE, (int)(((camera_y + sinf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + (RENDER_DISTANCE_IN_TILES))); j++) {
 		  int type = IS_TILE_BLOCKED(i, j);
 
@@ -736,6 +747,11 @@ void renderMapTiles(float camera_x, float camera_y, float camera_rotation) {
 		  	gSP2Triangles(glistp++,4,5,6,0,6,5,7,0);
 		  }
 		}
+
+    if (warp > WARP_EPSILON) {
+      gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+      rowIndex++;
+    }
 	}
 }
 

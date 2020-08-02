@@ -32,6 +32,14 @@ float cubic(float t) {
   return t * t * t;
 }
 
+float cubicOut(float t) {
+  return 1.f - (t * t * t);
+}
+
+float sineEase(float t) {
+  return (t * M_PI_2);
+}
+
 float atan2bodyf(float y,float x)
 { 
     float arg,ys,old;

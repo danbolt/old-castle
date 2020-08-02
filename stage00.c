@@ -19,6 +19,8 @@
 #define CAMERA_LERP 0.13f
 #define CAMERA_FOV 30.0f
 
+#define WARP_IN_TIME_IN_SECONDS 2.34222f
+
 static float player_x;
 static float player_y;
 static float player_jump_x;
@@ -49,6 +51,9 @@ float deltaSeconds;
 float test;
 
 char testStringBuf[64];
+
+int isWarping;
+float warpDelta;
 
 static Vtx jump_target_geom[] =  {
   {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
@@ -313,7 +318,7 @@ void initStage00(int floorNumber)
   camera_x = 0.0f;
   camera_y = 0.0f;
 
-  time = 0;
+  time = OS_CYCLES_TO_USEC(osGetTime());
   delta = 0;
   deltaSeconds = 0.f;
 
@@ -343,6 +348,7 @@ void initStage00(int floorNumber)
     player_x = (rooms[0].x + (rooms[0].width / 2)) * TILE_SIZE;
     player_y = (rooms[0].y + (rooms[0].height / 2)) * TILE_SIZE;
   } else {
+    // Place us with the corresponding staircase
     for (i = 0; i < numberOfGeneratedRooms; i++) {
       if (rooms[i].type == StaircaseRoom) {
         if (exitMap[currentFloor][rooms[i].stairsDirectionIndex] == previousFloor) {
@@ -355,6 +361,9 @@ void initStage00(int floorNumber)
 
   camera_x = player_x;
   camera_y = player_y;
+
+  isWarping = 1;
+  warpDelta = 0;
 }
 
 void addBulletToDisplayList()
@@ -703,7 +712,11 @@ void makeDL00(void)
 
   nuDebPerfMarkSet(4);
 
-  renderMapTiles(camera_x, camera_y, camera_rotation);
+  if (isWarping) {
+    renderMapTiles(camera_x, camera_y, camera_rotation, cubic(1.f - (warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+  } else {
+    renderMapTiles(camera_x, camera_y, camera_rotation, 0.f);
+  }
 
   if (player_state == Jumping || player_state == Landed || player_state == Holding) {
     gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
@@ -749,64 +762,72 @@ void makeDL00(void)
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
-  // if(contPattern & 0x1)
-  // {
-  //   nuDebConTextPos(0,1,3);
-  //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
-  //   nuDebConCPuts(0, conbuf);
+  if(contPattern & 0x1)
+  {
+    nuDebConTextPos(0,1,3);
+    sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,4);
-  //   sprintf(conbuf,"time=%llu", time);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,4);
+    sprintf(conbuf,"time=%llu", time);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,5);
-  //   sprintf(conbuf,"delta=%llu", delta);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,5);
+    sprintf(conbuf,"delta=%llu", delta);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,6);
-  //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,6);
+    sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,8);
-  //   sprintf(conbuf,"test=%5.2f", test);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,8);
+    sprintf(conbuf,"warpDelta=%5.2f", warpDelta);
+    nuDebConCPuts(0, conbuf);
 
+    nuDebConTextPos(0,1,9);
+    sprintf(conbuf,"isWarping=%d", isWarping);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,21);
-  //   sprintf(conbuf,"points=%d", player_bullets_collected);
-  //   nuDebConCPuts(0, conbuf);
-
-  //   nuDebConTextPos(0,1,22);
-  //   sprintf(conbuf,"PlayerState=%d", player_state);
-  //   nuDebConCPuts(0, conbuf);
-
-  //   nuDebConTextPos(0,1,23);
-  //   sprintf(conbuf,"plrX=%5.1f", player_x);
-  //   nuDebConCPuts(0, conbuf);
-
-  //   nuDebConTextPos(0,1,24);
-  //   sprintf(conbuf,"plrY=%5.1f", player_y);
-  //   nuDebConCPuts(0, conbuf);
-
-  //   nuDebConTextPos(0,1,25);
-  //   sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,10);
+    sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
+    nuDebConCPuts(0, conbuf);
 
 
+    nuDebConTextPos(0,1,21);
+    sprintf(conbuf,"points=%d", player_bullets_collected);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,26);
-  //   sprintf(conbuf,"camX=%5.1f", camera_x);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,22);
+    sprintf(conbuf,"PlayerState=%d", player_state);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,27);
-  //   sprintf(conbuf,"camY=%5.1f", camera_y);
-  //   nuDebConCPuts(0, conbuf);
-  // }
-  // else
-  // {
-  //   nuDebConTextPos(0,9,24);
-  //   nuDebConCPuts(0, "Controller 1 not connected; please restart");
-  // }
+    nuDebConTextPos(0,1,23);
+    sprintf(conbuf,"plrX=%5.1f", player_x);
+    nuDebConCPuts(0, conbuf);
+
+    nuDebConTextPos(0,1,24);
+    sprintf(conbuf,"plrY=%5.1f", player_y);
+    nuDebConCPuts(0, conbuf);
+
+    nuDebConTextPos(0,1,25);
+    sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
+    nuDebConCPuts(0, conbuf);
+
+
+
+    nuDebConTextPos(0,1,26);
+    sprintf(conbuf,"camX=%5.1f", camera_x);
+    nuDebConCPuts(0, conbuf);
+
+    nuDebConTextPos(0,1,27);
+    sprintf(conbuf,"camY=%5.1f", camera_y);
+    nuDebConCPuts(0, conbuf);
+  }
+  else
+  {
+    nuDebConTextPos(0,9,24);
+    nuDebConCPuts(0, "Controller 1 not connected; please restart");
+  }
 
     
   /* Display characters on the frame buffer */
@@ -842,6 +863,9 @@ void updateGame00(void)
 
   tickTextRequests(deltaSeconds);
 
+  if (isWarping) {
+  }
+
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
 
@@ -852,27 +876,6 @@ void updateGame00(void)
   }
 
   if ((player_state == Move) || (player_state == Holding)) {
-    /* The reverse rotation by the A button */
-    // if((contdata[0].button & L_TRIG) || (contdata[0].button & Z_TRIG))
-    // {
-    //     camera_rotation += CAMERA_TURN_SPEED;
-
-    //     if (camera_rotation > (M_PI * 2.0f))
-    //     {
-    //       camera_rotation -= M_PI * 2.0f;
-    //     } 
-    // }
-
-    // if(contdata[0].button & R_TRIG)
-    // {
-    //     camera_rotation -= CAMERA_TURN_SPEED;
-
-    //     if (camera_rotation < 0.f)
-    //     {
-    //       camera_rotation += M_PI * 2.0f;
-    //     }
-    // }
-
     if (contdata[0].button & (U_JPAD | D_JPAD | L_JPAD | R_JPAD)) {
       if (contdata[0].button & L_JPAD) {
         stickX = -1.f;
@@ -904,6 +907,12 @@ void updateGame00(void)
       }
     } else if (player_state == Holding) {
       player_state = Move;
+    }
+
+    // If we're warping, don't allow motion
+    if (isWarping) {
+      stickX = 0.f;
+      stickY = 0.f;
     }
 
     cosCamRot = cosf(-camera_rotation);
@@ -946,6 +955,13 @@ void updateGame00(void)
         } else {
           player_sword_angle = lerp( player_sword_angle, player_rotation - M_PI, 0.092553f);
         }
+      }
+    }
+
+    if (isWarping) {
+      warpDelta += deltaSeconds;
+      if (warpDelta > WARP_IN_TIME_IN_SECONDS) {
+        isWarping = 0;
       }
     }
 

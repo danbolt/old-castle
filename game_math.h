@@ -7,6 +7,9 @@ float fabs_d(float x);
 float lerp(float v0, float v1, float t);
 
 float cubic(float t);
+float cubicOut(float t);
+
+float sineEase(float t);
 
 /* copy-paste from the nusnake example */
 #define TOL ((float)1.0E-7)    /* Fix precision to 10^-7 because of the float type  */
