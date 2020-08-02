@@ -14,10 +14,10 @@
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
-#define CAMERA_DISTANCE 2.23f
-#define CAMERA_HEIGHT 25.0f
+#define CAMERA_DISTANCE 13.23f
+#define CAMERA_HEIGHT 45.0f
 #define CAMERA_LERP 0.13f
-#define CAMERA_FOV 60.0f
+#define CAMERA_FOV 30.0f
 
 static float player_x;
 static float player_y;
