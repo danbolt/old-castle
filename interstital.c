@@ -4,19 +4,34 @@
 #include "main.h"
 #include "graphic.h"
 #include <gu.h>
+#include "letters.h"
 
 static int note;
 
-void initInterstitial(void) {
-	note = 0;
-}
+OSTime interStitialTime;
+float interStitialDeltaSeconds;
 
 static Vtx shade_vtx[] =  {
-        {        -64,  64, -10, 0, 0, 0, 0, 0xff, 0, 0xff	},
-        {         64,  64, -10, 0, 0, 0, 0, 0, 0, 0xff    	},
-        {         64, -64, -10, 0, 0, 0, 0, 0, 0xff, 0xff	},
-        {        -64, -64, -10, 0, 0, 0, 0xff, 0, 0, 0xff	},
+        {        -64,  64, -5, 0, 0, 0, 0, 0xff, 0, 0xff	},
+        {         64,  64, -5, 0, 0, 0, 0, 0, 0, 0xff    	},
+        {         64, -64, -5, 0, 0, 0, 0, 0, 0xff, 0xff	},
+        {        -64, -64, -5, 0, 0, 0, 0xff, 0, 0, 0xff	},
 };
+
+void initInterstitial(void) {
+	note = 0;
+	interStitialTime = OS_CYCLES_TO_USEC(osGetTime());
+  	interStitialDeltaSeconds = 0.f;
+
+	resetTextRequests();
+
+	getTextRequest(0)->enable = 1;
+	getTextRequest(0)->text = "How do we feel about this?\n\nDoes it work okay?";
+	getTextRequest(0)->x = 16;
+	getTextRequest(0)->y = 16;
+	getTextRequest(0)->cutoff = 0;
+	getTextRequest(0)->typewriterTick = 0;
+}
 
 void makeDLInsterstital(void) {
   Dynamic* dynamicp;
@@ -32,19 +47,9 @@ void makeDLInsterstital(void) {
   /* Clear the frame and Z-buffer */
   gfxClearCfb();
 
-  guOrtho(&dynamicp->projection, -(float)SCREEN_WD/2.0F, (float)SCREEN_WD/2.0F, -(float)SCREEN_HT/2.0F, (float)SCREEN_HT/2.0F, 1.0F, 10.0F, 1.0F);
-
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->projection)), G_MTX_PROJECTION|G_MTX_LOAD|G_MTX_NOPUSH);
-
-  gSPVertex(glistp++,&(shade_vtx[0]),4, 0);
+  drawTextRequests();
 
   gDPPipeSync(glistp++);
-  gDPSetCycleType(glistp++,G_CYC_1CYCLE);
-  gDPSetRenderMode(glistp++,G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
-  gSPClearGeometryMode(glistp++,0xFFFFFFFF);
-  gSPSetGeometryMode(glistp++,G_SHADE| G_SHADING_SMOOTH);
-
-  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
 
   gDPFullSync(glistp++);
   gSPEndDisplayList(glistp++);
@@ -54,19 +59,6 @@ void makeDLInsterstital(void) {
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DEX , NU_SC_NOSWAPBUFFER);
 
-  if(contPattern & 0x1)
-    {
-      nuDebConTextPos(0,6,6);
-      sprintf(conbuf,"interstitial tick %d", note);
-      nuDebConCPuts(0, conbuf);
-    }
-  else
-    {
-      nuDebConTextPos(0,9,24);
-      nuDebConCPuts(0, "Controller1 not connect");
-    }
-
-
   nuDebConDisp(NU_SC_SWAPBUFFER);
 
   gfx_gtask_no ^= 1;
@@ -74,12 +66,18 @@ void makeDLInsterstital(void) {
 }
 
 void updateGameInterstital(void) {
-  nuContDataGetEx(contdata,0);
+	OSTime newTime = OS_CYCLES_TO_USEC(osGetTime());
+	interStitialDeltaSeconds = 0.000001f * (newTime - interStitialTime);
+	interStitialTime = newTime;
 
-  if ((contdata[0].trigger & START_BUTTON)) {
-    resetStageFlag = 1;
-    return;
-  }
+	tickTextRequests(interStitialDeltaSeconds);
 
-  note++;
+	nuContDataGetEx(contdata,0);
+
+	if ((contdata[0].trigger & U_JPAD)) {
+	resetStageFlag = 1;
+	return;
+	}
+
+	note++;
 }

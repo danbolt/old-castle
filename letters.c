@@ -1,7 +1,7 @@
+#include "letters.h"
 
-
-#ifndef LETTERS_BIN_H
-#define LETTERS_BIN_H
+#include <gu.h>
+#include "graphic.h"
 
 unsigned char test2_bin[] = {
   0x88, 0x8f, 0xd8, 0x88, 0x8d, 0xff, 0xff, 0xb8, 0x88, 0xff, 0xff, 0xd8,
@@ -221,5 +221,101 @@ unsigned char test2_bin[] = {
 };
 unsigned int test2_bin_len = 2560;
 
-#endif
+TextRequest textRequests[TEXT_REQUEST_BUF_SIZE];
+
+static const char NO_MSG[] = "";
+
+void resetTextRequests() {
+  int i;
+  
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    textRequests[i].text = NO_MSG;
+    textRequests[i].enable = 0;
+  }
+}
+
+void drawTextRequests() {
+  int i;
+
+  gDPPipeSync(glistp++);
+
+  gDPSetCycleType(glistp++, G_CYC_1CYCLE);
+  gDPSetTextureFilter(glistp++, G_TF_AVERAGE);
+  gDPSetRenderMode(glistp++, G_RM_TEX_EDGE, G_RM_TEX_EDGE);
+
+  gSPTexture(glistp++, 0xffff, 0xffff, 0, G_TX_RENDERTILE, G_ON);
+  gDPSetCombineMode(glistp++,G_CC_DECALRGBA, G_CC_DECALRGBA);
+  gDPSetTexturePersp(glistp++, G_TP_NONE);
+
+  gDPLoadTextureBlock_4b(glistp++, test2_bin, G_IM_FMT_IA, 64, 80, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+  
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    int letterIndex = 0;
+    int xSpot = textRequests[i].x;
+    int ySpot = textRequests[i].y;
+    if (textRequests[i].enable == 0) {
+      continue;
+    }
+
+    // TODO: we should make this more safe later
+    while (textRequests[i].text[letterIndex] != '\0') {
+      if ((textRequests[i].cutoff >= 0) && (letterIndex == textRequests[i].cutoff)) {
+        break;
+      } 
+
+      if (textRequests[i].text[letterIndex] == ' ') {
+        xSpot += 8;
+      } else if (textRequests[i].text[letterIndex] == '\n') {
+        xSpot = textRequests[i].x;
+        ySpot += 8;
+      } else {
+        int textureIndex = indexForChar(textRequests[i].text[letterIndex]);
+        int u = (textureIndex % 8) * 8;
+        int v = (textureIndex / 8) * 8;
+
+        gSPTextureRectangle(glistp++, (int)(xSpot) << 2, (int)(ySpot) << 2, (int)(xSpot + 8) << 2, (int)(ySpot + 8) << 2, G_TX_RENDERTILE, (u << 5), (v << 5), (int)(1 << 10), (int)(1 << 10));
+        xSpot += 8;
+      }
+
+      letterIndex++;
+    }
+  }
+}
+
+TextRequest* getTextRequest(int slot) {
+  if ((slot < 0) || (slot >= TEXT_REQUEST_BUF_SIZE)) {
+    return NULL;
+  }
+
+  return &(textRequests[slot]);
+}
+
+void tickTextRequests(float deltaSeconds) {
+  int i;
+
+  for (i = 0; i < TEXT_REQUEST_BUF_SIZE; i++) {
+    if (textRequests[i].enable == 0) {
+      continue;
+    }
+
+    if (textRequests[i].cutoff < 0) {
+      continue;
+    }
+
+    // If we're here, tick the cutoff marker
+    textRequests[i].typewriterTick += deltaSeconds;
+    if (textRequests[i].typewriterTick > 0.07436f) {
+      textRequests[i].typewriterTick = 0.f;
+
+      textRequests[i].cutoff++;
+
+      // If we've reached the null-terminator, please stop
+      if (textRequests[i].text[textRequests[i].cutoff] == '\0') {
+        textRequests[i].cutoff = -1;
+      }
+    }
+  }
+
+}
+
 
