@@ -323,7 +323,7 @@ void initStage00(int floorNumber)
   deltaSeconds = 0.f;
 
   camera_rotation = M_PI;
-  player_rotation = 0.f;
+  player_rotation = -M_PI_2;
 
   resetTextRequests();
 
@@ -664,7 +664,7 @@ void makeDL00(void)
   guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
   guRotate(&(targetRotation), ((float)time) * 0.0005f,  0.f, 0.f, 1.f);
 
-  if (player_state == Move) { 
+  if (player_state == Move && (player_bullets_collected >= JUMP_COST)) { 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
@@ -762,72 +762,72 @@ void makeDL00(void)
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
-  if(contPattern & 0x1)
-  {
-    nuDebConTextPos(0,1,3);
-    sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
-    nuDebConCPuts(0, conbuf);
+  // if(contPattern & 0x1)
+  // {
+  //   nuDebConTextPos(0,1,3);
+  //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,4);
-    sprintf(conbuf,"time=%llu", time);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,4);
+  //   sprintf(conbuf,"time=%llu", time);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,5);
-    sprintf(conbuf,"delta=%llu", delta);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,5);
+  //   sprintf(conbuf,"delta=%llu", delta);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,6);
-    sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,6);
+  //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,8);
-    sprintf(conbuf,"warpDelta=%5.2f", warpDelta);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,8);
+  //   sprintf(conbuf,"warpDelta=%5.2f", warpDelta);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,9);
-    sprintf(conbuf,"isWarping=%d", isWarping);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,9);
+  //   sprintf(conbuf,"isWarping=%d", isWarping);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,10);
-    sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
-    nuDebConCPuts(0, conbuf);
-
-
-    nuDebConTextPos(0,1,21);
-    sprintf(conbuf,"points=%d", player_bullets_collected);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,22);
-    sprintf(conbuf,"PlayerState=%d", player_state);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,23);
-    sprintf(conbuf,"plrX=%5.1f", player_x);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,24);
-    sprintf(conbuf,"plrY=%5.1f", player_y);
-    nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,25);
-    sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,10);
+  //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
+  //   nuDebConCPuts(0, conbuf);
 
 
+  //   nuDebConTextPos(0,1,21);
+  //   sprintf(conbuf,"points=%d", player_bullets_collected);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,26);
-    sprintf(conbuf,"camX=%5.1f", camera_x);
-    nuDebConCPuts(0, conbuf);
+  //   nuDebConTextPos(0,1,22);
+  //   sprintf(conbuf,"PlayerState=%d", player_state);
+  //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,27);
-    sprintf(conbuf,"camY=%5.1f", camera_y);
-    nuDebConCPuts(0, conbuf);
-  }
-  else
-  {
-    nuDebConTextPos(0,9,24);
-    nuDebConCPuts(0, "Controller 1 not connected; please restart");
-  }
+  //   nuDebConTextPos(0,1,23);
+  //   sprintf(conbuf,"plrX=%5.1f", player_x);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,24);
+  //   sprintf(conbuf,"plrY=%5.1f", player_y);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,25);
+  //   sprintf(conbuf,"sword_rot=%5.1f", player_sword_angle);
+  //   nuDebConCPuts(0, conbuf);
+
+
+
+  //   nuDebConTextPos(0,1,26);
+  //   sprintf(conbuf,"camX=%5.1f", camera_x);
+  //   nuDebConCPuts(0, conbuf);
+
+  //   nuDebConTextPos(0,1,27);
+  //   sprintf(conbuf,"camY=%5.1f", camera_y);
+  //   nuDebConCPuts(0, conbuf);
+  // }
+  // else
+  // {
+  //   nuDebConTextPos(0,9,24);
+  //   nuDebConCPuts(0, "Controller 1 not connected; please restart");
+  // }
 
     
   /* Display characters on the frame buffer */
@@ -1058,11 +1058,13 @@ void updateGame00(void)
   camera_x = lerp(camera_x, player_x, CAMERA_LERP);
   camera_y = lerp(camera_y, player_y, CAMERA_LERP);
   
-  // Update bullets
-  tickBullets(player_x, player_y, &player_state, deltaSeconds, &player_t);
+  if (!(isWarping)) {
+    // Update bullets
+    tickBullets(player_x, player_y, &player_state, deltaSeconds, &player_t);
 
-  // Update emitters position/velocity/life
-  tickAimEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+    // Update emitters position/velocity/life
+    tickAimEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+  }
 
   nuDebPerfMarkSet(1);
   
