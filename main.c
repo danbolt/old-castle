@@ -12,13 +12,19 @@
 
 #include "floordata.h"
 
-/* Declaration of the prototype  */
+/* Declaration of scene prototypes  */
 void stage00(int);
+void interstitial(int);
 
-/* Declaration of the external function  */
+/* Declaration of the main stage functions  */
 void initStage00(int floorNumber);
 void makeDL00(void);
 void updateGame00(void);
+
+/* declaration of the interstitial functions */
+void initInterstitial(void);
+void makeDLInsterstital(void);
+void updateGameInterstital(void);
 
 volatile int resetStageFlag;
 
@@ -63,6 +69,10 @@ void mainproc(void)
     while(resetStageFlag == 0)
       ;
 
+
+    nuGfxFuncRemove();
+    nuGfxDisplayOff();
+
     previousFloor = currentFloor;
     if (nextRoomRequest == -1) {
       previousFloor = NO_PREVIOUS_FLOOR;
@@ -70,18 +80,22 @@ void mainproc(void)
     }
     currentFloor = nextRoomRequest;
 
+    resetStageFlag = 0;
+
+    initInterstitial();
+    nuGfxFuncSet((NUGfxFunc)interstitial);
+    /* The screen display is ON */
+    nuGfxDisplayOn();
+
+    while(resetStageFlag == 0)
+      ;
+
     nuGfxFuncRemove();
     nuGfxDisplayOff();
   }
 }
 
-/*-----------------------------------------------------------------------------
-  The call-back function 
-
-  pendingGfx which is passed from Nusystem as the argument of the call-back 
-  function is the total of RCP tasks that are currently processing and 
-  waiting for the process. 
------------------------------------------------------------------------------*/
+// Stage00 callback (main gameplay)
 void stage00(int pendingGfx)
 {
   /* Provide the display process if 2 or less RCP tasks are processing or
@@ -91,5 +105,14 @@ void stage00(int pendingGfx)
 
   /* The process of game progress  */
   updateGame00(); 
+}
+
+// Interstitial callback
+void interstitial(int pendingGfx) {
+  if( (resetStageFlag == 0) && (pendingGfx < 3)) {
+    makeDLInsterstital();   
+  }
+
+  updateGameInterstital(); 
 }
 

@@ -29,7 +29,7 @@ TARGETS =	nu1.n64
 
 HFILES =	main.h graphic.h EntityData.h RoomData.h PlayerData.h game_math.h xorshift.h floordata.h
 
-CODEFILES   = 	main.c roomdata.c entitydata.c stage00.c graphic.c gfxinit.c game_math.c xorshift.c floordata.c
+CODEFILES   = 	main.c roomdata.c entitydata.c stage00.c graphic.c gfxinit.c game_math.c xorshift.c floordata.c interstital.c
 
 CODEOBJECTS =	$(CODEFILES:.c=.o)  $(NUSYSLIBDIR)/nusys.o
 
