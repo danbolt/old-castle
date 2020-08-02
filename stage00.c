@@ -579,6 +579,7 @@ void makeDL00(void)
   gDPSetCycleType(glistp++, G_CYC_1CYCLE);
   gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
   gSPClearGeometryMode(glistp++, 0xFFFFFFFF);
+  gDPPipelineMode(glistp++, G_PM_NPRIMITIVE);
   gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
 
   // Render Player
