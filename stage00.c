@@ -53,6 +53,7 @@ float test;
 char testStringBuf[64];
 
 int isWarping;
+int isWarpingOut;
 float warpDelta;
 
 static Vtx jump_target_geom[] =  {
@@ -363,6 +364,7 @@ void initStage00(int floorNumber)
   camera_y = player_y;
 
   isWarping = 1;
+  isWarpingOut = 0;
   warpDelta = 0;
 }
 
@@ -713,7 +715,11 @@ void makeDL00(void)
   nuDebPerfMarkSet(4);
 
   if (isWarping) {
-    renderMapTiles(camera_x, camera_y, camera_rotation, cubic(1.f - (warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+    if (isWarpingOut) {
+      renderMapTiles(camera_x, camera_y, camera_rotation, cubic((warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+    } else {
+      renderMapTiles(camera_x, camera_y, camera_rotation, cubic(1.f - (warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+    }
   } else {
     renderMapTiles(camera_x, camera_y, camera_rotation, 0.f);
   }
@@ -962,6 +968,11 @@ void updateGame00(void)
       warpDelta += deltaSeconds;
       if (warpDelta > WARP_IN_TIME_IN_SECONDS) {
         isWarping = 0;
+
+        if (isWarpingOut == 1) {
+          isWarpingOut = 0;
+          resetStageFlag = 1;
+        }
       }
     }
 
@@ -1026,10 +1037,12 @@ void updateGame00(void)
   newTileX = (int)(newX * INV_TILE_SIZE);
   newTileY = (int)(newY * INV_TILE_SIZE);
 
-  if ((isTileBlocked(newTileX, newTileY) >= STAIRCASE_A) && (isTileBlocked(newTileX, newTileY) <= STAIRCASE_E)) {
-    // TODO: time this out
-    resetStageFlag = 1;
+  if ((!isWarping) && (isTileBlocked(newTileX, newTileY) >= STAIRCASE_A) && (isTileBlocked(newTileX, newTileY) <= STAIRCASE_E)) {
     nextRoomRequest = exitMap[currentFloor][isTileBlocked(newTileX, newTileY) - STAIRCASE_A];
+
+    isWarping = 1;
+    warpDelta = 0;
+    isWarpingOut = 1;
     return;
   }
 
