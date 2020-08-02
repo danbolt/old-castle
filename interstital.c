@@ -26,7 +26,7 @@ void initInterstitial(void) {
 	resetTextRequests();
 
 	getTextRequest(0)->enable = 1;
-	getTextRequest(0)->text = "How do we feel about this?\n\nDoes it work okay?";
+	getTextRequest(0)->text = "How do we feel about this?\n\nDoes it work okay?\n\nPress A";
 	getTextRequest(0)->x = 16;
 	getTextRequest(0)->y = 16;
 	getTextRequest(0)->cutoff = 0;
@@ -74,7 +74,7 @@ void updateGameInterstital(void) {
 
 	nuContDataGetEx(contdata,0);
 
-	if ((contdata[0].trigger & U_JPAD)) {
+	if ((contdata[0].trigger & A_BUTTON)) {
 	resetStageFlag = 1;
 	return;
 	}
