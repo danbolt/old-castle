@@ -568,7 +568,7 @@ void makeDL00(void)
 
   /* projection,modeling matrix set */
   guPerspective(&dynamicp->projection, &perspNorm, CAMERA_FOV, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
-  guLookAt(&dynamicp->viewing, camera_x + (cosf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), camera_y + (sinf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
+  guLookAt(&dynamicp->viewing, camera_x, camera_y + CAMERA_DISTANCE, CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
 
   gSPPerspNormalize(glistp++, perspNorm);
 
