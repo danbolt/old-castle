@@ -15,8 +15,9 @@
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
 #define CAMERA_DISTANCE 2.23f
-#define CAMERA_HEIGHT 19.0f
+#define CAMERA_HEIGHT 25.0f
 #define CAMERA_LERP 0.13f
+#define CAMERA_FOV 60.0f
 
 static float player_x;
 static float player_y;
@@ -566,7 +567,7 @@ void makeDL00(void)
   gfxClearCfb();
 
   /* projection,modeling matrix set */
-  guPerspective(&dynamicp->projection, &perspNorm, 80.0f, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
+  guPerspective(&dynamicp->projection, &perspNorm, CAMERA_FOV, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
   guLookAt(&dynamicp->viewing, camera_x + (cosf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), camera_y + (sinf(camera_rotation - (M_PI * 0.5f) ) * CAMERA_DISTANCE), CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
 
   gSPPerspNormalize(glistp++, perspNorm);
