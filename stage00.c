@@ -328,14 +328,13 @@ void initStage00(int floorNumber)
 
   resetTextRequests();
 
-  sprintf(testStringBuf, "curr. floor is %d", currentFloor);
-
-  getTextRequest(0)->enable = 1;
-  getTextRequest(0)->text = testStringBuf;
-  getTextRequest(0)->x = 16;
-  getTextRequest(0)->y = 16;
-  getTextRequest(0)->cutoff = 0;
-  getTextRequest(0)->typewriterTick = 0;
+  // sprintf(testStringBuf, "curr. floor is %d", currentFloor);
+  // getTextRequest(0)->enable = 1;
+  // getTextRequest(0)->text = testStringBuf;
+  // getTextRequest(0)->x = 16;
+  // getTextRequest(0)->y = 16;
+  // getTextRequest(0)->cutoff = 0;
+  // getTextRequest(0)->typewriterTick = 0;
 
   initializeEntityData();
 

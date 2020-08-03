@@ -712,7 +712,7 @@ void renderMapTiles(float camera_x, float camera_y, float camera_rotation, float
 	for (i = MAX(0, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) - (RENDER_DISTANCE_IN_TILES + 1))); i < MIN(MAP_SIZE, (int)(((camera_x + cosf(camera_rotation + M_PI_2) * 4.f) / TILE_SIZE) + (RENDER_DISTANCE_IN_TILES + 1))); i++) {
     if (warp > WARP_EPSILON) {
       int tileDelta = rowIndex - RENDER_DISTANCE_IN_TILES;
-      guTranslate(&(tilesWarp[rowIndex]), warp * (tileDelta) * 2, 0, (warp * warp) * -2.f);
+      guTranslate(&(tilesWarp[rowIndex]), warp * (tileDelta) * 2, 0, (warp * warp) * -3.f);
       gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(tilesWarp[rowIndex])), G_MTX_PUSH | G_MTX_MODELVIEW);
     }
 

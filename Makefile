@@ -31,7 +31,7 @@ HFILES =	main.h graphic.h EntityData.h RoomData.h PlayerData.h game_math.h xorsh
 
 CODEFILES   = 	main.c roomdata.c entitydata.c stage00.c graphic.c gfxinit.c game_math.c xorshift.c floordata.c interstital.c letters.c
 
-CODEOBJECTS =	$(CODEFILES:.c=.o)  $(NUSYSLIBDIR)/nusys.o
+CODEOBJECTS =	$(CODEFILES:.c=.o)  $(NUSYSLIBDIR)/nusys.o foyer_dialogues.o
 
 DATAFILES   =	
 

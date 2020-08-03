@@ -3,6 +3,8 @@
 #include <gu.h>
 #include "graphic.h"
 
+#define TIME_PER_CHARACTER 0.03936f
+
 unsigned char test2_bin[] = {
   0x88, 0x8f, 0xd8, 0x88, 0x8d, 0xff, 0xff, 0xb8, 0x88, 0xff, 0xff, 0xd8,
   0x8d, 0xff, 0xff, 0xd8, 0x8d, 0xff, 0xff, 0xf8, 0x8d, 0xff, 0xff, 0xf8,
@@ -304,7 +306,7 @@ void tickTextRequests(float deltaSeconds) {
 
     // If we're here, tick the cutoff marker
     textRequests[i].typewriterTick += deltaSeconds;
-    if (textRequests[i].typewriterTick > 0.07436f) {
+    if (textRequests[i].typewriterTick > TIME_PER_CHARACTER) {
       textRequests[i].typewriterTick = 0.f;
 
       textRequests[i].cutoff++;
