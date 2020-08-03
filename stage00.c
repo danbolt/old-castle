@@ -666,7 +666,7 @@ void makeDL00(void)
   guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
   guRotate(&(targetRotation), ((float)time) * 0.0005f,  0.f, 0.f, 1.f);
 
-  if (player_state == Move && (player_bullets_collected >= JUMP_COST)) { 
+  if (player_state == Move && (player_bullets_collected >= JUMP_COST) && (!isWarping)) { 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
