@@ -1,0 +1,31 @@
+{
+  "name": "foyer_dialogues",
+  "dialogues": [
+    {
+      "lines": [
+        {
+          "text": "hello world"
+        },
+        {
+          "text": "it's me,\n\nDaniel"
+        },
+        {
+          "text": "The curse\nstill remains"
+        }
+      ]
+    },
+    {
+      "lines": [
+        {
+          "text": "this is another"
+        },
+        {
+          "text": "does it work okay?"
+        },
+        {
+          "text": "I hope so!"
+        }
+      ]
+    }
+  ]
+}
