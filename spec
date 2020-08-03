@@ -34,7 +34,8 @@ endseg
 beginseg
 	name "foyer_dialogues"
 	flags OBJECT
-	after code
+	after "code"
+	align 32
 	include "foyer_dialogues.o"
 endseg
 

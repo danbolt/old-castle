@@ -274,32 +274,6 @@ static Vtx thing_geom[] = {
 { -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
 };
 
-int indexForChar(const char letter) {
-  int result = -1;
-
-  if ((letter >= 'A') && (letter <= 'Z')) {
-    result = (letter - 65);
-  } else if ((letter >= 'a') && (letter <= 'z')) {
-    result = (letter - 97) + 26;
-  } else if ((letter >= '0') && (letter <= '9')) {
-    result = (letter - 48) + 52;
-  } else if (letter == '?') {
-    result = 63;
-  } else if (letter == '!') {
-    result = 64;
-  } else if (letter == '"') {
-    result = 65;
-  } else if (letter == '.') {
-    result = 66;
-  } else if (letter == ',') {
-    result = 67;
-  } else if (letter == '-') {
-    result = 68;
-  }
-
-  return result;
-}
-
 /* The initialization of stage 0 */
 void initStage00(int floorNumber)
 {

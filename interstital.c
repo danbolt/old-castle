@@ -6,26 +6,46 @@
 #include <gu.h>
 #include "letters.h"
 #include "dialogueline.h"
-
-extern u8 _foyer_dialoguesSegmentRomStart[];
-extern u8 _foyer_dialoguesSegmentRomEnd[];
+#include "segment.h"
 
 static int note;
+
 
 OSTime interStitialTime;
 float interStitialDeltaSeconds;
 
-DialogueLine replaceMeDaniel = { "this is a test", 0x0 };
+extern DialogueLine* foyer_dialogues[];
+extern const int foyer_dialogues_count;
 
 DialogueLine* current;
 float timeSinceCurrentFinishedTyping;
 
-void initInterstitial(void) {
+// Loads a collection of `DialogueLine`s from ROM, as defined by the spec file
+void loadTextFromROM(void) {
+	NUPiOverlaySegment	textSegmentDescription;
+
+	textSegmentDescription.romStart 	= _foyer_dialoguesSegmentRomStart;
+	textSegmentDescription.romEnd		= _foyer_dialoguesSegmentRomEnd;
+	textSegmentDescription.ramStart	    = _foyer_dialoguesSegmentStart;
+	textSegmentDescription.textStart	= _foyer_dialoguesSegmentTextStart;
+	textSegmentDescription.textEnd		= _foyer_dialoguesSegmentTextEnd;
+	textSegmentDescription.dataStart	= _foyer_dialoguesSegmentDataStart;
+	textSegmentDescription.dataEnd		= _foyer_dialoguesSegmentDataEnd;
+	textSegmentDescription.bssStart	    = _foyer_dialoguesSegmentBssStart;
+	textSegmentDescription.bssEnd		= _foyer_dialoguesSegmentBssEnd;
+
+	nuPiReadRomOverlay(&textSegmentDescription);
+}
+
+
+void initInterstitial(int randomIndex) {
 	note = 0;
 	interStitialTime = OS_CYCLES_TO_USEC(osGetTime());
   	interStitialDeltaSeconds = 0.f;
 
-  	current = &replaceMeDaniel;
+  	loadTextFromROM();
+
+  	current = foyer_dialogues[randomIndex % foyer_dialogues_count];
   	timeSinceCurrentFinishedTyping = 0;
 
 	resetTextRequests();
@@ -78,7 +98,7 @@ void updateGameInterstital(void) {
 	tickTextRequests(interStitialDeltaSeconds);
 
 	// If we've reached the end of the bip bip, go to the next
-	if (getTextRequest(0)->cutoff == -1) {
+	 if (getTextRequest(0)->cutoff == -1) {
 		if (current->next) {
 			timeSinceCurrentFinishedTyping += interStitialDeltaSeconds;
 
@@ -95,9 +115,7 @@ void updateGameInterstital(void) {
 	nuContDataGetEx(contdata,0);
 
 	if ((contdata[0].trigger & A_BUTTON)) {
-	resetStageFlag = 1;
-	return;
+		resetStageFlag = 1;
+		return;
 	}
-
-	note++;
 }

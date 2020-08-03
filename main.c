@@ -22,7 +22,7 @@ void makeDL00(void);
 void updateGame00(void);
 
 /* declaration of the interstitial functions */
-void initInterstitial(void);
+void initInterstitial(int randomIndex);
 void makeDLInsterstital(void);
 void updateGameInterstital(void);
 
@@ -36,11 +36,15 @@ volatile int currentFloor;
 volatile int previousFloor;
 volatile int nextRoomRequest;
 
+int frameRandom;
+
 /*------------------------
 	Main
 --------------------------*/
 void mainproc(void)
 {
+  frameRandom = guRandom();
+
   /* The initialization of graphic  */
   nuGfxInit();
 
@@ -82,7 +86,7 @@ void mainproc(void)
 
     resetStageFlag = 0;
 
-    initInterstitial();
+    initInterstitial(frameRandom);
     nuGfxFuncSet((NUGfxFunc)interstitial);
     /* The screen display is ON */
     nuGfxDisplayOn();
@@ -98,6 +102,8 @@ void mainproc(void)
 // Stage00 callback (main gameplay)
 void stage00(int pendingGfx)
 {
+  frameRandom = guRandom();
+
   /* Provide the display process if 2 or less RCP tasks are processing or
 	waiting for the process.  */
   if( (resetStageFlag == 0) && (pendingGfx < 3))
@@ -109,6 +115,8 @@ void stage00(int pendingGfx)
 
 // Interstitial callback
 void interstitial(int pendingGfx) {
+  frameRandom = guRandom();
+
   if( (resetStageFlag == 0) && (pendingGfx < 3)) {
     makeDLInsterstital();   
   }

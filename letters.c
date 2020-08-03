@@ -227,6 +227,34 @@ TextRequest textRequests[TEXT_REQUEST_BUF_SIZE];
 
 static const char NO_MSG[] = "";
 
+int indexForChar(const char letter) {
+  int result = -1;
+
+  if ((letter >= 'A') && (letter <= 'Z')) {
+    result = (letter - 65);
+  } else if ((letter >= 'a') && (letter <= 'z')) {
+    result = (letter - 97) + 26;
+  } else if ((letter >= '0') && (letter <= '9')) {
+    result = (letter - 48) + 52;
+  } else if (letter == '?') {
+    result = 63;
+  } else if (letter == '!') {
+    result = 64;
+  } else if (letter == '"') {
+    result = 65;
+  } else if (letter == '.') {
+    result = 66;
+  } else if (letter == ',') {
+    result = 67;
+  } else if (letter == '-') {
+    result = 68;
+  } else if (letter == '\'') {
+    result = 65;
+  }
+
+  return result;
+}
+
 void resetTextRequests() {
   int i;
   
