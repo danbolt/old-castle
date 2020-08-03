@@ -31,7 +31,15 @@ beginseg
 	include "$(ROOT)/usr/lib/PR/gspS2DEX2.fifo.o"
 endseg
 
+beginseg
+	name "foyer_dialogues"
+	flags OBJECT
+	after code
+	include "foyer_dialogues.o"
+endseg
+
 beginwave
 	name	"nu1"
 	include	"code"
+	include	"foyer_dialogues"
 endwave

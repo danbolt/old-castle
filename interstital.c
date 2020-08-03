@@ -5,28 +5,17 @@
 #include "graphic.h"
 #include <gu.h>
 #include "letters.h"
+#include "dialogueline.h"
+
+extern u8 _foyer_dialoguesSegmentRomStart[];
+extern u8 _foyer_dialoguesSegmentRomEnd[];
 
 static int note;
 
 OSTime interStitialTime;
 float interStitialDeltaSeconds;
 
-static Vtx shade_vtx[] =  {
-        {        -64,  64, -5, 0, 0, 0, 0, 0xff, 0, 0xff	},
-        {         64,  64, -5, 0, 0, 0, 0, 0, 0, 0xff    	},
-        {         64, -64, -5, 0, 0, 0, 0, 0, 0xff, 0xff	},
-        {        -64, -64, -5, 0, 0, 0, 0xff, 0, 0, 0xff	},
-};
-
-typedef struct {
-	const char* text;
-	void* next;
-} DialogueLine;
-
-DialogueLine testA;
-DialogueLine testB;
-DialogueLine testA = { "Now entering\n\nbasement 2", &testB };
-DialogueLine testB = { "WARNING\n WARNING\n  WARNING\n\nno refuge", NULL };
+DialogueLine replaceMeDaniel = { "this is a test", 0x0 };
 
 DialogueLine* current;
 float timeSinceCurrentFinishedTyping;
@@ -36,7 +25,7 @@ void initInterstitial(void) {
 	interStitialTime = OS_CYCLES_TO_USEC(osGetTime());
   	interStitialDeltaSeconds = 0.f;
 
-  	current = &testA;
+  	current = &replaceMeDaniel;
   	timeSinceCurrentFinishedTyping = 0;
 
 	resetTextRequests();
