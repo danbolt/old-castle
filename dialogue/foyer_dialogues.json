@@ -2,30 +2,43 @@
   "name": "foyer_dialogues",
   "dialogues": [
     {
-      "lines": [
-        {
-          "text": "hello world"
-        },
-        {
-          "text": "it's me,\n\nDaniel"
-        },
-        {
-          "text": "The curse\nstill remains"
-        }
-      ]
+        "lines": [
+            {
+                "text": "It's dark in this old mansion.\n\nI can barely see ahead of me."
+            },
+            {
+                "text": "It must be years since this place\nhas had any visitors..."
+            },
+            {
+                "text": "I wonder what was\nthe last time someone was here\nother than me?"
+            }
+        ]
     },
     {
-      "lines": [
-        {
-          "text": "this is another"
-        },
-        {
-          "text": "does it work okay?"
-        },
-        {
-          "text": "I hope so!"
-        }
-      ]
+        "lines": [
+            {
+                "text": "I came to this place once or twice\nwhen I was very young.\n\nI didn't know Count Ultra well,\nbut the charm and colour of the\nmanor left an effect on me."
+            },
+            {
+                "text": "I remember blissfully playing games\nwith friends and family.\n\nBright synthesizers played happy songs\nwith samples of horns and fiddles."
+            },
+            {
+                "text": "Looking back, even though those mom-\nents were brief, the memories still\nfeel so vivid today.\n\n\nThey likely affected me in ways I\ndon't totally understand."
+            }
+        ]
+    },
+    {
+        "lines": [
+            {
+                "text": "I read an article on Count Ultra's\nwork from back when I was young."
+            },
+            {
+                "text": "Apparently the contemporaries of the\ntime were seen as more interesting.\n\nIn comparison, Ultra's works seem more\nsimple, or perhaps more 'stagnant'."
+            },
+            {
+                "text": "Looking back from what was popular at\nthe time, I somewhat have to agree.\n\nThere are some timeless works, but\nalso a lot of mundane ones too."
+            }
+        ]
     }
-  ]
+]
 }

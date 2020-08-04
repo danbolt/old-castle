@@ -43,7 +43,6 @@ const processData = (data) => {
   output += StructName + '* ' + dataName + '[' + listing.length + '] = { ';
 
   listing.forEach((listHeadName, i) => {
-    console.log(listHeadName);
     output += '&';
     output += listHeadName;
     output += (i === (listing.length - 1)) ? '' : ', ';

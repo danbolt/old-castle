@@ -1,6 +1,49 @@
 <!doctype html>
 <html>
 	<head>
+		<!-- Some sample input:
+
+
+It's dark in this old mansion.\n
+I can barely see ahead of me.
+
+It must be years since this place
+has had any visitors...
+
+I wonder what was\nthe last time someone was here\nother than me?
+
+
+I came to this place once or twice
+when I was very young.\n
+I didn't know Count Ultra well,
+but the charm and colour of the
+manor left an effect on me.
+
+I remember blissfully playing games
+with friends and family.\n
+Bright synthesizers played happy songs
+with samples of horns and fiddles.
+
+Looking back, even though those mom-
+ents were brief, the memories still
+feel so vivid today.\n\n
+They likely affected me in ways I
+don't totally understand.
+
+
+I read an article on Count Ultra's
+work from back when I was young.
+
+Apparently the contemporaries of the
+time were seen as more interesting.\n
+In comparison, Ultra's works seem more
+simple, or perhaps more 'stagnant'.
+
+Looking back from what was popular at
+the time, I somewhat have to agree.\n
+There are some timeless works, but
+also a lot of mundane ones too.
+		-->
 		<title>Loading Screen Dialogue Tool</title>
 
 		<style>
@@ -25,18 +68,19 @@
 		<link rel="stylesheet"
 		      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css">
 		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
-		<script type="text/javascript">hljs.initHighlightingOnLoad();</script>
+		<script type="text/javascript">
+		</script>
 	</head>
 
 	<body>
 		<h1>Loading Screen Dialogue Tool</h1>
 		<textarea oninput="input_changed(event);" id="textarea" name="textarea" rows="40" cols="38" wrap="hard"></textarea>
-		<textarea readonly id="outputarea" name="outputarea" rows="40" cols="100"></textarea>
+		<textarea readonly id="outputarea" name="outputarea" class="json" rows="40" cols="100"></textarea>
 
 		<script>
 			const input_changed = (aa) => {
 				const newData = aa.srcElement.value;
-				const sections = newData.split('\n\n').map((sect) => { return sect.split('\n'); });
+				const sections = newData.split('\n\n\n').map((sect) => { return sect.split('\n\n'); });
 				
 				const output = sections.map( (outer) => { return { lines: outer.map((line) => { return { text: line.replace(/\\n/g, '\n') } }) } } );
 

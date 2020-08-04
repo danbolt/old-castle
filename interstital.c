@@ -52,8 +52,8 @@ void initInterstitial(int randomIndex) {
 
 	getTextRequest(0)->enable = 1;
 	getTextRequest(0)->text = current->text;
-	getTextRequest(0)->x = 101;
-	getTextRequest(0)->y = 64;
+	getTextRequest(0)->x = 8;
+	getTextRequest(0)->y = 10;
 	getTextRequest(0)->cutoff = 0;
 	getTextRequest(0)->typewriterTick = 0;
 }
