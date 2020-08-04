@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Loading Screen Dialogue Tool</title>
+
+		<style>
+			textarea  
+			{  
+			   font-family: "Lucida Console", Monaco, monospace, Times, serif;  
+			   font-size: 12px;
+			   resize: vertical;
+			   border: 2px solid white;
+			   background-color: #333333;
+			   color: #FFFFFF;
+			}
+
+			body
+			{
+				font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+				background-color: #333333;
+				color: #FFFFFF;
+			}
+		</style>
+
+		<link rel="stylesheet"
+		      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css">
+		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
+		<script type="text/javascript">hljs.initHighlightingOnLoad();</script>
+	</head>
+
+	<body>
+		<h1>Loading Screen Dialogue Tool</h1>
+		<textarea oninput="input_changed(event);" id="textarea" name="textarea" rows="40" cols="38" wrap="hard"></textarea>
+		<textarea readonly id="outputarea" name="outputarea" rows="40" cols="100"></textarea>
+
+		<script>
+			const input_changed = (aa) => {
+				const newData = aa.srcElement.value;
+				const sections = newData.split('\n\n').map((sect) => { return sect.split('\n'); });
+				
+				const output = sections.map( (outer) => { return { lines: outer.map((line) => { return { text: line.replace(/\\n/g, '\n') } }) } } );
+
+				document.getElementById('outputarea').value = JSON.stringify(output, undefined, 4);
+			};
+		</script>
+	</body>
+</html>
