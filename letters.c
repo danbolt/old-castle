@@ -302,8 +302,9 @@ void drawTextRequests() {
         int textureIndex = indexForChar(textRequests[i].text[letterIndex]);
         int u = (textureIndex % 8) * 8;
         int v = (textureIndex / 8) * 8;
+        int yLower = ((textRequests[i].text[letterIndex] == 'y') || (textRequests[i].text[letterIndex] == 'p') || (textRequests[i].text[letterIndex] == 'g')|| (textRequests[i].text[letterIndex] == 'q')) ? 2 : 0;
 
-        gSPTextureRectangle(glistp++, (int)(xSpot) << 2, (int)(ySpot) << 2, (int)(xSpot + 8) << 2, (int)(ySpot + 8) << 2, G_TX_RENDERTILE, (u << 5), (v << 5), (int)(1 << 10), (int)(1 << 10));
+        gSPTextureRectangle(glistp++, (int)(xSpot) << 2, (int)(ySpot + yLower) << 2, (int)(xSpot + 8) << 2, (int)(ySpot + 8 + yLower) << 2, G_TX_RENDERTILE, (u << 5), (v << 5), (int)(1 << 10), (int)(1 << 10));
         xSpot += 8;
       }
 

@@ -39,6 +39,8 @@ void loadTextFromROM(void) {
 
 
 void initInterstitial(int randomIndex) {
+	int i;
+
 	note = 0;
 	interStitialTime = OS_CYCLES_TO_USEC(osGetTime());
   	interStitialDeltaSeconds = 0.f;
@@ -58,9 +60,16 @@ void initInterstitial(int randomIndex) {
 	getTextRequest(0)->typewriterTick = 0;
 }
 
+static Vtx backing_verts[] =  {
+        {        -SCREEN_WD/2.0f,  4, -5, 0, 0, 0, 0, 0, 0, 0	},
+        {         SCREEN_WD/2.0f,  4, -5, 0, 0, 0, 0, 0, 0, 0    	},
+        {         SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x3a, 0x4f, 0x4f, 0xff	},
+        {        -SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x3a, 0x4f, 0x4f, 0xff	},
+};
+
 void makeDLInsterstital(void) {
   Dynamic* dynamicp;
-  char conbuf[20]; 
+  const float flicker = sinf(note * 0.0001f);
 
   /* Specify the display list buffer */
   dynamicp = &gfx_dynamic[gfx_gtask_no];
@@ -72,9 +81,34 @@ void makeDLInsterstital(void) {
   /* Clear the frame and Z-buffer */
   gfxClearCfb();
 
-  drawTextRequests();
+  guOrtho(&dynamicp->projection,
+	  -(float)SCREEN_WD/2.0f, (float)SCREEN_WD/2.0f,
+	  -(float)SCREEN_HT/2.0f, (float)SCREEN_HT/2.0f,
+	  1.0F, 10.0F, 1.0F);
+  guTranslate(&dynamicp->viewing, 0.0f, 0.0f, 0.0f);
+
+  gDPSetEnvColor(glistp++, 170, 170, 170, 0);
+  gDPSetCombineLERP(glistp++, NOISE,    ENVIRONMENT, SHADE,     0,
+                                  0,    0,     0, SHADE,
+                              NOISE,    ENVIRONMENT, SHADE,     0,
+                                  0,    0,     0, SHADE);
+
+  gSPMatrix(glistp++,OS_K0_TO_PHYSICAL(&(dynamicp->projection)), G_MTX_PROJECTION|G_MTX_LOAD|G_MTX_NOPUSH);
+  gSPMatrix(glistp++,OS_K0_TO_PHYSICAL(&(dynamicp->viewing)), G_MTX_MODELVIEW|G_MTX_LOAD|G_MTX_NOPUSH);
+
+  gSPVertex(glistp++,&(backing_verts[0]),4, 0);
 
   gDPPipeSync(glistp++);
+  gDPSetCycleType(glistp++,G_CYC_1CYCLE);
+  gDPSetRenderMode(glistp++,G_RM_AA_OPA_SURF, G_RM_AA_OPA_SURF2);
+  gSPClearGeometryMode(glistp++,0xFFFFFFFF);
+  gSPSetGeometryMode(glistp++, G_SHADE| G_SHADING_SMOOTH);
+
+  gSP2Triangles(glistp++,0,1,2,0,0,2,3,0);
+
+  gDPPipeSync(glistp++);
+
+  drawTextRequests();
 
   gDPFullSync(glistp++);
   gSPEndDisplayList(glistp++);
