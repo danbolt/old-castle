@@ -10,7 +10,7 @@
 
 static int note;
 
-#define TRANSITION_IN_DURATION 0.9f
+#define TRANSITION_IN_DURATION 2.4f
 
 OSTime interStitialTime;
 float interStitialDeltaSeconds;
@@ -158,7 +158,7 @@ void updateGameInterstital(void) {
 
 	nuContDataGetEx(contdata,0);
 
-	if ((contdata[0].trigger & A_BUTTON)) {
+	if ((contdata[0].trigger & A_BUTTON) && (getTextRequest(0)->enable == 1)) {
 		if (getTextRequest(0)->cutoff == -1) {
 			if (current->next) {
 				current = current->next;

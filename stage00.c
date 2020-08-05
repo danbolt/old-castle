@@ -518,6 +518,7 @@ void makeDL00(void)
   Mtx landEffectScale;
   float ox, oy, oz; // for CPU transforming the sword trail
   int running = (fabs_d(player_facing_x) > 0.1f) || (fabs_d(player_facing_y) > 0.1f);
+  float warpRatio = (warpDelta / WARP_IN_TIME_IN_SECONDS);
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
@@ -549,6 +550,16 @@ void makeDL00(void)
   gSPClearGeometryMode(glistp++, 0xFFFFFFFF);
   gDPPipelineMode(glistp++, G_PM_NPRIMITIVE);
   gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+
+  if (isWarping) {
+    if (isWarpingOut) {
+      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
+    } else {
+      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
+    }
+    gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
+                                SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
+  }
 
   // Render Player
   guTranslate(&(playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
@@ -688,10 +699,15 @@ void makeDL00(void)
   nuDebPerfMarkSet(4);
 
   if (isWarping) {
+    gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
+                                SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
+    
     if (isWarpingOut) {
       renderMapTiles(camera_x, camera_y, camera_rotation, cubic((warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
     } else {
       renderMapTiles(camera_x, camera_y, camera_rotation, cubic(1.f - (warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
     }
   } else {
     renderMapTiles(camera_x, camera_y, camera_rotation, 0.f);
@@ -841,9 +857,6 @@ void updateGame00(void)
   nuDebPerfMarkSet(0);
 
   tickTextRequests(deltaSeconds);
-
-  if (isWarping) {
-  }
 
   /* Data reading of controller 1 */
   nuContDataGetEx(contdata,0);
