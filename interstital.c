@@ -10,15 +10,20 @@
 
 static int note;
 
+#define TRANSITION_IN_DURATION 0.9f
 
 OSTime interStitialTime;
 float interStitialDeltaSeconds;
+float secondsSinceSceneStart;
+float secondsSinceTransitionOut;
+int transitioningOut;
 
 extern DialogueLine* foyer_dialogues[];
 extern const int foyer_dialogues_count;
 
 DialogueLine* current;
-float timeSinceCurrentFinishedTyping;
+
+float noiseHeightValue;
 
 // Loads a collection of `DialogueLine`s from ROM, as defined by the spec file
 void loadTextFromROM(void) {
@@ -44,27 +49,23 @@ void initInterstitial(int randomIndex) {
 	note = 0;
 	interStitialTime = OS_CYCLES_TO_USEC(osGetTime());
   	interStitialDeltaSeconds = 0.f;
+  	secondsSinceSceneStart = 0;
+  	noiseHeightValue = 1.f;
+  	transitioningOut = 0;
+  	secondsSinceTransitionOut = 0.f;
 
   	loadTextFromROM();
 
   	current = foyer_dialogues[randomIndex % foyer_dialogues_count];
-  	timeSinceCurrentFinishedTyping = 0;
 
 	resetTextRequests();
-
-	getTextRequest(0)->enable = 1;
-	getTextRequest(0)->text = current->text;
-	getTextRequest(0)->x = 8;
-	getTextRequest(0)->y = 10;
-	getTextRequest(0)->cutoff = 0;
-	getTextRequest(0)->typewriterTick = 0;
 }
 
 static Vtx backing_verts[] =  {
-        {        -SCREEN_WD/2.0f,  4, -5, 0, 0, 0, 0, 0, 0, 0	},
-        {         SCREEN_WD/2.0f,  4, -5, 0, 0, 0, 0, 0, 0, 0    	},
-        {         SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x3a, 0x4f, 0x4f, 0xff	},
-        {        -SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x3a, 0x4f, 0x4f, 0xff	},
+        {        -SCREEN_WD/2.0f,  0, -5, 0, 0, 0, 0, 0, 0, 0	},
+        {         SCREEN_WD/2.0f,  0, -5, 0, 0, 0, 0, 0, 0, 0    	},
+        {         SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x69, 0x69, 0x69, 0xff	},
+        {        -SCREEN_WD/2.0f, -(float)SCREEN_HT/2.0f, -5, 0, 0, 0, 0x69, 0x69, 0x69, 0xff	},
 };
 
 void makeDLInsterstital(void) {
@@ -85,9 +86,9 @@ void makeDLInsterstital(void) {
 	  -(float)SCREEN_WD/2.0f, (float)SCREEN_WD/2.0f,
 	  -(float)SCREEN_HT/2.0f, (float)SCREEN_HT/2.0f,
 	  1.0F, 10.0F, 1.0F);
-  guTranslate(&dynamicp->viewing, 0.0f, 0.0f, 0.0f);
+  guTranslate(&dynamicp->viewing, 0.0f, noiseHeightValue * -(float)SCREEN_HT/2.0f, 0.0f);
 
-  gDPSetEnvColor(glistp++, 170, 170, 170, 0);
+  gDPSetEnvColor(glistp++, 160 + (flicker * 5), 160 + (flicker * 5), 160 + (flicker * 5), 0);
   gDPSetCombineLERP(glistp++, NOISE,    ENVIRONMENT, SHADE,     0,
                                   0,    0,     0, SHADE,
                               NOISE,    ENVIRONMENT, SHADE,     0,
@@ -128,28 +129,48 @@ void updateGameInterstital(void) {
 	OSTime newTime = OS_CYCLES_TO_USEC(osGetTime());
 	interStitialDeltaSeconds = 0.000001f * (newTime - interStitialTime);
 	interStitialTime = newTime;
+	secondsSinceSceneStart += interStitialDeltaSeconds;
 
-	tickTextRequests(interStitialDeltaSeconds);
+	if ((secondsSinceSceneStart < TRANSITION_IN_DURATION)) {
+	    noiseHeightValue = 1.f - MIN(1.f, (secondsSinceSceneStart) / TRANSITION_IN_DURATION);
+	}
 
-	// If we've reached the end of the bip bip, go to the next
-	 if (getTextRequest(0)->cutoff == -1) {
-		if (current->next) {
-			timeSinceCurrentFinishedTyping += interStitialDeltaSeconds;
+	if (transitioningOut) {
+		secondsSinceTransitionOut += interStitialDeltaSeconds;
+		noiseHeightValue = (secondsSinceTransitionOut) / TRANSITION_IN_DURATION;
 
-			if (timeSinceCurrentFinishedTyping > 1.f) {
-				timeSinceCurrentFinishedTyping = 0;
-				current = current->next;
-				getTextRequest(0)->text = current->text;
-				getTextRequest(0)->cutoff = 0;
-				getTextRequest(0)->typewriterTick = 0;
-			}
+		if (secondsSinceTransitionOut > TRANSITION_IN_DURATION) {
+			resetStageFlag = 1;
+			return;
 		}
 	}
+
+	if ((secondsSinceSceneStart > TRANSITION_IN_DURATION) && (getTextRequest(0)->enable == 0) && !(transitioningOut)) {
+		getTextRequest(0)->enable = 1;
+		getTextRequest(0)->text = current->text;
+		getTextRequest(0)->x = 8;
+		getTextRequest(0)->y = 10;
+		getTextRequest(0)->cutoff = 0;
+		getTextRequest(0)->typewriterTick = 0;
+	}
+
+	tickTextRequests(interStitialDeltaSeconds);
 
 	nuContDataGetEx(contdata,0);
 
 	if ((contdata[0].trigger & A_BUTTON)) {
-		resetStageFlag = 1;
-		return;
+		if (getTextRequest(0)->cutoff == -1) {
+			if (current->next) {
+				current = current->next;
+				getTextRequest(0)->text = current->text;
+				getTextRequest(0)->cutoff = 0;
+				getTextRequest(0)->typewriterTick = 0;
+			} else {
+				transitioningOut = 1;
+				getTextRequest(0)->enable = 0;
+			}
+		} else {
+			getTextRequest(0)->cutoff = -1;
+		}
 	}
 }
