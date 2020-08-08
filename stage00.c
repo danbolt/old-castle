@@ -740,7 +740,7 @@ void makeDL00(void)
      switch display buffers */
   nuGfxTaskStart(&gfx_glist[gfx_gtask_no][0],
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
-		 NU_GFX_UCODE_F3DLX_NON , NU_SC_NOSWAPBUFFER);
+		 NU_GFX_UCODE_F3DEX2_REJ , NU_SC_NOSWAPBUFFER);
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
