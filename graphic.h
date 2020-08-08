@@ -21,6 +21,20 @@
 typedef struct {
   Mtx     projection;
   Mtx     viewing;
+  
+  Mtx playerTranslation;
+  Mtx playerRotation;
+  Mtx playerJumpRotation;
+  Mtx playerScale;
+  Mtx targetTranslation;
+  Mtx targetRotation;
+  Mtx swordTranslation;
+  Mtx swordScale;
+  Mtx particleScale;
+  Mtx swordRotationX;
+  Mtx swordRotationZ;
+  Mtx landEffectRotation;
+  Mtx landEffectScale;
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/

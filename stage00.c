@@ -503,19 +503,6 @@ void makeDL00(void)
   char conbuf[20]; 
   int i;
   int j;
-  Mtx playerTranslation;
-  Mtx playerRotation;
-  Mtx playerJumpRotation;
-  Mtx playerScale;
-  Mtx targetTranslation;
-  Mtx targetRotation;
-  Mtx swordTranslation;
-  Mtx swordScale;
-  Mtx particleScale;
-  Mtx swordRotationX;
-  Mtx swordRotationZ;
-  Mtx landEffectRotation;
-  Mtx landEffectScale;
   float ox, oy, oz; // for CPU transforming the sword trail
   int running = (fabs_d(player_facing_x) > 0.1f) || (fabs_d(player_facing_y) > 0.1f);
   float warpRatio = (warpDelta / WARP_IN_TIME_IN_SECONDS);
@@ -562,84 +549,84 @@ void makeDL00(void)
   }
 
   // Render Player
-  guTranslate(&(playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
-  guRotate(&(playerRotation), player_rotation / M_PI * 180.f, 0.0f, 0.0f, 1.0f);
+  guTranslate(&(dynamicp->playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
+  guRotate(&(dynamicp->playerRotation), player_rotation / M_PI * 180.f, 0.0f, 0.0f, 1.0f);
   if (player_state == Jumping) {
-    guRotate(&(playerJumpRotation), sinf(player_t * M_PI * 2.f) * 75.2f, 0.0f, 1.0f, 0.0f);
+    guRotate(&(dynamicp->playerJumpRotation), sinf(player_t * M_PI * 2.f) * 75.2f, 0.0f, 1.0f, 0.0f);
   } else if (player_state == Move) {
     if (running) {
-      guRotate(&(playerJumpRotation), sinf(time / 100000.f) * 5.f, 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->playerJumpRotation), sinf(time / 100000.f) * 5.f, 0.0f, 1.0f, 0.0f);
     } else {
-      guRotate(&(playerJumpRotation), 5.f, 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->playerJumpRotation), 5.f, 0.0f, 1.0f, 0.0f);
     }
   } else if (player_state == Holding) {
-    guMtxIdent(&(playerJumpRotation));
+    guMtxIdent(&(dynamicp->playerJumpRotation));
   } else if (player_state == Landed) {
-    guRotate(&(playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
+    guRotate(&(dynamicp->playerJumpRotation), 51.7f, 0.0f, 1.0f, 0.0f);
   } else if (player_state == Dead) {
-    guRotate(&(playerJumpRotation), lerp(0.f, -90.f, (player_t)), 0.0f, 1.0f, 0.0f);
+    guRotate(&(dynamicp->playerJumpRotation), lerp(0.f, -90.f, (player_t)), 0.0f, 1.0f, 0.0f);
   }
   
-  guScale(&(playerScale), 0.01, 0.01, 0.01);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerJumpRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  guScale(&(dynamicp->playerScale), 0.01, 0.01, 0.01);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerJumpRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
   addPlayerDisplayList();
 
   nuDebPerfMarkSet(3);
 
   // Determine sword display list
-  guMtxIdent(&swordTranslation);
+  guMtxIdent(&dynamicp->swordTranslation);
   if (player_state == Move) {
     if (player_bullets_collected >= JUMP_COST) {
-      guScale(&(swordScale), 0.9f, 0.9f, 0.8f);
+      guScale(&(dynamicp->swordScale), 0.9f, 0.9f, 0.8f);
     } else {
-      guScale(&swordScale, 0.f, 0.f, 0.f);
+      guScale(&dynamicp->swordScale, 0.f, 0.f, 0.f);
     }
     if (running) {
-      guRotate(&(swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), 145.f + (6.3f * sinf(time / 200000.f)), 0.0f, 0.0f, 1.0f);
+      guRotate(&(dynamicp->swordRotationX), 5.f + (6.3f * sinf(time / 150000.f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->swordRotationZ), 145.f + (6.3f * sinf(time / 200000.f)), 0.0f, 0.0f, 1.0f);
     } else {
-      guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
+      guRotate(&(dynamicp->swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
     }
   } else if (player_state == Holding) {
       float extra = 0.1f * sinf(time * 0.000004f);
-      guTranslate(&swordTranslation, -100.f, 0.f, 0.f);
-      guScale(&(swordScale), 1.8f + extra, 1.2152f + extra, 1.4f + extra);
-      guMtxIdent(&(swordRotationX));
-      guRotate(&(swordRotationZ), (player_sword_angle - player_rotation) / M_PI * 180, 0.0f, 0.0f, 1.0f);
+      guTranslate(&dynamicp->swordTranslation, -100.f, 0.f, 0.f);
+      guScale(&(dynamicp->swordScale), 1.8f + extra, 1.2152f + extra, 1.4f + extra);
+      guMtxIdent(&(dynamicp->swordRotationX));
+      guRotate(&(dynamicp->swordRotationZ), (player_sword_angle - player_rotation) / M_PI * 180, 0.0f, 0.0f, 1.0f);
   } else if (player_state == Jumping) {
     float cubedScale = cubic(player_t);
-    guTranslate(&swordTranslation, 0.f, 0.f, cubedScale * 20.f);
+    guTranslate(&dynamicp->swordTranslation, 0.f, 0.f, cubedScale * 20.f);
     if (cubedScale < 0.3f) {
       float scale = lerp(1.0f, 1.7f, cubedScale / 0.3f);
-      guScale(&(swordScale), scale, scale, scale);
-      guRotate(&(swordRotationX), lerp(5.f, -180.f, cubedScale / 0.3f), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), lerp(135.f, 90.f, cubedScale / 0.3f), 0.0f, 0.0f, 1.0f);
+      guScale(&(dynamicp->swordScale), scale, scale, scale);
+      guRotate(&(dynamicp->swordRotationX), lerp(5.f, -180.f, cubedScale / 0.3f), 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->swordRotationZ), lerp(135.f, 90.f, cubedScale / 0.3f), 0.0f, 0.0f, 1.0f);
     } else {
       float scale = lerp(1.7f, 2.1f, ((cubedScale - 0.3f) / 0.7f));
-      guScale(&(swordScale), scale, scale, scale);
-      guRotate(&(swordRotationX), lerp(-180.f, 90.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 1.0f, 0.0f);
-      guRotate(&(swordRotationZ), lerp(90.f, 0.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 0.0f, 1.0f);
+      guScale(&(dynamicp->swordScale), scale, scale, scale);
+      guRotate(&(dynamicp->swordRotationX), lerp(-180.f, 90.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 1.0f, 0.0f);
+      guRotate(&(dynamicp->swordRotationZ), lerp(90.f, 0.f, ((cubedScale - 0.3f) / 0.7f)), 0.0f, 0.0f, 1.0f);
     }
   } else if (player_state == Landed) {
     float scale = lerp(2.0f, 1.0f, player_t);
-    guTranslate(&swordTranslation, 0.f, 0.f, (1 - scale) * 5.f);
-    guScale(&(swordScale), scale, scale, scale);
-    guRotate(&(swordRotationX), lerp(90.f, 5.f, player_t), 0.0f, 1.0f, 0.0f);
-    guRotate(&(swordRotationZ), lerp(0.f, 120.f, player_t), 0.0f, 0.0f, 1.0f);
+    guTranslate(&dynamicp->swordTranslation, 0.f, 0.f, (1 - scale) * 5.f);
+    guScale(&(dynamicp->swordScale), scale, scale, scale);
+    guRotate(&(dynamicp->swordRotationX), lerp(90.f, 5.f, player_t), 0.0f, 1.0f, 0.0f);
+    guRotate(&(dynamicp->swordRotationZ), lerp(0.f, 120.f, player_t), 0.0f, 0.0f, 1.0f);
   } else if (player_state == Dead) {
-    guScale(&(swordScale), 0.5f, 0.5f, 0.5f);
-    guRotate(&(swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
-    guRotate(&(swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
+    guScale(&(dynamicp->swordScale), 0.5f, 0.5f, 0.5f);
+    guRotate(&(dynamicp->swordRotationX), 5.f + (4.f * sinf(time / 400000.f)), 0.0f, 1.0f, 0.0f);
+    guRotate(&(dynamicp->swordRotationZ), 135.f, 0.0f, 0.0f, 1.0f);
   }
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationZ)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordRotationX)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(swordScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->swordTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->swordRotationZ)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->swordRotationX)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->swordScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   addSwordDisplayList();
 
 
@@ -647,12 +634,12 @@ void makeDL00(void)
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  guTranslate(&(targetTranslation), target_distance, 0.0f, 0.f);
-  guRotate(&(targetRotation), ((float)time) * 0.0005f,  0.f, 0.f, 1.f);
+  guTranslate(&(dynamicp->targetTranslation), target_distance, 0.0f, 0.f);
+  guRotate(&(dynamicp->targetRotation), ((float)time) * 0.0005f,  0.f, 0.f, 1.f);
 
   if (player_state == Move && (player_bullets_collected >= JUMP_COST) && (!isWarping)) { 
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(targetRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->targetTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->targetRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
     gSPVertex(glistp++, &(jump_target_geom[0]), 8, 0);
     gSP2Triangles(glistp++, 0,3,1,0,3,6,4,0);
@@ -665,25 +652,25 @@ void makeDL00(void)
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  guMtxXFML(&(swordScale), 0.f , 0.f, 0.f, &ox, &oy, &oz);
-  guMtxXFML(&(swordRotationX), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(swordTranslation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerScale), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerRotation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML((&(playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordScale), 0.f , 0.f, 0.f, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordRotationX), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordTranslation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerScale), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML((&(dynamicp->playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
   trail_geo[trail_geo_index + 0].v.ob[0] = (short)ox;
   trail_geo[trail_geo_index + 0].v.ob[1] = (short)oy;
   trail_geo[trail_geo_index + 0].v.ob[2] = (short)oz;
-  guMtxXFML(&(swordScale),(player_state == Jumping) ? (400.f * player_t) : 320.f , 0.f, 0.f, &ox, &oy, &oz);
-  guMtxXFML(&(swordRotationX), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(swordTranslation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerScale), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML(&(playerRotation), ox, oy, oz, &ox, &oy, &oz);
-  guMtxXFML((&(playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordScale),(player_state == Jumping) ? (400.f * player_t) : 320.f , 0.f, 0.f, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordRotationX), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordRotationZ), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->swordTranslation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerScale), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerJumpRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML(&(dynamicp->playerRotation), ox, oy, oz, &ox, &oy, &oz);
+  guMtxXFML((&(dynamicp->playerTranslation)), ox, oy, oz, &ox, &oy, &oz);
   trail_geo[trail_geo_index + 1].v.ob[0] = (short)ox;
   trail_geo[trail_geo_index + 1].v.ob[1] = (short)oy;
   trail_geo[trail_geo_index + 1].v.ob[2] = (short)oz;
@@ -694,7 +681,7 @@ void makeDL00(void)
   renderBullets(player_x, player_y);
 
   // Render emitters
-  renderAimEmitters(player_x, player_y, &playerScale);
+  renderAimEmitters(player_x, player_y, &dynamicp->playerScale);
 
   nuDebPerfMarkSet(4);
 
@@ -726,11 +713,11 @@ void makeDL00(void)
 
     if (player_state == Landed) {
       float hump = sinf((player_t) * M_PI);
-      guRotate(&landEffectRotation, time, 0.f, 0.f, 1.f);
-      guScale(&landEffectScale, cubic(hump + 0.5f) * 0.014523f, cubic(hump + 0.5f) * 0.014523f, (hump + 0.7f) * 0.02f);
-      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+      guRotate(&dynamicp->landEffectRotation, time, 0.f, 0.f, 1.f);
+      guScale(&dynamicp->landEffectScale, cubic(hump + 0.5f) * 0.014523f, cubic(hump + 0.5f) * 0.014523f, (hump + 0.7f) * 0.02f);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->landEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+      gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->landEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
       addLandEffectDisplayList();
 
