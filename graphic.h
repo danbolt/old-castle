@@ -43,6 +43,10 @@ typedef struct {
   Mtx bossHairTranslationB;
   Mtx bossHairTranslationC;
   Mtx bossHairTranslationD;
+  Mtx bossHairMidTranslationA;
+  Mtx bossHairMidTranslationB;
+  Mtx bossHairMidTranslationC;
+  Mtx bossHairMidTranslationD;
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/

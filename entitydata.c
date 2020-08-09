@@ -624,10 +624,15 @@ void addBossDisplayList(Dynamic* dynamicp) {
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  guTranslate(&(dynamicp->bossHairTranslationA), 7.f, -4.0f, 0.f);
-  guTranslate(&(dynamicp->bossHairTranslationB), -7.f, -4.0f, 0.f);
-  guTranslate(&(dynamicp->bossHairTranslationC), -7.f, 4.0f, 0.f);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  guTranslate(&(dynamicp->bossHairMidTranslationA), 4.f, -4.0f, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationB), -4.f, -4.0f, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationC), -8.f, 1.4f, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationD), 8.f, 1.4f, 4.f);
+  guTranslate(&(dynamicp->bossHairTranslationA), 4.f, -4.0f, -5.f);
+  guTranslate(&(dynamicp->bossHairTranslationB), -4.f, -4.0f, -5.f);
+  guTranslate(&(dynamicp->bossHairTranslationC), -4.f, 2.0f, -5.f);
+  guTranslate(&(dynamicp->bossHairTranslationD), 4.f, 2.0f, -5.f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
@@ -639,9 +644,21 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationA)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 46, 47, 55 + i, 0);
+    gSP2Triangles(glistp++, 48, 49, 54 + i, 0, 48, 49, 55 + i, 0);
+    gSP2Triangles(glistp++, 50, 51, 54 + i, 0, 52, 53, 55 + i, 0);
+  }
+  gSP2Triangles(glistp++, 0 + 54, 1 + 54, 2 + 54, 0, 0 + 54, 2 + 54, 3 + 54, 0);
+  gSP2Triangles(glistp++, 1 + 54, 0 + 54, 4 + 54, 0, 1 + 54, 4 + 54, 5 + 54, 0);
+  gSP2Triangles(glistp++, 2 + 54, 3 + 54, 5 + 54, 0, 2 + 54, 5 + 54, 6 + 54, 0);
+  gSP2Triangles(glistp++, 0 + 54, 5 + 54, 4 + 54, 0, 0 + 54, 5 + 54, 6 + 54, 0);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationB)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationB)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
@@ -653,20 +670,70 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationB)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 46, 47, 55 + i, 0);
+    gSP2Triangles(glistp++, 48, 49, 54 + i, 0, 48, 49, 55 + i, 0);
+    gSP2Triangles(glistp++, 50, 51, 54 + i, 0, 52, 53, 55 + i, 0);
+  }
+  gSP2Triangles(glistp++, 0 + 54, 1 + 54, 2 + 54, 0, 0 + 54, 2 + 54, 3 + 54, 0);
+  gSP2Triangles(glistp++, 1 + 54, 0 + 54, 4 + 54, 0, 1 + 54, 4 + 54, 5 + 54, 0);
+  gSP2Triangles(glistp++, 2 + 54, 3 + 54, 5 + 54, 0, 2 + 54, 5 + 54, 6 + 54, 0);
+  gSP2Triangles(glistp++, 0 + 54, 5 + 54, 4 + 54, 0, 0 + 54, 5 + 54, 6 + 54, 0);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationC)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationC)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
-    gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 4, 46 + i, 0, 20, 23, 46 + i, 0);
     gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
-    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 3, 46 + i, 0);
   }
 
   gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationC)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 46, 47, 55 + i, 0);
+    gSP2Triangles(glistp++, 48, 49, 54 + i, 0, 48, 49, 55 + i, 0);
+    gSP2Triangles(glistp++, 50, 51, 54 + i, 0, 52, 53, 55 + i, 0);
+  }
+  gSP2Triangles(glistp++, 0 + 54, 1 + 54, 2 + 54, 0, 0 + 54, 2 + 54, 3 + 54, 0);
+  gSP2Triangles(glistp++, 1 + 54, 0 + 54, 4 + 54, 0, 1 + 54, 4 + 54, 5 + 54, 0);
+  gSP2Triangles(glistp++, 2 + 54, 3 + 54, 5 + 54, 0, 2 + 54, 5 + 54, 6 + 54, 0);
+  gSP2Triangles(glistp++, 0 + 54, 5 + 54, 4 + 54, 0, 0 + 54, 5 + 54, 6 + 54, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationD)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 20, 4, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 3, 46 + i, 0);
+  }
+
+  gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
+  gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
+  gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
+  gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationD)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 46, 47, 55 + i, 0);
+    gSP2Triangles(glistp++, 48, 49, 54 + i, 0, 48, 49, 55 + i, 0);
+    gSP2Triangles(glistp++, 50, 51, 54 + i, 0, 52, 53, 55 + i, 0);
+  }
+  gSP2Triangles(glistp++, 0 + 54, 1 + 54, 2 + 54, 0, 0 + 54, 2 + 54, 3 + 54, 0);
+  gSP2Triangles(glistp++, 1 + 54, 0 + 54, 4 + 54, 0, 1 + 54, 4 + 54, 5 + 54, 0);
+  gSP2Triangles(glistp++, 2 + 54, 3 + 54, 5 + 54, 0, 2 + 54, 5 + 54, 6 + 54, 0);
+  gSP2Triangles(glistp++, 0 + 54, 5 + 54, 4 + 54, 0, 0 + 54, 5 + 54, 6 + 54, 0);
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
