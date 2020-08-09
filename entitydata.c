@@ -579,6 +579,14 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 
 void addBossDisplayList(Dynamic* dynamicp) {
   int i;
+  float midAShiftX;
+  float midAShiftY;
+  float midBShiftX;
+  float midBShiftY;
+  float midCShiftX;
+  float midCShiftY;
+  float midDShiftX;
+  float midDShiftY;
 
   // TODO: load proper boss scaling
 
@@ -624,14 +632,23 @@ void addBossDisplayList(Dynamic* dynamicp) {
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  guTranslate(&(dynamicp->bossHairMidTranslationA), 4.f, -4.0f, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationB), -4.f, -4.0f, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationC), -8.f, 1.4f, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationD), 8.f, 1.4f, 4.f);
-  guTranslate(&(dynamicp->bossHairTranslationA), 4.f, -4.0f, -5.f);
-  guTranslate(&(dynamicp->bossHairTranslationB), -4.f, -4.0f, -5.f);
-  guTranslate(&(dynamicp->bossHairTranslationC), -4.f, 2.0f, -5.f);
-  guTranslate(&(dynamicp->bossHairTranslationD), 4.f, 2.0f, -5.f);
+  midAShiftX = ((guRandom() % 100) - 50) * 0.01f;
+  midAShiftY = ((guRandom() % 100) - 50) * 0.01f;
+  midBShiftX = ((guRandom() % 100) - 50) * 0.01f;
+  midBShiftY = ((guRandom() % 100) - 50) * 0.01f;
+  midCShiftX = ((guRandom() % 100) - 50) * 0.01f;
+  midCShiftY = ((guRandom() % 100) - 50) * 0.01f;
+  midDShiftX = ((guRandom() % 100) - 50) * 0.01f;
+  midDShiftY = ((guRandom() % 100) - 50) * 0.01f;
+
+  guTranslate(&(dynamicp->bossHairMidTranslationA), 4.f + midAShiftX, -4.0f + midAShiftY, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationB), -4.f + midBShiftX, -4.0f + midBShiftY, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationC), -8.f + midCShiftX, 1.4f + midCShiftY, 4.f);
+  guTranslate(&(dynamicp->bossHairMidTranslationD), 8.f + midDShiftX, 1.4f + midDShiftY, 4.f);
+  guTranslate(&(dynamicp->bossHairTranslationA), 4.f - midAShiftX, -4.0f - midAShiftY, -6.5f);
+  guTranslate(&(dynamicp->bossHairTranslationB), -4.f- midBShiftX, -4.0f - midBShiftY, -6.5f);
+  guTranslate(&(dynamicp->bossHairTranslationC), -4.f- midCShiftX, 2.0f - midCShiftY, -6.5f);
+  guTranslate(&(dynamicp->bossHairTranslationD), 4.f- midDShiftX, 2.0f - midDShiftY, -6.5f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
@@ -710,9 +727,9 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationD)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
-    gSP2Triangles(glistp++, 20, 4, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 47, 46 + i, 0, 20, 23, 46 + i, 0);
     gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
-    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 3, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
   }
 
   gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
