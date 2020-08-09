@@ -16,6 +16,11 @@
 #define EMITTER_DEAD 0
 #define EMITTER_ALIVE 1
 
+typedef struct {
+  float period;
+  float t;
+} EmitterTimeData;
+
 // Static memory data
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
@@ -35,6 +40,7 @@ static Velocity EmitterVelocities[EMITTER_COUNT];
 static EntityTransform EmitterMatricies[EMITTER_COUNT];
 static EntityTransform EmitterRotations[EMITTER_COUNT];
 static u8 EmitterStates[EMITTER_COUNT];
+static EmitterTimeData EmitterTimes[EMITTER_COUNT];
 static u32 EmitterTicks[EMITTER_COUNT];
 static int NextEmitterIndex;
 
@@ -44,6 +50,8 @@ static int NextEmitterIndex;
 static int BossSetting;
 static float boss_x;
 static float boss_y;
+static float boss_starting_x;
+static float boss_starting_y;
 static float boss_rotation;
 
 static Vtx test_boss_main_geo[] = {
@@ -185,6 +193,7 @@ void initializeEntityData() {
 		EmitterVelocities[i].x = 0.f;
 		EmitterVelocities[i].y = 0.f;
 		EmitterTicks[i] = 0;
+    EmitterTimes[i].t = 0.f;
 
 		guMtxIdent(&(EmitterMatricies[i].mat));   
 	}
@@ -193,19 +202,19 @@ void initializeEntityData() {
 	// Initialize aim emitters
 	for (i = 0; i < AIM_EMITTER_COUNT; i++) { 
 		AimEmitters[i].emitterIndex = -1;
-		AimEmitters[i].period = 2.0f;
+		EmitterTimes[i].period = 2.0f;
 		AimEmitters[i].shotsToFire = 1;
 		AimEmitters[i].spreadSpeadInDegrees = 90.f;
-		AimEmitters[i].t = 0.f + (guRandom() % 5);
+		EmitterTimes[i].t = 0.f + (guRandom() % 5);
 	}
 	NextAimEmitterIndex = 0;
 
   // Initialize spin emitters
   for (i = 0; i < SPIN_EMITTER_COUNT; i++) { 
     SpinEmitters[i].emitterIndex = -1;
-    SpinEmitters[i].period = 0.4f;
+    EmitterTimes[i].period = 0.4f;
     SpinEmitters[i].spinSpeed = 60.f;
-    SpinEmitters[i].t = 0.f + (guRandom() % 5);
+    EmitterTimes[i].t = 0.f + (guRandom() % 5);
   }
   NextSpinEmitterIndex = 0;
 
@@ -232,6 +241,8 @@ int generateAimEmitterEntity(float x, float y) {
     EmitterPositions[newEmitterIndex].y = y;
     EmitterVelocities[newEmitterIndex].x = 0.f;
     EmitterVelocities[newEmitterIndex].y = 0.f;
+    EmitterTimes[newEmitterIndex].t = 0.f;
+    EmitterTimes[newEmitterIndex].period = 2.f;
     NextEmitterIndex++;
 
     AimEmitters[newAimEmitterIndex].emitterIndex = newEmitterIndex;
@@ -257,6 +268,8 @@ int generateSpinEmitterEntity(float x, float y) {
     EmitterPositions[newEmitterIndex].y = y;
     EmitterVelocities[newEmitterIndex].x = 0.f;
     EmitterVelocities[newEmitterIndex].y = 0.f;
+    EmitterTimes[newEmitterIndex].t = 0.f;
+    EmitterTimes[newEmitterIndex].period = 0.4f;
     NextEmitterIndex++;
 
     SpinEmitters[newSpinEmitterIndex].emitterIndex = newEmitterIndex;
@@ -274,6 +287,8 @@ int generateBossA(float x, float y) {
   BossSetting = BOSS_A_SET;
   boss_x = x;
   boss_y = y;
+  boss_starting_x = x;
+  boss_starting_y = y;
   boss_rotation = 180;
 
   return 1;
@@ -340,13 +355,13 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
       continue;
     }
 
-    AimEmitters[i].t += deltaSeconds;
-    if (AimEmitters[i].t < AimEmitters[i].period) {
+    EmitterTimes[i].t += deltaSeconds;
+    if (EmitterTimes[i].t < EmitterTimes[i].period) {
       continue;
     }
 
     // If we've made it here, fire
-    AimEmitters[i].t = 0;
+    EmitterTimes[i].t = 0;
 
     // If the player's just about to land on or near us, we should avoid making a cruel shot
     if ((fabs_d(player_y - BulletPositions[newBulletIndex].y) < 1.3f) || (fabs_d(player_x - BulletPositions[newBulletIndex].x) < 1.3f)) {
@@ -395,14 +410,14 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
       continue;
     }
 
-    SpinEmitters[i].t += deltaSeconds;
+    EmitterTimes[i].t += deltaSeconds;
     SpinEmitters[i].totalTime += deltaSeconds;
-    if (SpinEmitters[i].t < SpinEmitters[i].period) {
+    if (EmitterTimes[i].t < EmitterTimes[i].period) {
       continue;
     }
 
     // If we've made it here, fire
-    SpinEmitters[i].t = 0;
+    EmitterTimes[i].t = 0;
 
     // Skip if there are no available bullets
     newBulletIndex = consumeNextBullet();

@@ -30,9 +30,6 @@ typedef struct {
 
   u8 shotsToFire;
   u8 spreadSpeadInDegrees;
-
-  float period;
-  float t;
 } AimEmitterData;
 
 typedef struct {
@@ -40,9 +37,6 @@ typedef struct {
 
   float spinSpeed; // Radians
   float totalTime;
-
-  float period;
-  float t;
 } SpinEmitterData;
 
 // Clears all entity data; this should be done on level start
