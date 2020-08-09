@@ -683,6 +683,8 @@ void makeDL00(void)
   // Render emitters
   renderAimEmitters(player_x, player_y, &dynamicp->playerScale);
 
+  renderBoss(dynamicp);
+
   nuDebPerfMarkSet(4);
 
   if (isWarping) {
@@ -1050,6 +1052,8 @@ void updateGame00(void)
 
     // Update emitters position/velocity/life
     tickAimEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+
+    tickBoss(deltaSeconds, player_x, player_y);
   }
 
   nuDebPerfMarkSet(1);

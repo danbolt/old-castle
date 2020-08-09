@@ -38,6 +38,73 @@ static u8 EmitterStates[EMITTER_COUNT];
 static u32 EmitterTicks[EMITTER_COUNT];
 static int NextEmitterIndex;
 
+#define NO_BOSS_SET 0
+#define BOSS_A_SET 1
+
+static int BossSetting;
+static float boss_x;
+static float boss_y;
+static float boss_rotation;
+
+static Vtx test_boss_main_geo[] = {
+{ 274, 46, 158, 0, 0, 0, 0, 0, 0, 255 },
+{ 238, 272, -246, 0, 0, 0, 5, 5, 5, 255 },
+{ 238, -63, -246, 0, 0, 0, 78, 74, 59, 255 },
+{ 300, 337, -26, 0, 0, 0, 0, 0, 0, 255 },
+{ 265, -106, -58, 0, 0, 0, 38, 36, 29, 255 },
+{ 119, -93, 211, 0, 0, 0, 2, 2, 2, 255 },
+{ 225, -145, -26, 0, 0, 0, 255, 243, 194, 255 },
+{ 133, -121, 129, 0, 0, 0, 255, 243, 194, 255 },
+{ 248, -123, 145, 0, 0, 0, 255, 243, 194, 255 },
+{ 145, -147, 50, 0, 0, 0, 255, 243, 194, 255 },
+{ 269, -96, -136, 0, 0, 0, 228, 217, 174, 255 },
+{ 77, -85, 159, 0, 0, 0, 233, 249, 237, 255 },
+{ 238, -85, 146, 0, 0, 0, 255, 255, 255, 255 },
+{ 95, -122, 90, 0, 0, 0, 221, 12, 0, 255 },
+{ 140, -128, 17, 0, 0, 0, 222, 12, 0, 255 },
+{ 127, -108, 143, 0, 0, 0, 222, 12, 0, 255 },
+{ 160, -120, 99, 0, 0, 0, 222, 12, 0, 255 },
+{ -274, 46, 158, 0, 0, 0, 0, 0, 0, 255 },
+{ -238, 272, -246, 0, 0, 0, 5, 5, 5, 255 },
+{ -238, -63, -246, 0, 0, 0, 78, 74, 59, 255 },
+{ 0, 280, -288, 0, 0, 0, 10, 10, 9, 255 },
+{ 0, -122, 236, 0, 0, 0, 24, 24, 19, 255 },
+{ 0, -71, -288, 0, 0, 0, 155, 148, 118, 255 },
+{ 0, 346, -15, 0, 0, 0, 0, 0, 0, 255 },
+{ -300, 337, -26, 0, 0, 0, 0, 0, 0, 255 },
+{ -265, -106, -58, 0, 0, 0, 38, 36, 29, 255 },
+{ 0, -195, -26, 0, 0, 0, 255, 243, 195, 255 },
+{ -119, -93, 211, 0, 0, 0, 2, 2, 2, 255 },
+{ 0, -159, 105, 0, 0, 0, 255, 243, 194, 255 },
+{ -225, -145, -26, 0, 0, 0, 255, 243, 194, 255 },
+{ -133, -121, 129, 0, 0, 0, 255, 243, 194, 255 },
+{ 0, -177, 39, 0, 0, 0, 255, 243, 194, 255 },
+{ -248, -123, 145, 0, 0, 0, 255, 243, 194, 255 },
+{ -145, -147, 50, 0, 0, 0, 255, 243, 194, 255 },
+{ 0, -133, -220, 0, 0, 0, 156, 148, 118, 255 },
+{ -269, -96, -136, 0, 0, 0, 228, 217, 174, 255 },
+{ 0, -164, -123, 0, 0, 0, 255, 243, 197, 255 },
+{ -77, -85, 159, 0, 0, 0, 233, 249, 237, 255 },
+{ 0, -85, 37, 0, 0, 0, 255, 255, 255, 255 },
+{ -238, -85, 146, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, -85, -93, 0, 0, 0, 255, 243, 194, 255 },
+{ -95, -122, 90, 0, 0, 0, 221, 12, 0, 255 },
+{ -140, -128, 17, 0, 0, 0, 222, 12, 0, 255 },
+{ -127, -108, 143, 0, 0, 0, 222, 12, 0, 255 },
+{ -160, -120, 99, 0, 0, 0, 222, 12, 0, 255 },
+};
+
+static Vtx test_boss_hair_geo[] = {
+  {  1,   1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+  { -1,   1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+  { -1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+  {  1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
+  {  1,   1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+  { -1,   1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+  { -1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+  {  1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+};
+
 static Vtx bullet_test_geom[] =  {
         {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
         {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
@@ -141,6 +208,10 @@ void initializeEntityData() {
     SpinEmitters[i].t = 0.f + (guRandom() % 5);
   }
   NextSpinEmitterIndex = 0;
+
+  BossSetting = NO_BOSS_SET;
+  boss_x = 0.f;
+  boss_y = 0.f;
 }
 
 int generateAimEmitterEntity(float x, float y) {
@@ -195,7 +266,18 @@ int generateSpinEmitterEntity(float x, float y) {
   return newSpinEmitterIndex;
 }
 
-extern float test;
+int generateBossA(float x, float y) {
+  if (BossSetting) {
+    return 0;
+  }
+
+  BossSetting = BOSS_A_SET;
+  boss_x = x;
+  boss_y = y;
+  boss_rotation = 180;
+
+  return 1;
+}
 
 void tickAimEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t) {
 	int i;
@@ -493,6 +575,130 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		*player_state = Dead;
 		*player_t = 0;
 	}
+}
+
+void addBossDisplayList(Dynamic* dynamicp) {
+  int i;
+
+  // TODO: load proper boss scaling
+
+  guTranslate(&(dynamicp->bossTranslate), boss_x, boss_y, 2.f);
+  guRotate(&(dynamicp->bossRotate), boss_rotation, 0.f, 0.f, 1.f);
+  guScale(&(dynamicp->bossScale), 0.01, 0.01, 0.01);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossTranslate)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossRotate)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+  gSPVertex(glistp++,&(test_boss_main_geo[0]), 45, 0);
+  gSP2Triangles(glistp++, 20, 2, 22, 0, 23, 0, 3, 0);
+  gSP2Triangles(glistp++, 28, 31, 7, 0, 23, 5, 0, 0);
+  gSP2Triangles(glistp++, 4, 3, 0, 0, 20, 3, 1, 0);
+  gSP2Triangles(glistp++, 3, 10, 2, 0, 4, 0, 8, 0);
+  gSP2Triangles(glistp++, 6, 8, 9, 0, 4, 8, 6, 0);
+  gSP2Triangles(glistp++, 6, 31, 26, 0, 6, 9, 31, 0);
+  gSP2Triangles(glistp++, 5, 28, 7, 0, 5, 8, 0, 0);
+  gSP2Triangles(glistp++, 34, 22, 2, 0, 2, 10, 34, 0);
+  gSP2Triangles(glistp++, 10, 4, 36, 0, 26, 36, 6, 0);
+  gSP2Triangles(glistp++, 6, 36, 4, 0, 38, 12, 11, 0);
+  gSP2Triangles(glistp++, 14, 15, 13, 0, 20, 1, 2, 0);
+  gSP2Triangles(glistp++, 23, 21, 5, 0, 20, 23, 3, 0);
+  gSP2Triangles(glistp++, 2, 1, 3, 0, 3, 4, 10, 0);
+  gSP2Triangles(glistp++, 5, 21, 28, 0, 5, 7, 8, 0);
+  gSP2Triangles(glistp++, 38, 40, 12, 0, 14, 16, 15, 0);
+  gSP2Triangles(glistp++, 20, 22, 19, 0, 23, 24, 17, 0);
+  gSP2Triangles(glistp++, 28, 30, 31, 0, 23, 17, 27, 0);
+  gSP2Triangles(glistp++, 25, 17, 24, 0, 20, 18, 24, 0);
+  gSP2Triangles(glistp++, 24, 19, 35, 0, 25, 32, 17, 0);
+  gSP2Triangles(glistp++, 29, 33, 32, 0, 25, 29, 32, 0);
+  gSP2Triangles(glistp++, 29, 26, 31, 0, 29, 31, 33, 0);
+  gSP2Triangles(glistp++, 27, 30, 28, 0, 27, 17, 32, 0);
+  gSP2Triangles(glistp++, 34, 19, 22, 0, 19, 34, 35, 0);
+  gSP2Triangles(glistp++, 35, 36, 25, 0, 26, 29, 36, 0);
+  gSP2Triangles(glistp++, 29, 25, 36, 0, 38, 37, 39, 0);
+  gSP2Triangles(glistp++, 42, 41, 43, 0, 20, 19, 18, 0);
+  gSP2Triangles(glistp++, 23, 27, 21, 0, 20, 24, 23, 0);
+  gSP2Triangles(glistp++, 19, 24, 18, 0, 24, 35, 25, 0);
+  gSP2Triangles(glistp++, 27, 28, 21, 0, 27, 32, 30, 0);
+  gSP2Triangles(glistp++, 38, 39, 40, 0, 42, 43, 44, 0);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+  guTranslate(&(dynamicp->bossHairTranslationA), 7.f, -4.0f, 0.f);
+  guTranslate(&(dynamicp->bossHairTranslationB), -7.f, -4.0f, 0.f);
+  guTranslate(&(dynamicp->bossHairTranslationC), -7.f, 4.0f, 0.f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
+  }
+
+  gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
+  gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
+  gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
+  gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationB)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
+  }
+
+  gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
+  gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
+  gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
+  gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationC)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
+  for (i = 0; i < 8; i++) {
+    gSP2Triangles(glistp++, 20, 25, 46 + i, 0, 20, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
+    gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
+  }
+
+  gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
+  gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
+  gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
+  gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+}
+
+void tickBossA(float deltaSeconds, float player_x, float player_y) {
+  //
+}
+
+void tickBoss(float deltaSeconds, float player_x, float player_y) {
+  if (BossSetting == NO_BOSS_SET) {
+    return;
+  }
+
+  if (BossSetting == BOSS_A_SET) {
+    tickBossA(deltaSeconds, player_x, player_y);
+  }
+}
+
+void renderBossA(Dynamic* dynamic) {
+  addBossDisplayList(dynamic);
+}
+
+void renderBoss(Dynamic* dynamic) {
+  if (BossSetting == NO_BOSS_SET) {
+    return;
+  }
+
+  if (BossSetting == BOSS_A_SET) {
+    renderBossA(dynamic);
+  }
 }
 
 void renderBullets(float view_x, float view_y) {

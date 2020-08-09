@@ -9,6 +9,8 @@
 #include "PlayerData.h"
 #include "RoomData.h"
 
+#include "graphic.h"
+
 typedef struct {
   float x;
   float y;
@@ -52,8 +54,13 @@ void initializeEntityData();
 int generateAimEmitterEntity(float x, float y);
 int generateSpinEmitterEntity(float x, float y);
 
+int generateBossA(float x, float y);
+
 void tickAimEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);
 void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale);
+
+void tickBoss(float deltaSeconds, float player_x, float player_y);
+void renderBoss(Dynamic* dynamic);
 
 // Creates a bullet and returns its index
 int consumeNextBullet();

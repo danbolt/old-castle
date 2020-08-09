@@ -36,6 +36,7 @@ typedef enum {
   RestRoom, // A room without enemies to take a break
   NoRoom, // The void
   HallwayRoom, // A room that's more of a hallawy to another room
+  BossARoom, // The room for boss A
 } RoomType;
 
 #define NO_STAIRS_DIRECTION -1

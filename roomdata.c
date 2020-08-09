@@ -88,9 +88,9 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 
 	int mainCorridorLength = (xorshift32(&roomGeneratorState) % 25) + 25;
 
-	rooms[0].x = (MAP_SIZE / 2) - 4;
+	rooms[0].x = (MAP_SIZE / 2) - 8;
 	rooms[0].y = MAP_SIZE - 10;
-	rooms[0].width = 8;
+	rooms[0].width = 16;
 	rooms[0].height = 8;
 	rooms[0].type = StartingRoom;
 
@@ -104,7 +104,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[2].y = MAP_SIZE - 10 - (u8)mainCorridorLength - 33;
 	rooms[2].width = 24;
 	rooms[2].height = 33;
-	rooms[2].type = EnemyRoom;
+	rooms[2].type = BossARoom;
 
 	rooms[3].x = MAP_SIZE / 4;
 	rooms[3].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2);
@@ -257,6 +257,10 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
       MapInfo[((rooms[i].y + 4) * MAP_SIZE) + (rooms[i].x + rooms[i].width - 4)] = LOW_WALL_TILE;
       MapInfo[((rooms[i].y + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].x + 3)] = LOW_WALL_TILE;
       MapInfo[((rooms[i].y + rooms[i].height - 5) * MAP_SIZE) + (rooms[i].x + rooms[i].width - 4)] = LOW_WALL_TILE;
+    }
+
+    if (rooms[i].type == BossARoom) {
+      generateBossA((rooms[i].x + (rooms[i].width / 2)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
     }
   }
 }
