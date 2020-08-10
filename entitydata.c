@@ -39,8 +39,6 @@ static EntityTransform BulletMatricies[BULLET_COUNT];
 int NextBulletIndex;
 
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
-static int NextAimEmitterIndex;
-
 static SpinEmitterData SpinEmitters[SPIN_EMITTER_COUNT];
 
 static Position EmitterPositions[EMITTER_COUNT];
@@ -64,6 +62,7 @@ static float boss_y;
 static float boss_starting_x;
 static float boss_starting_y;
 static float boss_rotation;
+static int boss_A_arm_emitters[4];
 
 static Vtx test_boss_main_geo[] = {
 { 274, 46, 158, 0, 0, 0, 0, 0, 0, 255 },
@@ -223,7 +222,6 @@ void initializeEntityData() {
 		EmitterTimes[i].period = 2.0f;
 		EmitterTimes[i].t = 0.f + (guRandom() % 5);
 	}
-	NextAimEmitterIndex = 0;
 
   // Initialize spin emitters
   for (i = 0; i < EMITTER_COUNT; i++) { 
@@ -242,7 +240,6 @@ void initializeEntityData() {
 int generateAimEmitterEntity(float x, float y) {
 
 	int newEmitterIndex = NextEmitterIndex;
-	int newAimEmitterIndex = NextAimEmitterIndex;
 
 	if (newEmitterIndex == EMITTER_COUNT) {
 		return -1;
@@ -257,9 +254,7 @@ int generateAimEmitterEntity(float x, float y) {
   EmitterTimes[newEmitterIndex].period = 2.f;
   NextEmitterIndex++;
 
-  NextAimEmitterIndex++;
-
-	return newAimEmitterIndex;
+	return newEmitterIndex;
 }
 
 int generateSpinEmitterEntity(float x, float y) {
@@ -287,6 +282,8 @@ int generateSpinEmitterEntity(float x, float y) {
 }
 
 int generateBossA(float x, float y) {
+  int i;
+
   if (BossSetting) {
     return 0;
   }
@@ -297,6 +294,11 @@ int generateBossA(float x, float y) {
   boss_starting_x = x;
   boss_starting_y = y;
   boss_rotation = 180;
+
+  boss_A_arm_emitters[0] = generateAimEmitterEntity(boss_x - 10.f, boss_y + 2.f);
+  boss_A_arm_emitters[1] = generateAimEmitterEntity(boss_x - 10.f, boss_y - 5.f);
+  boss_A_arm_emitters[2] = generateAimEmitterEntity(boss_x + 10.f, boss_y + 2.f);
+  boss_A_arm_emitters[3] = generateAimEmitterEntity(boss_x + 10.f, boss_y - 5.f);
 
   return 1;
 }
@@ -371,13 +373,13 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
       }
     }
 
-    theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x);
+    theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x) - 0.6f;
 
     EmitterFireStates[i] = 1;
     EmitterShotConfigs[i].direction = theta;
-    EmitterShotConfigs[i].numberOfShots = 1;
-    EmitterShotConfigs[i].spread = 0.f;
-    EmitterShotConfigs[i].speed = 5.831332f;
+    EmitterShotConfigs[i].numberOfShots = 3;
+    EmitterShotConfigs[i].spread = 0.6f;
+    EmitterShotConfigs[i].speed = 3.831332f;
     EmitterShotConfigs[i].speedRatio = 0.f;
   }
 
@@ -616,7 +618,7 @@ void addBossDisplayList(Dynamic* dynamicp) {
   guScale(&(dynamicp->bossScale), 0.01, 0.01, 0.01);
 
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossTranslate)), G_MTX_PUSH | G_MTX_MODELVIEW);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossRotate)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossRotate)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
   gSPVertex(glistp++,&(test_boss_main_geo[0]), 45, 0);
@@ -662,14 +664,14 @@ void addBossDisplayList(Dynamic* dynamicp) {
   midDShiftX = ((guRandom() % 100) - 50) * 0.01f;
   midDShiftY = ((guRandom() % 100) - 50) * 0.01f;
 
-  guTranslate(&(dynamicp->bossHairMidTranslationA), 4.f + midAShiftX, -4.0f + midAShiftY, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationB), -4.f + midBShiftX, -4.0f + midBShiftY, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationC), -8.f + midCShiftX, 1.4f + midCShiftY, 4.f);
-  guTranslate(&(dynamicp->bossHairMidTranslationD), 8.f + midDShiftX, 1.4f + midDShiftY, 4.f);
-  guTranslate(&(dynamicp->bossHairTranslationA), 4.f - midAShiftX, -4.0f - midAShiftY, -6.5f);
-  guTranslate(&(dynamicp->bossHairTranslationB), -4.f- midBShiftX, -4.0f - midBShiftY, -6.5f);
-  guTranslate(&(dynamicp->bossHairTranslationC), -4.f- midCShiftX, 2.0f - midCShiftY, -6.5f);
-  guTranslate(&(dynamicp->bossHairTranslationD), 4.f- midDShiftX, 2.0f - midDShiftY, -6.5f);
+  guTranslate(&(dynamicp->bossHairMidTranslationA), ((EmitterPositions[boss_A_arm_emitters[0]].x + boss_x) * 0.5f) + midAShiftX, ((EmitterPositions[boss_A_arm_emitters[0]].y + boss_y) * 0.5f) + midAShiftY, 5.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationB), ((EmitterPositions[boss_A_arm_emitters[1]].x + boss_x) * 0.5f) + midBShiftX, ((EmitterPositions[boss_A_arm_emitters[1]].y + boss_y) * 0.5f) + midBShiftY, 5.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationC), ((EmitterPositions[boss_A_arm_emitters[2]].x + boss_x) * 0.5f) + midCShiftX, ((EmitterPositions[boss_A_arm_emitters[2]].y + boss_y) * 0.5f) + midCShiftY, 5.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationD), ((EmitterPositions[boss_A_arm_emitters[3]].x + boss_x) * 0.5f) + midDShiftX, ((EmitterPositions[boss_A_arm_emitters[3]].y + boss_y) * 0.5f) + midDShiftY, 5.3f);
+  guTranslate(&(dynamicp->bossHairTranslationA), EmitterPositions[boss_A_arm_emitters[0]].x - midAShiftX, EmitterPositions[boss_A_arm_emitters[0]].y - midAShiftY, 0.f);
+  guTranslate(&(dynamicp->bossHairTranslationB), EmitterPositions[boss_A_arm_emitters[1]].x - midBShiftX, EmitterPositions[boss_A_arm_emitters[1]].y - midBShiftY, 0.f);
+  guTranslate(&(dynamicp->bossHairTranslationC), EmitterPositions[boss_A_arm_emitters[2]].x - midCShiftX, EmitterPositions[boss_A_arm_emitters[2]].y - midCShiftY, 0.f);
+  guTranslate(&(dynamicp->bossHairTranslationD), EmitterPositions[boss_A_arm_emitters[3]].x - midDShiftX, EmitterPositions[boss_A_arm_emitters[3]].y - midDShiftY, 0.f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairMidTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 46);
   for (i = 0; i < 8; i++) {
@@ -677,13 +679,14 @@ void addBossDisplayList(Dynamic* dynamicp) {
     gSP2Triangles(glistp++, 20, 22, 46 + i, 0, 22, 23, 46 + i, 0);
     gSP2Triangles(glistp++, 23, 22, 46 + i, 0, 22, 24, 46 + i, 0);
   }
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   gSP2Triangles(glistp++, 0 + 46, 1 + 46, 2 + 46, 0, 0 + 46, 2 + 46, 3 + 46, 0);
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
 
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationA)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationA)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 48, 49, 54 + i, 0);
@@ -707,8 +710,9 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationB)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationB)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 48, 49, 54 + i, 0);
@@ -732,8 +736,9 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationC)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationC)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 48, 49, 54 + i, 0);
@@ -757,8 +762,9 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 46, 0 + 46, 4 + 46, 0, 1 + 46, 4 + 46, 5 + 46, 0);
   gSP2Triangles(glistp++, 2 + 46, 3 + 46, 5 + 46, 0, 2 + 46, 5 + 46, 6 + 46, 0);
   gSP2Triangles(glistp++, 0 + 46, 5 + 46, 4 + 46, 0, 0 + 46, 5 + 46, 6 + 46, 0);
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationD)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bossHairTranslationD)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPVertex(glistp++,&(test_boss_hair_geo[0]), 8, 54);
   for (i = 0; i < 8; i++) {
     gSP2Triangles(glistp++, 46, 47, 54 + i, 0, 48, 49, 54 + i, 0);
@@ -768,8 +774,6 @@ void addBossDisplayList(Dynamic* dynamicp) {
   gSP2Triangles(glistp++, 1 + 54, 0 + 54, 4 + 54, 0, 1 + 54, 4 + 54, 5 + 54, 0);
   gSP2Triangles(glistp++, 2 + 54, 3 + 54, 5 + 54, 0, 2 + 54, 5 + 54, 6 + 54, 0);
   gSP2Triangles(glistp++, 0 + 54, 5 + 54, 4 + 54, 0, 0 + 54, 5 + 54, 6 + 54, 0);
-  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
 }
