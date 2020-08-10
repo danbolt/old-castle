@@ -26,15 +26,11 @@ typedef struct {
 } EntityTransform;
 
 typedef struct {
-  s8 emitterIndex;
-
-  u8 shotsToFire;
-  u8 spreadSpeadInDegrees;
+  u8 enabled;
 } AimEmitterData;
 
 typedef struct {
-  s8 emitterIndex;
-
+  u8 enabled;
   float spinSpeed; // Radians
   float totalTime;
 } SpinEmitterData;
@@ -50,8 +46,8 @@ int generateSpinEmitterEntity(float x, float y);
 
 int generateBossA(float x, float y);
 
-void tickAimEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);
-void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale);
+void tickEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);
+void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale);
 
 void tickBoss(float deltaSeconds, float player_x, float player_y);
 void renderBoss(Dynamic* dynamic);

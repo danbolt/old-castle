@@ -681,7 +681,7 @@ void makeDL00(void)
   renderBullets(player_x, player_y);
 
   // Render emitters
-  renderAimEmitters(player_x, player_y, &dynamicp->playerScale);
+  renderEmitters(player_x, player_y, &dynamicp->playerScale);
 
   renderBoss(dynamicp);
 
@@ -1051,7 +1051,7 @@ void updateGame00(void)
     tickBullets(player_x, player_y, &player_state, deltaSeconds, &player_t);
 
     // Update emitters position/velocity/life
-    tickAimEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+    tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
 
     tickBoss(deltaSeconds, player_x, player_y);
   }

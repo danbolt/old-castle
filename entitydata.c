@@ -14,12 +14,21 @@
 #define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
 
 #define EMITTER_DEAD 0
-#define EMITTER_ALIVE 1
+#define EMITTER_AIM 1
+#define EMITTER_SPIN 2
 
 typedef struct {
   float period;
   float t;
 } EmitterTimeData;
+
+typedef struct {
+  u8 numberOfShots;
+  float direction; // radians
+  float spread; // radians, each successive bullet after the first will have this added to its direction
+  float speed;
+  float speedRatio; // each successive bullet after the first will have this added to its speed
+} FireData;
 
 // Static memory data
 static Position BulletPositions[BULLET_COUNT];
@@ -33,13 +42,15 @@ static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 static int NextAimEmitterIndex;
 
 static SpinEmitterData SpinEmitters[SPIN_EMITTER_COUNT];
-static int NextSpinEmitterIndex;
 
 static Position EmitterPositions[EMITTER_COUNT];
 static Velocity EmitterVelocities[EMITTER_COUNT];
 static EntityTransform EmitterMatricies[EMITTER_COUNT];
 static EntityTransform EmitterRotations[EMITTER_COUNT];
 static u8 EmitterStates[EMITTER_COUNT];
+static u8 EmitterFireStates[EMITTER_COUNT];
+static FireData EmitterShotConfigs[EMITTER_COUNT];
+static float EmitterAimDirections[EMITTER_COUNT];
 static EmitterTimeData EmitterTimes[EMITTER_COUNT];
 static u32 EmitterTicks[EMITTER_COUNT];
 static int NextEmitterIndex;
@@ -188,6 +199,13 @@ void initializeEntityData() {
 	// Initialize emitters
 	for (i = 0; i < EMITTER_COUNT; i++) {
 		EmitterStates[i] = EMITTER_DEAD;
+    EmitterFireStates[i] = 0;
+    EmitterShotConfigs[i].numberOfShots = 0;
+    EmitterShotConfigs[i].direction = 0.f;
+    EmitterShotConfigs[i].spread = 0.f;
+    EmitterShotConfigs[i].speed = 0.f;
+    EmitterShotConfigs[i].speedRatio = 0.f;
+    EmitterAimDirections[i] = 0.f;
 		EmitterPositions[i].x = 0.f;
 		EmitterPositions[i].y = 0.f;
 		EmitterVelocities[i].x = 0.f;
@@ -200,23 +218,21 @@ void initializeEntityData() {
 	NextEmitterIndex = 0;
 
 	// Initialize aim emitters
-	for (i = 0; i < AIM_EMITTER_COUNT; i++) { 
-		AimEmitters[i].emitterIndex = -1;
+	for (i = 0; i < EMITTER_COUNT; i++) { 
+    AimEmitters[i].enabled = 0;
 		EmitterTimes[i].period = 2.0f;
-		AimEmitters[i].shotsToFire = 1;
-		AimEmitters[i].spreadSpeadInDegrees = 90.f;
 		EmitterTimes[i].t = 0.f + (guRandom() % 5);
 	}
 	NextAimEmitterIndex = 0;
 
   // Initialize spin emitters
-  for (i = 0; i < SPIN_EMITTER_COUNT; i++) { 
-    SpinEmitters[i].emitterIndex = -1;
-    EmitterTimes[i].period = 0.4f;
+  for (i = 0; i < EMITTER_COUNT; i++) { 
+
+    SpinEmitters[i].enabled = 1.f;
     SpinEmitters[i].spinSpeed = 60.f;
+    EmitterTimes[i].period = 0.4f;
     EmitterTimes[i].t = 0.f + (guRandom() % 5);
   }
-  NextSpinEmitterIndex = 0;
 
   BossSetting = NO_BOSS_SET;
   boss_x = 0.f;
@@ -232,51 +248,42 @@ int generateAimEmitterEntity(float x, float y) {
 		return -1;
 	}
 
-	if (newAimEmitterIndex == AIM_EMITTER_COUNT) {
-		return -2;
-	}
+	EmitterStates[newEmitterIndex] = EMITTER_AIM;
+  EmitterPositions[newEmitterIndex].x = x;
+  EmitterPositions[newEmitterIndex].y = y;
+  EmitterVelocities[newEmitterIndex].x = 0.f;
+  EmitterVelocities[newEmitterIndex].y = 0.f;
+  EmitterTimes[newEmitterIndex].t = 0.f;
+  EmitterTimes[newEmitterIndex].period = 2.f;
+  NextEmitterIndex++;
 
-	EmitterStates[newEmitterIndex] = EMITTER_ALIVE;
-    EmitterPositions[newEmitterIndex].x = x;
-    EmitterPositions[newEmitterIndex].y = y;
-    EmitterVelocities[newEmitterIndex].x = 0.f;
-    EmitterVelocities[newEmitterIndex].y = 0.f;
-    EmitterTimes[newEmitterIndex].t = 0.f;
-    EmitterTimes[newEmitterIndex].period = 2.f;
-    NextEmitterIndex++;
-
-    AimEmitters[newAimEmitterIndex].emitterIndex = newEmitterIndex;
-    NextAimEmitterIndex++;
+  NextAimEmitterIndex++;
 
 	return newAimEmitterIndex;
 }
 
 int generateSpinEmitterEntity(float x, float y) {
     int newEmitterIndex = NextEmitterIndex;
-    int newSpinEmitterIndex = NextSpinEmitterIndex;
 
     if (newEmitterIndex == EMITTER_COUNT) {
       return -1;
     }
 
-    if (newSpinEmitterIndex == SPIN_EMITTER_COUNT) {
-      return -2;
-    }
+    NextEmitterIndex++;
 
-    EmitterStates[newEmitterIndex] = EMITTER_ALIVE;
+    EmitterStates[newEmitterIndex] = EMITTER_SPIN;
     EmitterPositions[newEmitterIndex].x = x;
     EmitterPositions[newEmitterIndex].y = y;
     EmitterVelocities[newEmitterIndex].x = 0.f;
     EmitterVelocities[newEmitterIndex].y = 0.f;
-    EmitterTimes[newEmitterIndex].t = 0.f;
-    EmitterTimes[newEmitterIndex].period = 0.4f;
-    NextEmitterIndex++;
+    
+    SpinEmitters[newEmitterIndex].totalTime = 0;
+    SpinEmitters[newEmitterIndex].spinSpeed = 1.f;
 
-    SpinEmitters[newSpinEmitterIndex].emitterIndex = newEmitterIndex;
-    SpinEmitters[newSpinEmitterIndex].totalTime = 0;
-    NextSpinEmitterIndex++;
+    EmitterTimes[newEmitterIndex].period = 0.5f;
+    EmitterTimes[newEmitterIndex].t = 0.f + (guRandom() % 5);
 
-  return newSpinEmitterIndex;
+  return newEmitterIndex;
 }
 
 int generateBossA(float x, float y) {
@@ -294,7 +301,7 @@ int generateBossA(float x, float y) {
   return 1;
 }
 
-void tickAimEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t) {
+void tickEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t) {
 	int i;
 
 	for (i = 0; i < EMITTER_COUNT; i++) {
@@ -332,26 +339,16 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
     EmitterStates[i] = EMITTER_DEAD;
   }
 
-
-
   // Update aim emitters
-  for (i = 0; i < AIM_EMITTER_COUNT; i++) {
-    int newBulletIndex;
+  for (i = 0; i < EMITTER_COUNT; i++) {
     float theta;
-    Position* bulletPosition = NULL;
-    Velocity* bulletVelocity = NULL;
 
-    if (AimEmitters[i].emitterIndex == -1) {
-      continue;
-    }
-
-    if ((EmitterStates[AimEmitters[i].emitterIndex]) == EMITTER_DEAD) {
-      AimEmitters[i].emitterIndex = -1;
+    if ((EmitterStates[i]) != EMITTER_AIM) {
       continue;
     }
 
     // if we're really far away, don't worry about updating for now
-    if ((fabs_d(player_y - EmitterPositions[AimEmitters[i].emitterIndex].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[AimEmitters[i].emitterIndex].x) > (RENDER_DISTANCE * 2))) {
+    if ((fabs_d(player_y - EmitterPositions[i].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[i].x) > (RENDER_DISTANCE * 2))) {
       continue;
     }
 
@@ -364,7 +361,7 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
     EmitterTimes[i].t = 0;
 
     // If the player's just about to land on or near us, we should avoid making a cruel shot
-    if ((fabs_d(player_y - BulletPositions[newBulletIndex].y) < 1.3f) || (fabs_d(player_x - BulletPositions[newBulletIndex].x) < 1.3f)) {
+    if ((fabs_d(player_y - EmitterPositions[i].y) < 1.3f) || (fabs_d(player_x - EmitterPositions[i].x) < 1.3f)) {
       if ((player_state == Jumping) && (player_t > 0.8f)) {
         continue;
       }
@@ -374,39 +371,26 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
       }
     }
 
-    // Skip if there are no available bullets
-    newBulletIndex = consumeNextBullet();
-    if (newBulletIndex == -1) {
-      continue;
-    }
-  	bulletPosition = getBulletPosition(newBulletIndex);
-  	bulletVelocity = getBulletVelocity(newBulletIndex);
-  	setBulletState(newBulletIndex, 1);
-  	bulletPosition->x = EmitterPositions[AimEmitters[i].emitterIndex].x;
-  	bulletPosition->y = EmitterPositions[AimEmitters[i].emitterIndex].y;
-  	theta = nu_atan2(player_y - bulletPosition->y, player_x - bulletPosition->x);
-  	bulletVelocity->x = 5.831332f * cosf(theta);
-  	bulletVelocity->y = 5.831332f * sinf(theta);
+    theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x);
+
+    EmitterFireStates[i] = 1;
+    EmitterShotConfigs[i].direction = theta;
+    EmitterShotConfigs[i].numberOfShots = 1;
+    EmitterShotConfigs[i].spread = 0.f;
+    EmitterShotConfigs[i].speed = 5.831332f;
+    EmitterShotConfigs[i].speedRatio = 0.f;
   }
 
   // Update spin emitters
-  for (i = 0; i < SPIN_EMITTER_COUNT; i++) {
-    int newBulletIndex;
+  for (i = 0; i < EMITTER_COUNT; i++) {
     float theta;
-    Position* bulletPosition = NULL;
-    Velocity* bulletVelocity = NULL;
 
-    if (SpinEmitters[i].emitterIndex == -1) {
-      continue;
-    }
-
-    if ((EmitterStates[SpinEmitters[i].emitterIndex]) == EMITTER_DEAD) {
-      SpinEmitters[i].emitterIndex = -1;
+    if ((EmitterStates[i]) != EMITTER_SPIN) {
       continue;
     }
 
     // if we're really far away, don't worry about updating for now
-    if ((fabs_d(player_y - EmitterPositions[SpinEmitters[i].emitterIndex].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[SpinEmitters[i].emitterIndex].x) > (RENDER_DISTANCE * 2))) {
+    if ((fabs_d(player_y - EmitterPositions[i].y) > (RENDER_DISTANCE * 2)) || (fabs_d(player_x - EmitterPositions[i].x) > (RENDER_DISTANCE * 2))) {
       continue;
     }
 
@@ -419,22 +403,46 @@ void tickAimEmitters(float player_x, float player_y, PlayerState player_state, f
     // If we've made it here, fire
     EmitterTimes[i].t = 0;
 
-    // Skip if there are no available bullets
-    newBulletIndex = consumeNextBullet();
-    if (newBulletIndex == -1) {
+    EmitterFireStates[i] = 1;
+    EmitterShotConfigs[i].direction = SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed;
+    EmitterShotConfigs[i].numberOfShots = 1;
+    EmitterShotConfigs[i].spread = 0.f;
+    EmitterShotConfigs[i].speed = 8.4f;
+    EmitterShotConfigs[i].speedRatio = 0.f;
+  }
+
+  for (i = 0; i < EMITTER_COUNT; i++) {
+    int s;
+
+    if (EmitterFireStates[i] == 0) {
       continue;
     }
-    bulletPosition = getBulletPosition(newBulletIndex);
-    bulletVelocity = getBulletVelocity(newBulletIndex);
-    setBulletState(newBulletIndex, 1);
-    bulletPosition->x = EmitterPositions[SpinEmitters[i].emitterIndex].x;
-    bulletPosition->y = EmitterPositions[SpinEmitters[i].emitterIndex].y;
-    bulletVelocity->x = 8.4f * cosf(SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed);
-    bulletVelocity->y = 8.4f * sinf(SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed);
+    EmitterFireStates[i] = 0;
+
+    for (s = 0; s < EmitterShotConfigs[i].numberOfShots; s++) {
+      Position* bulletPosition = NULL;
+      Velocity* bulletVelocity = NULL;
+      int newBulletIndex = consumeNextBullet();
+      const float bulletDirection = EmitterShotConfigs[i].direction + (EmitterShotConfigs[i].spread * s);
+      const float bulletSpeed = EmitterShotConfigs[i].speed + (EmitterShotConfigs[i].speedRatio * s);
+
+      // If we're out of bullets, don't bother trying to shoot again
+      if (newBulletIndex == -1) {
+        break;
+      }
+
+      setBulletState(newBulletIndex, 1);
+      bulletPosition = getBulletPosition(newBulletIndex);
+      bulletVelocity = getBulletVelocity(newBulletIndex);
+      bulletPosition->x = EmitterPositions[i].x;
+      bulletPosition->y = EmitterPositions[i].y;
+      bulletVelocity->x = bulletSpeed * cosf(bulletDirection);
+      bulletVelocity->y = bulletSpeed * sinf(bulletDirection);
+    }
   }
 }
 
-void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
+void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
 	int i;
 
   gDPSetCombineLERP(glistp++, NOISE,    0, SHADE,     0,
@@ -444,7 +452,6 @@ void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
   for (i = 0; i < EMITTER_COUNT; i++) {
     float dxSq;
     float dySq;
-    float dyRot;
     if (EmitterStates[i] == EMITTER_DEAD) {
       continue;
     }
@@ -465,9 +472,8 @@ void renderAimEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
       continue;
     }
 
-    dyRot = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x) + M_PI_2;
     guTranslate(&(EmitterMatricies[i].mat), EmitterPositions[i].x, EmitterPositions[i].y, 0.f);
-    guRotate(&(EmitterRotations[i].mat), dyRot / M_PI * 180, 0.f, 0.f, 1.f);
+    guRotate(&(EmitterRotations[i].mat), EmitterShotConfigs[i].direction / M_PI * 180, 0.f, 0.f, 1.f);
 
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterRotations[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
