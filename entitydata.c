@@ -16,6 +16,7 @@
 #define EMITTER_DEAD 0
 #define EMITTER_AIM 1
 #define EMITTER_SPIN 2
+#define EMITTER_BOSS_A_ARM 3
 
 typedef struct {
   float period;
@@ -62,7 +63,17 @@ static float boss_y;
 static float boss_starting_x;
 static float boss_starting_y;
 static float boss_rotation;
+static float boss_t;
+
+// TODO: Move this stuff into its own union
+typedef enum {
+  InitialState,
+  InitialToAttackA,
+  AttackA,
+} AState;
 static int boss_A_arm_emitters[4];
+static AState BossAState; 
+static float customAttackA_t;
 
 static Vtx test_boss_main_geo[] = {
 { 274, 46, 158, 0, 0, 0, 0, 0, 0, 255 },
@@ -237,15 +248,62 @@ void initializeEntityData() {
   boss_y = 0.f;
 }
 
-int generateAimEmitterEntity(float x, float y) {
+void setAimEmitterAtIndex(int index) {
+  EmitterVelocities[index].x = 0.f;
+  EmitterVelocities[index].y = 0.f;
+  EmitterTimes[index].t = 0.f;
+  EmitterTimes[index].period = 2.f;
+  EmitterStates[index] = EMITTER_AIM;
+}
 
+int generateAimEmitterEntity(float x, float y) {
 	int newEmitterIndex = NextEmitterIndex;
 
 	if (newEmitterIndex == EMITTER_COUNT) {
 		return -1;
 	}
 
-	EmitterStates[newEmitterIndex] = EMITTER_AIM;
+  EmitterPositions[newEmitterIndex].x = x;
+  EmitterPositions[newEmitterIndex].y = y;
+  setAimEmitterAtIndex(newEmitterIndex);
+  NextEmitterIndex++;
+
+	return newEmitterIndex;
+}
+
+int generateSpinEmitterEntity(float x, float y) {
+  int newEmitterIndex = NextEmitterIndex;
+
+  if (newEmitterIndex == EMITTER_COUNT) {
+    return -1;
+  }
+
+  NextEmitterIndex++;
+
+  EmitterStates[newEmitterIndex] = EMITTER_SPIN;
+  EmitterPositions[newEmitterIndex].x = x;
+  EmitterPositions[newEmitterIndex].y = y;
+  EmitterVelocities[newEmitterIndex].x = 0.f;
+  EmitterVelocities[newEmitterIndex].y = 0.f;
+  
+  SpinEmitters[newEmitterIndex].totalTime = 0;
+  SpinEmitters[newEmitterIndex].spinSpeed = 1.f;
+
+  EmitterTimes[newEmitterIndex].period = 0.5f;
+  EmitterTimes[newEmitterIndex].t = 0.f + (guRandom() % 5);
+
+  return newEmitterIndex;
+}
+
+int generateBossAArmEmitterEntity(float x, float y) {
+
+  int newEmitterIndex = NextEmitterIndex;
+
+  if (newEmitterIndex == EMITTER_COUNT) {
+    return -1;
+  }
+
+  EmitterStates[newEmitterIndex] = EMITTER_BOSS_A_ARM;
   EmitterPositions[newEmitterIndex].x = x;
   EmitterPositions[newEmitterIndex].y = y;
   EmitterVelocities[newEmitterIndex].x = 0.f;
@@ -253,30 +311,6 @@ int generateAimEmitterEntity(float x, float y) {
   EmitterTimes[newEmitterIndex].t = 0.f;
   EmitterTimes[newEmitterIndex].period = 2.f;
   NextEmitterIndex++;
-
-	return newEmitterIndex;
-}
-
-int generateSpinEmitterEntity(float x, float y) {
-    int newEmitterIndex = NextEmitterIndex;
-
-    if (newEmitterIndex == EMITTER_COUNT) {
-      return -1;
-    }
-
-    NextEmitterIndex++;
-
-    EmitterStates[newEmitterIndex] = EMITTER_SPIN;
-    EmitterPositions[newEmitterIndex].x = x;
-    EmitterPositions[newEmitterIndex].y = y;
-    EmitterVelocities[newEmitterIndex].x = 0.f;
-    EmitterVelocities[newEmitterIndex].y = 0.f;
-    
-    SpinEmitters[newEmitterIndex].totalTime = 0;
-    SpinEmitters[newEmitterIndex].spinSpeed = 1.f;
-
-    EmitterTimes[newEmitterIndex].period = 0.5f;
-    EmitterTimes[newEmitterIndex].t = 0.f + (guRandom() % 5);
 
   return newEmitterIndex;
 }
@@ -294,11 +328,13 @@ int generateBossA(float x, float y) {
   boss_starting_x = x;
   boss_starting_y = y;
   boss_rotation = 180;
+  boss_t = 0;
+  BossAState = InitialState;
 
-  boss_A_arm_emitters[0] = generateAimEmitterEntity(boss_x - 10.f, boss_y + 2.f);
-  boss_A_arm_emitters[1] = generateAimEmitterEntity(boss_x - 10.f, boss_y - 5.f);
-  boss_A_arm_emitters[2] = generateAimEmitterEntity(boss_x + 10.f, boss_y + 2.f);
-  boss_A_arm_emitters[3] = generateAimEmitterEntity(boss_x + 10.f, boss_y - 5.f);
+  boss_A_arm_emitters[0] = generateBossAArmEmitterEntity(boss_x - 10.f, boss_y + 2.f);
+  boss_A_arm_emitters[1] = generateBossAArmEmitterEntity(boss_x - 10.f, boss_y - 5.f);
+  boss_A_arm_emitters[2] = generateBossAArmEmitterEntity(boss_x + 10.f, boss_y + 2.f);
+  boss_A_arm_emitters[3] = generateBossAArmEmitterEntity(boss_x + 10.f, boss_y - 5.f);
 
   return 1;
 }
@@ -778,8 +814,91 @@ void addBossDisplayList(Dynamic* dynamicp) {
 
 }
 
+#define INITIAL_TO_ATTACK_A_TIME 0.6281715652f
+#define ATTACK_A_WINDUP_DURATION 1.2f
+#define ATTACK_A_DURATION 5.f
+
 void tickBossA(float deltaSeconds, float player_x, float player_y) {
-  //
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+  boss_t += deltaSeconds;
+
+  if (BossAState == InitialState) {
+    if (fabs_d(boss_y - player_y) < ((BOSS_A_ROOM_HEIGHT * TILE_SIZE) / 2)) {
+      BossAState = InitialToAttackA;
+      boss_x = boss_starting_x;
+      boss_y = boss_starting_y;
+      boss_t = 0.f;
+
+      armAPosition->x = boss_x - 10.f;
+      armAPosition->y = boss_y + 2.f;
+      armBPosition->x = boss_x - 10.f;
+      armBPosition->y = boss_y - 5.f;
+      armCPosition->x = boss_x + 10.f;
+      armCPosition->y = boss_y + 2.f;
+      armDPosition->x = boss_x + 10.f;
+      armDPosition->y = boss_y - 5.f;
+    }
+  } else if (BossAState == InitialToAttackA) {
+    const float percent = boss_t / INITIAL_TO_ATTACK_A_TIME;
+    const float cubed = cubic(percent);
+
+    boss_x = lerp(boss_starting_x, boss_starting_x, percent);
+    boss_y = lerp(boss_starting_y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+    armAPosition->x = lerp(boss_x - 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
+    armAPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+    armCPosition->x = lerp(boss_x + 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
+    armCPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+    armBPosition->x = lerp(boss_x - 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
+    armBPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+    armDPosition->x = lerp(boss_x + 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
+    armDPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+    if (percent >= 1.f) {
+      BossAState = AttackA;
+      boss_t = 0.f;
+      customAttackA_t = 0.f;
+
+      setAimEmitterAtIndex(boss_A_arm_emitters[1]);
+      setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+      EmitterTimes[boss_A_arm_emitters[1]].t = 999.f;
+      EmitterTimes[boss_A_arm_emitters[3]].t = 999.f;
+      EmitterTimes[boss_A_arm_emitters[1]].period = 7.f;
+      EmitterTimes[boss_A_arm_emitters[3]].period = 7.f;
+    }
+  } else if (BossAState == AttackA) {
+    if (boss_t < ATTACK_A_WINDUP_DURATION) {
+      const float percent = boss_t / ATTACK_A_WINDUP_DURATION;
+
+      armAPosition->x = lerp(boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
+      armCPosition->x = lerp(boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
+    } else if (boss_t < (ATTACK_A_WINDUP_DURATION + ATTACK_A_DURATION)) {
+      const float percent = (boss_t - ATTACK_A_WINDUP_DURATION) / ATTACK_A_DURATION;
+
+      armAPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
+      armCPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
+
+      customAttackA_t += deltaSeconds;
+      if (customAttackA_t > 0.3f) {
+        customAttackA_t = 0.f;
+        EmitterFireStates[boss_A_arm_emitters[0]] = 1;
+        EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
+        EmitterShotConfigs[boss_A_arm_emitters[0]].direction = M_PI;
+        EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0.f;
+        EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 8.f;
+
+        EmitterFireStates[boss_A_arm_emitters[2]] = 1;
+        EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
+        EmitterShotConfigs[boss_A_arm_emitters[2]].direction = 0;
+        EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0.f;
+        EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 8.f;
+      }
+    }
+  }
 }
 
 void tickBoss(float deltaSeconds, float player_x, float player_y) {

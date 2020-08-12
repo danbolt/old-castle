@@ -44,6 +44,9 @@ void initializeEntityData();
 int generateAimEmitterEntity(float x, float y);
 int generateSpinEmitterEntity(float x, float y);
 
+// We hard-enforce these to simplify hardcoded boss patterns
+#define BOSS_A_ROOM_WIDTH 20
+#define BOSS_A_ROOM_HEIGHT 14
 int generateBossA(float x, float y);
 
 void tickEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);

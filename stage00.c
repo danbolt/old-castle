@@ -1047,13 +1047,13 @@ void updateGame00(void)
   camera_y = lerp(camera_y, player_y, CAMERA_LERP);
   
   if (!(isWarping)) {
+    tickBoss(deltaSeconds, player_x, player_y);
+
     // Update bullets
     tickBullets(player_x, player_y, &player_state, deltaSeconds, &player_t);
 
     // Update emitters position/velocity/life
     tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
-
-    tickBoss(deltaSeconds, player_x, player_y);
   }
 
   nuDebPerfMarkSet(1);
