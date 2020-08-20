@@ -818,86 +818,108 @@ void addBossDisplayList(Dynamic* dynamicp) {
 #define ATTACK_A_WINDUP_DURATION 1.2f
 #define ATTACK_A_DURATION 5.f
 
-void tickBossA(float deltaSeconds, float player_x, float player_y) {
+void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
   Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
   Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
   Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
   Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+
+  if (fabs_d(boss_y - player_y) < ((BOSS_A_ROOM_HEIGHT * TILE_SIZE) / 2)) {
+    BossAState = InitialToAttackA;
+    boss_x = boss_starting_x;
+    boss_y = boss_starting_y;
+    *boss_t = 0.f;
+
+    armAPosition->x = boss_x - 10.f;
+    armAPosition->y = boss_y + 2.f;
+    armBPosition->x = boss_x - 10.f;
+    armBPosition->y = boss_y - 5.f;
+    armCPosition->x = boss_x + 10.f;
+    armCPosition->y = boss_y + 2.f;
+    armDPosition->x = boss_x + 10.f;
+    armDPosition->y = boss_y - 5.f;
+  }
+}
+
+void tickBossA_initalToAttackA(float* boss_t, float player_x, float player_y) {
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+  const float percent = *boss_t / INITIAL_TO_ATTACK_A_TIME;
+  const float cubed = cubic(percent);
+
+  boss_x = lerp(boss_starting_x, boss_starting_x, percent);
+  boss_y = lerp(boss_starting_y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+  armAPosition->x = lerp(boss_x - 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
+  armAPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+  armCPosition->x = lerp(boss_x + 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
+  armCPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+  armBPosition->x = lerp(boss_x - 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
+  armBPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+  armDPosition->x = lerp(boss_x + 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
+  armDPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
+
+  if (percent >= 1.f) {
+    BossAState = AttackA;
+    *boss_t = 0.f;
+    customAttackA_t = 0.f;
+
+    setAimEmitterAtIndex(boss_A_arm_emitters[1]);
+    setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+    EmitterTimes[boss_A_arm_emitters[1]].t = 999.f;
+    EmitterTimes[boss_A_arm_emitters[3]].t = 999.f;
+    EmitterTimes[boss_A_arm_emitters[1]].period = 7.f;
+    EmitterTimes[boss_A_arm_emitters[3]].period = 7.f;
+  }
+}
+
+void tickBossA_attackA(float* boss_t, float* deltaSeconds) {
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+
+  if (*boss_t < ATTACK_A_WINDUP_DURATION) {
+    const float percent = *boss_t / ATTACK_A_WINDUP_DURATION;
+
+    armAPosition->x = lerp(boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
+    armCPosition->x = lerp(boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
+  } else if (*boss_t < (ATTACK_A_WINDUP_DURATION + ATTACK_A_DURATION)) {
+    const float percent = (*boss_t - ATTACK_A_WINDUP_DURATION) / ATTACK_A_DURATION;
+
+    armAPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
+    armCPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
+
+    customAttackA_t += *deltaSeconds;
+    if (customAttackA_t > 0.7f) {
+      customAttackA_t = 0.f;
+      EmitterFireStates[boss_A_arm_emitters[0]] = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].direction = M_PI;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0.f;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 8.f;
+
+      EmitterFireStates[boss_A_arm_emitters[2]] = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].direction = 0;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0.f;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 8.f;
+    }
+  }
+}
+
+void tickBossA(float deltaSeconds, float player_x, float player_y) {
   boss_t += deltaSeconds;
 
   if (BossAState == InitialState) {
-    if (fabs_d(boss_y - player_y) < ((BOSS_A_ROOM_HEIGHT * TILE_SIZE) / 2)) {
-      BossAState = InitialToAttackA;
-      boss_x = boss_starting_x;
-      boss_y = boss_starting_y;
-      boss_t = 0.f;
-
-      armAPosition->x = boss_x - 10.f;
-      armAPosition->y = boss_y + 2.f;
-      armBPosition->x = boss_x - 10.f;
-      armBPosition->y = boss_y - 5.f;
-      armCPosition->x = boss_x + 10.f;
-      armCPosition->y = boss_y + 2.f;
-      armDPosition->x = boss_x + 10.f;
-      armDPosition->y = boss_y - 5.f;
-    }
+    tickBossA_initialState(&boss_t, player_x, player_y);
   } else if (BossAState == InitialToAttackA) {
-    const float percent = boss_t / INITIAL_TO_ATTACK_A_TIME;
-    const float cubed = cubic(percent);
-
-    boss_x = lerp(boss_starting_x, boss_starting_x, percent);
-    boss_y = lerp(boss_starting_y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
-
-    armAPosition->x = lerp(boss_x - 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
-    armAPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
-    armCPosition->x = lerp(boss_x + 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), cubed);
-    armCPosition->y = lerp(boss_y + 2.f, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
-
-    armBPosition->x = lerp(boss_x - 10.f, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
-    armBPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
-    armDPosition->x = lerp(boss_x + 10.f, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), cubed);
-    armDPosition->y = lerp(boss_y - 5.f, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), cubed);
-
-    if (percent >= 1.f) {
-      BossAState = AttackA;
-      boss_t = 0.f;
-      customAttackA_t = 0.f;
-
-      setAimEmitterAtIndex(boss_A_arm_emitters[1]);
-      setAimEmitterAtIndex(boss_A_arm_emitters[3]);
-      EmitterTimes[boss_A_arm_emitters[1]].t = 999.f;
-      EmitterTimes[boss_A_arm_emitters[3]].t = 999.f;
-      EmitterTimes[boss_A_arm_emitters[1]].period = 7.f;
-      EmitterTimes[boss_A_arm_emitters[3]].period = 7.f;
-    }
+    tickBossA_initalToAttackA(&boss_t, player_x, player_y);
   } else if (BossAState == AttackA) {
-    if (boss_t < ATTACK_A_WINDUP_DURATION) {
-      const float percent = boss_t / ATTACK_A_WINDUP_DURATION;
-
-      armAPosition->x = lerp(boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
-      armCPosition->x = lerp(boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456), boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), percent);
-    } else if (boss_t < (ATTACK_A_WINDUP_DURATION + ATTACK_A_DURATION)) {
-      const float percent = (boss_t - ATTACK_A_WINDUP_DURATION) / ATTACK_A_DURATION;
-
-      armAPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
-      armCPosition->y = lerp(boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), boss_y + 2.f, percent);
-
-      customAttackA_t += deltaSeconds;
-      if (customAttackA_t > 0.3f) {
-        customAttackA_t = 0.f;
-        EmitterFireStates[boss_A_arm_emitters[0]] = 1;
-        EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
-        EmitterShotConfigs[boss_A_arm_emitters[0]].direction = M_PI;
-        EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0.f;
-        EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 8.f;
-
-        EmitterFireStates[boss_A_arm_emitters[2]] = 1;
-        EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
-        EmitterShotConfigs[boss_A_arm_emitters[2]].direction = 0;
-        EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0.f;
-        EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 8.f;
-      }
-    }
+    tickBossA_attackA(&boss_t, &deltaSeconds);
   }
 }
 
