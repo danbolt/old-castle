@@ -72,7 +72,8 @@ typedef enum {
   AttackA,
   AttackAToAttackB,
   AttackB,
-  AttackBToAttackA
+  AttackBToAttackA,
+  BossADefeated
 } AState;
 static int boss_A_arm_emitters[4];
 static AState BossAState; 
@@ -1103,6 +1104,13 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
   } else if (BossAState == AttackBToAttackA) {
     tickBossA_AttackBToAttackA(&boss_t);
   }
+
+  if ((EmitterStates[boss_A_arm_emitters[0]] == EMITTER_DEAD)
+    && (EmitterStates[boss_A_arm_emitters[1]] == EMITTER_DEAD)
+    && (EmitterStates[boss_A_arm_emitters[2]] == EMITTER_DEAD)
+    && (EmitterStates[boss_A_arm_emitters[3]] == EMITTER_DEAD)) {
+    BossAState = BossADefeated;
+  }
 }
 
 void tickBoss(float deltaSeconds, float player_x, float player_y) {
@@ -1110,7 +1118,7 @@ void tickBoss(float deltaSeconds, float player_x, float player_y) {
     return;
   }
 
-  if (BossSetting == BOSS_A_SET) {
+  if ((BossSetting == BOSS_A_SET) && (BossAState != BossADefeated)) {
     tickBossA(deltaSeconds, player_x, player_y);
   }
 }
@@ -1124,7 +1132,7 @@ void renderBoss(Dynamic* dynamic) {
     return;
   }
 
-  if (BossSetting == BOSS_A_SET) {
+  if ((BossSetting == BOSS_A_SET) && (BossAState != BossADefeated)) {
     renderBossA(dynamic);
   }
 }
