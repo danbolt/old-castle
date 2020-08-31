@@ -70,6 +70,9 @@ typedef enum {
   InitialState,
   InitialToAttackA,
   AttackA,
+  AttackAToAttackB,
+  AttackB,
+  AttackBToAttackA
 } AState;
 static int boss_A_arm_emitters[4];
 static AState BossAState; 
@@ -135,30 +138,30 @@ static Vtx test_boss_hair_geo[] = {
 };
 
 static Vtx bullet_test_geom[] =  {
-        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  -1,  1, 0, 0, 0, 0,    0, 0,    0xff },
-        {        -1,   1,  1, 0, 0, 0, 0,    0, 0, 0xff },
-        {        -1,   1, -1, 0, 0, 0, 0,    0, 0, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0, 0, 0,    0xff },
-        {        1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff     },
-        {        1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff  },
-        {        1, -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        1, 1, -1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1,  1, -1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  1, -1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  -1, 1, 0, 0, 0, 0, 0, 0, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
-        {         1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  -1,  1, 0, 0, 0, 0xff,    0xff, 0xff,    0xff },
+        {        -1,   1,  1, 0, 0, 0, 0xff,    0xff, 0xff, 0xff },
+        {        -1,   1, -1, 0, 0, 0, 0xff,    0xff, 0xff, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0,    0xff },
+        {        1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff     },
+        {        1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff  },
+        {        1, -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        1, 1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1,  1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+        {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
 };
 
 static Vtx emitter_test_geom[] =  {
@@ -254,6 +257,11 @@ void setAimEmitterAtIndex(int index) {
   EmitterTimes[index].t = 0.f;
   EmitterTimes[index].period = 2.f;
   EmitterStates[index] = EMITTER_AIM;
+
+  EmitterShotConfigs[index].numberOfShots = 3;
+  EmitterShotConfigs[index].spread = 0.6f;
+  EmitterShotConfigs[index].speed = 3.831332f;
+  EmitterShotConfigs[index].speedRatio = 0.f;
 }
 
 int generateAimEmitterEntity(float x, float y) {
@@ -291,6 +299,11 @@ int generateSpinEmitterEntity(float x, float y) {
 
   EmitterTimes[newEmitterIndex].period = 0.5f;
   EmitterTimes[newEmitterIndex].t = 0.f + (guRandom() % 5);
+
+  EmitterShotConfigs[newEmitterIndex].numberOfShots = 1;
+  EmitterShotConfigs[newEmitterIndex].spread = 0.f;
+  EmitterShotConfigs[newEmitterIndex].speed = 8.4f;
+  EmitterShotConfigs[newEmitterIndex].speedRatio = 0.f;
 
   return newEmitterIndex;
 }
@@ -409,14 +422,10 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
       }
     }
 
-    theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x) - 0.6f;
+    theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x);
 
     EmitterFireStates[i] = 1;
     EmitterShotConfigs[i].direction = theta;
-    EmitterShotConfigs[i].numberOfShots = 3;
-    EmitterShotConfigs[i].spread = 0.6f;
-    EmitterShotConfigs[i].speed = 3.831332f;
-    EmitterShotConfigs[i].speedRatio = 0.f;
   }
 
   // Update spin emitters
@@ -443,10 +452,6 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
 
     EmitterFireStates[i] = 1;
     EmitterShotConfigs[i].direction = SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed;
-    EmitterShotConfigs[i].numberOfShots = 1;
-    EmitterShotConfigs[i].spread = 0.f;
-    EmitterShotConfigs[i].speed = 8.4f;
-    EmitterShotConfigs[i].speedRatio = 0.f;
   }
 
   for (i = 0; i < EMITTER_COUNT; i++) {
@@ -691,19 +696,19 @@ void addBossDisplayList(Dynamic* dynamicp) {
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
-  midAShiftX = ((guRandom() % 100) - 50) * 0.01f;
-  midAShiftY = ((guRandom() % 100) - 50) * 0.01f;
-  midBShiftX = ((guRandom() % 100) - 50) * 0.01f;
-  midBShiftY = ((guRandom() % 100) - 50) * 0.01f;
-  midCShiftX = ((guRandom() % 100) - 50) * 0.01f;
-  midCShiftY = ((guRandom() % 100) - 50) * 0.01f;
-  midDShiftX = ((guRandom() % 100) - 50) * 0.01f;
-  midDShiftY = ((guRandom() % 100) - 50) * 0.01f;
+  midAShiftX = ((guRandom() % 100) - 10) * 0.01f;
+  midAShiftY = ((guRandom() % 100) - 10) * 0.01f;
+  midBShiftX = ((guRandom() % 100) - 10) * 0.01f;
+  midBShiftY = ((guRandom() % 100) - 10) * 0.01f;
+  midCShiftX = ((guRandom() % 100) - 10) * 0.01f;
+  midCShiftY = ((guRandom() % 100) - 10) * 0.01f;
+  midDShiftX = ((guRandom() % 100) - 10) * 0.01f;
+  midDShiftY = ((guRandom() % 100) - 10) * 0.01f;
 
-  guTranslate(&(dynamicp->bossHairMidTranslationA), ((EmitterPositions[boss_A_arm_emitters[0]].x + boss_x) * 0.5f) + midAShiftX, ((EmitterPositions[boss_A_arm_emitters[0]].y + boss_y) * 0.5f) + midAShiftY, 5.3f);
-  guTranslate(&(dynamicp->bossHairMidTranslationB), ((EmitterPositions[boss_A_arm_emitters[1]].x + boss_x) * 0.5f) + midBShiftX, ((EmitterPositions[boss_A_arm_emitters[1]].y + boss_y) * 0.5f) + midBShiftY, 5.3f);
-  guTranslate(&(dynamicp->bossHairMidTranslationC), ((EmitterPositions[boss_A_arm_emitters[2]].x + boss_x) * 0.5f) + midCShiftX, ((EmitterPositions[boss_A_arm_emitters[2]].y + boss_y) * 0.5f) + midCShiftY, 5.3f);
-  guTranslate(&(dynamicp->bossHairMidTranslationD), ((EmitterPositions[boss_A_arm_emitters[3]].x + boss_x) * 0.5f) + midDShiftX, ((EmitterPositions[boss_A_arm_emitters[3]].y + boss_y) * 0.5f) + midDShiftY, 5.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationA), ((EmitterPositions[boss_A_arm_emitters[0]].x + boss_x) * 0.5f) + midAShiftX, ((EmitterPositions[boss_A_arm_emitters[0]].y + boss_y) * 0.5f) + midAShiftY, 7.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationB), ((EmitterPositions[boss_A_arm_emitters[1]].x + boss_x) * 0.5f) + midBShiftX, ((EmitterPositions[boss_A_arm_emitters[1]].y + boss_y) * 0.5f) + midBShiftY, 7.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationC), ((EmitterPositions[boss_A_arm_emitters[2]].x + boss_x) * 0.5f) + midCShiftX, ((EmitterPositions[boss_A_arm_emitters[2]].y + boss_y) * 0.5f) + midCShiftY, 7.3f);
+  guTranslate(&(dynamicp->bossHairMidTranslationD), ((EmitterPositions[boss_A_arm_emitters[3]].x + boss_x) * 0.5f) + midDShiftX, ((EmitterPositions[boss_A_arm_emitters[3]].y + boss_y) * 0.5f) + midDShiftY, 7.3f);
   guTranslate(&(dynamicp->bossHairTranslationA), EmitterPositions[boss_A_arm_emitters[0]].x - midAShiftX, EmitterPositions[boss_A_arm_emitters[0]].y - midAShiftY, 0.f);
   guTranslate(&(dynamicp->bossHairTranslationB), EmitterPositions[boss_A_arm_emitters[1]].x - midBShiftX, EmitterPositions[boss_A_arm_emitters[1]].y - midBShiftY, 0.f);
   guTranslate(&(dynamicp->bossHairTranslationC), EmitterPositions[boss_A_arm_emitters[2]].x - midCShiftX, EmitterPositions[boss_A_arm_emitters[2]].y - midCShiftY, 0.f);
@@ -817,6 +822,10 @@ void addBossDisplayList(Dynamic* dynamicp) {
 #define INITIAL_TO_ATTACK_A_TIME 0.6281715652f
 #define ATTACK_A_WINDUP_DURATION 1.2f
 #define ATTACK_A_DURATION 5.f
+#define ATTACK_B_WINDUP_DURATION 1.46262f
+#define ATTACK_B_DURATION 10.f
+#define ATTACK_B_BUFFER 5.f
+#define RETURN_TO_ATTACK_A_TIME 6.f
 
 void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
   Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
@@ -908,7 +917,143 @@ void tickBossA_attackA(float* boss_t, float* deltaSeconds) {
       EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0.f;
       EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 8.f;
     }
+  } else {
+    *boss_t = 0.f;
+    BossAState = AttackAToAttackB;
+
+    EmitterStates[boss_A_arm_emitters[0]] = EMITTER_BOSS_A_ARM;
+    EmitterStates[boss_A_arm_emitters[1]] = EMITTER_BOSS_A_ARM;
+    EmitterStates[boss_A_arm_emitters[2]] = EMITTER_BOSS_A_ARM;
+    EmitterStates[boss_A_arm_emitters[3]] = EMITTER_BOSS_A_ARM;
   }
+}
+
+inline void circleCompute(float t, float* x_out, float* y_out) {
+  *x_out = (cosf(t * M_PI * 2.f) * (BOSS_A_ROOM_HEIGHT)) + boss_starting_x;
+  *y_out = (sinf(t * M_PI * 2.f) * (BOSS_A_ROOM_HEIGHT)) + boss_starting_y;
+}
+
+void tickBossA_AttackAToAttackB(float* boss_t) {
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+  const float percent = *boss_t / ATTACK_B_WINDUP_DURATION;
+  float tempLerpX;
+  float tempLerpY;
+
+  if (*boss_t >= ATTACK_B_WINDUP_DURATION) {
+    *boss_t = 0.f;
+    BossAState = AttackB;
+
+    setAimEmitterAtIndex(boss_A_arm_emitters[0]);
+    EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
+    EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0;
+    EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 7.4123f;
+    EmitterTimes[boss_A_arm_emitters[0]].period = 2.1351423f;
+
+    setAimEmitterAtIndex(boss_A_arm_emitters[1]);
+    EmitterShotConfigs[boss_A_arm_emitters[1]].numberOfShots = 1;
+    EmitterShotConfigs[boss_A_arm_emitters[1]].spread = 0;
+    EmitterShotConfigs[boss_A_arm_emitters[1]].speed = 7.4123f;
+    EmitterTimes[boss_A_arm_emitters[1]].period = 2.1351423f;
+
+    setAimEmitterAtIndex(boss_A_arm_emitters[2]);
+    EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
+    EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0;
+    EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 7.4123f;
+    EmitterTimes[boss_A_arm_emitters[2]].period = 2.1351423f;
+
+    setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+    EmitterShotConfigs[boss_A_arm_emitters[3]].numberOfShots = 1;
+    EmitterShotConfigs[boss_A_arm_emitters[3]].spread = 0;
+    EmitterShotConfigs[boss_A_arm_emitters[3]].speed = 7.4123f;
+    EmitterTimes[boss_A_arm_emitters[3]].period = 2.1351423f;
+    return;
+  }
+  
+  // Head position
+  circleCompute(0.f, &tempLerpX, &tempLerpY);
+  boss_x = lerp(boss_starting_x, tempLerpX, percent);
+  boss_y = lerp(boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), tempLerpY, percent);
+
+  // Arm A
+  circleCompute(0.2, &tempLerpX, &tempLerpY);
+  armAPosition->x = lerp(boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), tempLerpX, percent);
+  armAPosition->y = lerp(boss_y + 2.f, tempLerpY, percent);
+
+  // Arm B
+  circleCompute(0.4, &tempLerpX, &tempLerpY);
+  armBPosition->x = lerp(boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), tempLerpX, percent);
+  armBPosition->y = lerp(boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), tempLerpY, percent);
+
+  // Arm C
+  circleCompute(0.6, &tempLerpX, &tempLerpY);
+  armCPosition->x = lerp(boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.4f), tempLerpX, percent);
+  armCPosition->y = lerp(boss_y + 2.f, tempLerpY, percent);
+
+  // Arm D
+  circleCompute(0.8, &tempLerpX, &tempLerpY);
+  armDPosition->x = lerp(boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), tempLerpX, percent);
+  armDPosition->y = lerp(boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), tempLerpY, percent);
+}
+
+void tickBossA_AttackB(float* boss_t) {
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+  const float percent = *boss_t / ATTACK_B_DURATION;
+  float tempLerpX;
+  float tempLerpY;
+
+  if (*boss_t > (ATTACK_B_DURATION + ATTACK_B_BUFFER)) {
+    *boss_t = 0.f;
+    BossAState = AttackBToAttackA;
+  }
+
+  if (percent > 1.f) {
+    return;
+  }
+
+  circleCompute(0.0f + percent, &boss_x, &boss_y);
+
+  // Arm A
+  circleCompute(0.2f + percent, &armAPosition->x, &armAPosition->y);
+
+  // Arm B
+  circleCompute(0.4f + percent, &armBPosition->x, &armBPosition->y);
+
+  // Arm C
+  circleCompute(0.6f + percent, &armCPosition->x, &armCPosition->y);
+
+  // Arm D
+  circleCompute(0.8f + percent, &armDPosition->x, &armDPosition->y);
+}
+
+#define RETURN_SLIPPERYNESS 0.04f
+void tickBossA_AttackBToAttackA(float* boss_t) {
+  Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
+  Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
+  Position* armCPosition = &(EmitterPositions[boss_A_arm_emitters[2]]);
+  Position* armDPosition = &(EmitterPositions[boss_A_arm_emitters[3]]);
+  if (*boss_t > RETURN_TO_ATTACK_A_TIME) {
+    *boss_t = 0.f;
+    BossAState = AttackA;
+  }
+
+  boss_x = lerp(boss_x, boss_starting_x, RETURN_SLIPPERYNESS);
+  boss_y = lerp(boss_y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
+
+  armAPosition->x = lerp(armAPosition->x, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), RETURN_SLIPPERYNESS);
+  armAPosition->y = lerp(armAPosition->y, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
+  armCPosition->x = lerp(armCPosition->x, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.1456f), RETURN_SLIPPERYNESS);
+  armCPosition->y = lerp(armCPosition->y, boss_starting_y + (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
+
+  armBPosition->x = lerp(armBPosition->x, boss_starting_x + (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), RETURN_SLIPPERYNESS);
+  armBPosition->y = lerp(armBPosition->y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
+  armDPosition->x = lerp(armDPosition->x, boss_starting_x - (BOSS_A_ROOM_WIDTH * TILE_SIZE * 0.25f), RETURN_SLIPPERYNESS);
+  armDPosition->y = lerp(armDPosition->y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
 }
 
 void tickBossA(float deltaSeconds, float player_x, float player_y) {
@@ -920,6 +1065,12 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
     tickBossA_initalToAttackA(&boss_t, player_x, player_y);
   } else if (BossAState == AttackA) {
     tickBossA_attackA(&boss_t, &deltaSeconds);
+  } else if (BossAState == AttackAToAttackB) {
+    tickBossA_AttackAToAttackB(&boss_t);
+  } else if (BossAState == AttackB) {
+    tickBossA_AttackB(&boss_t);
+  } else if (BossAState == AttackBToAttackA) {
+    tickBossA_AttackBToAttackA(&boss_t);
   }
 }
 
