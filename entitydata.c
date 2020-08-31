@@ -825,7 +825,8 @@ void addBossDisplayList(Dynamic* dynamicp) {
 #define ATTACK_B_WINDUP_DURATION 1.46262f
 #define ATTACK_B_DURATION 10.f
 #define ATTACK_B_BUFFER 5.f
-#define RETURN_TO_ATTACK_A_TIME 6.f
+#define RETURN_TO_ATTACK_A_TIME 2.f
+#define RETURN_SLIPPERYNESS 0.04f
 
 void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
   Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
@@ -1031,7 +1032,6 @@ void tickBossA_AttackB(float* boss_t) {
   circleCompute(0.8f + percent, &armDPosition->x, &armDPosition->y);
 }
 
-#define RETURN_SLIPPERYNESS 0.04f
 void tickBossA_AttackBToAttackA(float* boss_t) {
   Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
   Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
