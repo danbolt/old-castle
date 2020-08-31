@@ -457,6 +457,10 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
   for (i = 0; i < EMITTER_COUNT; i++) {
     int s;
 
+    if (EmitterStates[i] == EMITTER_DEAD) {
+      continue;
+    }
+
     if (EmitterFireStates[i] == 0) {
       continue;
     }
@@ -877,8 +881,12 @@ void tickBossA_initalToAttackA(float* boss_t, float player_x, float player_y) {
     *boss_t = 0.f;
     customAttackA_t = 0.f;
 
-    setAimEmitterAtIndex(boss_A_arm_emitters[1]);
-    setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+    if (EmitterStates[boss_A_arm_emitters[1]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[1]);
+    }
+    if (EmitterStates[boss_A_arm_emitters[3]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+    }
     EmitterTimes[boss_A_arm_emitters[1]].t = 999.f;
     EmitterTimes[boss_A_arm_emitters[3]].t = 999.f;
     EmitterTimes[boss_A_arm_emitters[1]].period = 7.f;
@@ -921,11 +929,19 @@ void tickBossA_attackA(float* boss_t, float* deltaSeconds) {
   } else {
     *boss_t = 0.f;
     BossAState = AttackAToAttackB;
+    if (EmitterStates[boss_A_arm_emitters[0]] != EMITTER_DEAD) {
+      EmitterStates[boss_A_arm_emitters[0]] = EMITTER_BOSS_A_ARM;
+    }
+    if (EmitterStates[boss_A_arm_emitters[1]] != EMITTER_DEAD) {
+      EmitterStates[boss_A_arm_emitters[1]] = EMITTER_BOSS_A_ARM;
+    }
+    if (EmitterStates[boss_A_arm_emitters[2]] != EMITTER_DEAD) {
+      EmitterStates[boss_A_arm_emitters[2]] = EMITTER_BOSS_A_ARM;
+    }
+    if (EmitterStates[boss_A_arm_emitters[3]] != EMITTER_DEAD) {
+      EmitterStates[boss_A_arm_emitters[3]] = EMITTER_BOSS_A_ARM;
+    }
 
-    EmitterStates[boss_A_arm_emitters[0]] = EMITTER_BOSS_A_ARM;
-    EmitterStates[boss_A_arm_emitters[1]] = EMITTER_BOSS_A_ARM;
-    EmitterStates[boss_A_arm_emitters[2]] = EMITTER_BOSS_A_ARM;
-    EmitterStates[boss_A_arm_emitters[3]] = EMITTER_BOSS_A_ARM;
   }
 }
 
@@ -947,29 +963,37 @@ void tickBossA_AttackAToAttackB(float* boss_t) {
     *boss_t = 0.f;
     BossAState = AttackB;
 
-    setAimEmitterAtIndex(boss_A_arm_emitters[0]);
-    EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
-    EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0;
-    EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 7.4123f;
-    EmitterTimes[boss_A_arm_emitters[0]].period = 2.1351423f;
+    if (EmitterStates[boss_A_arm_emitters[0]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[0]);
+      EmitterShotConfigs[boss_A_arm_emitters[0]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].spread = 0;
+      EmitterShotConfigs[boss_A_arm_emitters[0]].speed = 7.4123f;
+      EmitterTimes[boss_A_arm_emitters[0]].period = 2.1351423f;
+    }
 
-    setAimEmitterAtIndex(boss_A_arm_emitters[1]);
-    EmitterShotConfigs[boss_A_arm_emitters[1]].numberOfShots = 1;
-    EmitterShotConfigs[boss_A_arm_emitters[1]].spread = 0;
-    EmitterShotConfigs[boss_A_arm_emitters[1]].speed = 7.4123f;
-    EmitterTimes[boss_A_arm_emitters[1]].period = 2.1351423f;
+    if (EmitterStates[boss_A_arm_emitters[1]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[1]);
+      EmitterShotConfigs[boss_A_arm_emitters[1]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[1]].spread = 0;
+      EmitterShotConfigs[boss_A_arm_emitters[1]].speed = 7.4123f;
+      EmitterTimes[boss_A_arm_emitters[1]].period = 2.1351423f;
+    }
 
-    setAimEmitterAtIndex(boss_A_arm_emitters[2]);
-    EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
-    EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0;
-    EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 7.4123f;
-    EmitterTimes[boss_A_arm_emitters[2]].period = 2.1351423f;
+    if (EmitterStates[boss_A_arm_emitters[2]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[2]);
+      EmitterShotConfigs[boss_A_arm_emitters[2]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].spread = 0;
+      EmitterShotConfigs[boss_A_arm_emitters[2]].speed = 7.4123f;
+      EmitterTimes[boss_A_arm_emitters[2]].period = 2.1351423f;
+    }
 
-    setAimEmitterAtIndex(boss_A_arm_emitters[3]);
-    EmitterShotConfigs[boss_A_arm_emitters[3]].numberOfShots = 1;
-    EmitterShotConfigs[boss_A_arm_emitters[3]].spread = 0;
-    EmitterShotConfigs[boss_A_arm_emitters[3]].speed = 7.4123f;
-    EmitterTimes[boss_A_arm_emitters[3]].period = 2.1351423f;
+    if (EmitterStates[boss_A_arm_emitters[3]] != EMITTER_DEAD) {
+      setAimEmitterAtIndex(boss_A_arm_emitters[3]);
+      EmitterShotConfigs[boss_A_arm_emitters[3]].numberOfShots = 1;
+      EmitterShotConfigs[boss_A_arm_emitters[3]].spread = 0;
+      EmitterShotConfigs[boss_A_arm_emitters[3]].speed = 7.4123f;
+      EmitterTimes[boss_A_arm_emitters[3]].period = 2.1351423f;
+    }
     return;
   }
   
