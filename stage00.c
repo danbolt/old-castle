@@ -31,6 +31,7 @@ static float target_distance;
 static PlayerState player_state;
 static float player_t;
 static int HIT_WALL_WHILE_JUMPING;
+u8 bomb_count;
 float player_sword_angle;
 u8 player_bullets_collected;
 
@@ -51,6 +52,7 @@ float deltaSeconds;
 float test;
 
 char testStringBuf[64];
+char bulletBuff[64];
 
 int isWarping;
 int isWarpingOut;
@@ -287,6 +289,7 @@ void initStage00(int floorNumber)
   HIT_WALL_WHILE_JUMPING = 0;
   player_sword_angle = 0.f;
   player_bullets_collected = 50;
+  bomb_count = 3;
 
   trail_geo_index = 0;
 
@@ -339,19 +342,6 @@ void initStage00(int floorNumber)
   isWarping = 1;
   isWarpingOut = 0;
   warpDelta = 0;
-}
-
-void addBulletToDisplayList()
-{
-  int roll1 = guRandom() % 20;
-  int roll2 = guRandom() % 20;
-  int roll3 = guRandom() % 20;
-  int roll4 = guRandom() % 20;
-
-  gSP2Triangles(glistp++, roll1 + 0, roll1 + 1, roll1 + 2, 0, roll1 + 0, roll1 + 2, roll1 + 3, 0);
-  gSP2Triangles(glistp++, roll2 + 0, roll2 + 1, roll2 + 2, 0, roll2 + 0, roll2 + 2, roll2 + 3, 0);
-  gSP2Triangles(glistp++, roll3 + 0, roll3 + 1, roll3 + 2, 0, roll3 + 0, roll3 + 2, roll3 + 3, 0);
-  gSP2Triangles(glistp++, roll4 + 0, roll4 + 1, roll4 + 2, 0, roll4 + 0, roll4 + 2, roll4 + 3, 0);
 }
 
 void addEmitterToDisplayList()
@@ -677,8 +667,13 @@ void makeDL00(void)
 
   gDPPipeSync(glistp++);
 
+  guScale(&(dynamicp->grandBulletScale), 0.1f, 0.1f, 0.1f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->grandBulletScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
+
   // Render Bullets
   renderBullets(player_x, player_y);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   // Render emitters
   renderEmitters(player_x, player_y, &dynamicp->playerScale);
@@ -845,6 +840,22 @@ void updateGame00(void)
 
   nuDebPerfMarkSet(0);
 
+  sprintf(testStringBuf, "found %d", player_bullets_collected);
+  getTextRequest(0)->enable = 1;
+  getTextRequest(0)->text = testStringBuf;
+  getTextRequest(0)->x = 8;
+  getTextRequest(0)->y = 8;
+  getTextRequest(0)->cutoff = -1;
+  getTextRequest(0)->typewriterTick = 0;
+
+  sprintf(bulletBuff, "remain %d", bomb_count);
+  getTextRequest(1)->enable = 1;
+  getTextRequest(1)->text = bulletBuff;
+  getTextRequest(1)->x = 8;
+  getTextRequest(1)->y = 16;
+  getTextRequest(1)->cutoff = -1;
+  getTextRequest(1)->typewriterTick = 0;
+
   tickTextRequests(deltaSeconds);
 
   /* Data reading of controller 1 */
@@ -888,6 +899,14 @@ void updateGame00(void)
       }
     } else if (player_state == Holding) {
       player_state = Move;
+    }
+
+    if (bomb_count > 0) {
+      if ((contdata[0].trigger & Z_TRIG) || (contdata[0].trigger & L_TRIG)) {
+        bomb_count--;
+
+        fireBomb();
+      }
     }
 
     // If we're warping, don't allow motion

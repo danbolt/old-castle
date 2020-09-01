@@ -138,58 +138,24 @@ static Vtx test_boss_hair_geo[] = {
   {  1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
 };
 
-static Vtx bullet_test_geom[] =  {
-        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1,  1, 0, 0, 0, 0xff,    0xff, 0xff,    0xff },
-        {        -1,   1,  1, 0, 0, 0, 0xff,    0xff, 0xff, 0xff },
-        {        -1,   1, -1, 0, 0, 0, 0xff,    0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0,    0xff },
-        {        1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff     },
-        {        1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff  },
-        {        1, -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        1, 1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-        {         1,  -1, -1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-};
+static Vtx bullet_geom[] =  {
+  {   8,    8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {   0,   10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {  -8,    8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  { -10,    0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {  -8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {   0,  -10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {   8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
 
-static Vtx emitter_test_geom[] =  {
-        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  -1,  1, 0, 0, 0, 120,    120, 120,    0xff },
-        {        -1,   1,  1, 0, 0, 0, 120,    120, 120, 0xff },
-        {        -1,   1, -1, 0, 0, 0, 120,    120, 120, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 120, 120, 120,    0xff },
-        {        1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff     },
-        {        1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff  },
-        {        1, -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        1, 1, -1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1, -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1,  1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1,  1, -1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  1, -1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  -1, 1, 0, 0, 0, 120, 120, 120, 0xff },
-        {        -1,  -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
-        {         1,  -1, -1, 0, 0, 0, 120, 120, 120, 0xff },
+  {   8,    8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {   0,   10, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {  -8,    8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  { -10,    0, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {  -8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {   0,  -10, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {   8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
 };
 
 void initializeEntityData() {
@@ -565,9 +531,18 @@ void setBulletState(int bulletIndex, u8 state) {
 	BulletStates[bulletIndex] = state;
 }
 
+void fireBomb() {
+  int i;
+
+  for (i = 0; i < BULLET_COUNT; i++) {
+    BulletStates[i] = 0;
+  }
+}
+
 // hack: make these extern for now and move into a header later
 extern float player_sword_angle;
 extern u8 player_bullets_collected;
+extern u8 bomb_count;
 
 void tickBullets(float player_x, float player_y, PlayerState* player_state, float deltaSeconds, float* player_t) {
 	int i;
@@ -640,7 +615,16 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		  continue;
 		}
 
-		// If we've reached this line, the bullet has hit the player
+    // If we've reached this area, the player's been hit
+
+    // If we have bombs, extend one
+    if (bomb_count > 0) {
+      bomb_count--;
+      fireBomb();
+      continue;
+    }
+
+		// If we've reached this line, game over!
 		*player_state = Dead;
 		*player_t = 0;
 	}
@@ -1163,13 +1147,14 @@ void renderBullets(float view_x, float view_y) {
 	      continue;
 	    }
 
-	    guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x, BulletPositions[i].y, 0.f);
+	    guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
 
 	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-	    gSPVertex(glistp++,&(bullet_test_geom[0]), 23, 0);
-
-	    addBulletToDisplayList();
+	    gSPVertex(glistp++,&(bullet_geom[(guRandom() % 2 == 0) ? 0 : 8 ]), 8, 0);
+	    gSP2Triangles(glistp++, 0, 2, 4, 0, 0, 4, 6, 0);
+      gSP2Triangles(glistp++, 0, 1, 2, 0, 2, 3, 4, 0);
+      gSP2Triangles(glistp++, 4, 5, 6, 0, 6, 7, 0, 0);
 
 	    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 	}

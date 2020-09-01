@@ -59,6 +59,8 @@ void renderBoss(Dynamic* dynamic);
 int consumeNextBullet();
 void setBulletState(int bulletIndex, u8 state);
 
+void fireBomb();
+
 void tickBullets(float player_x, float player_y, PlayerState* player_state, float deltaSeconds, float* player_t);
 void renderBullets(float view_x, float view_y);
 
