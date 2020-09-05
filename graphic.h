@@ -57,6 +57,7 @@ typedef struct {
 
   Mtx bombEffectTranslation;
   Mtx bombEffectScale;
+  Mtx bombEffectRotation;
 
   Mtx EmitterTranslations[EMITTER_COUNT];
   Mtx EmitterRotations[EMITTER_COUNT];

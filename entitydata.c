@@ -1194,15 +1194,18 @@ void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
 
 void renderBombEffect(float player_x, float player_y, Dynamic* dynamicp) {
   const float effectScale = bomb_effect_t / BOMB_EFFECT_DURATION;
+  const float modulatedScale = cubic(((effectScale * 2.f) - 0.2) * 10.f);
   if (bomb_effect_t >= BOMB_EFFECT_DURATION) {
     return;
   }
 
   guTranslate(&(dynamicp->bombEffectTranslation), player_x, player_y, 0.f);
   guScale(&(dynamicp->bombEffectScale), effectScale, effectScale, effectScale);
+  guRotate(&(dynamicp->bombEffectRotation), modulatedScale, 0.f, 0.f, 1.f);
 
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bombEffectTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bombEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bombEffectRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
   gSPVertex(glistp++, &(bomb_effect[0]), 20, 0);
   gSP2Triangles(glistp++, 0, 2, 3, 0, 2, 4, 5, 0);
