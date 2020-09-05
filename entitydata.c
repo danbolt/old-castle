@@ -82,6 +82,9 @@ static int boss_A_arm_emitters[4];
 static AState BossAState; 
 static float customAttackA_t;
 
+#define BOMB_EFFECT_DURATION 0.75252f
+static float bomb_effect_t;
+
 static Vtx test_boss_main_geo[] = {
 { 274, 46, 158, 0, 0, 0, 0, 0, 0, 255 },
 { 238, 272, -246, 0, 0, 0, 5, 5, 5, 255 },
@@ -154,6 +157,29 @@ static Vtx bullet_geom[] =  {
   {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff }
 };
 
+static Vtx bomb_effect[] = {
+  { 27, 0, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { 18, 0, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { 21, 15, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { 14, 10, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { 8, 25, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { 5, 17, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { -8, 25, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { -5, 17, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { -21, 15, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { -14, 10, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { -27, 0, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { -18, 0, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { -21, -15, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { -14, -10, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { -8, -25, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { -5, -17, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { 8, -25, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { 5, -17, 5, 0, 0, 0, 88, 168, 255, 255 },
+  { 21, -15, 0, 0, 0, 0, 88, 168, 255, 255 },
+  { 14, -10, 5, 0, 0, 0, 88, 168, 255, 255 },
+};
+
 void initializeEntityData() {
 	int i;
 
@@ -211,6 +237,8 @@ void initializeEntityData() {
   BossSetting = NO_BOSS_SET;
   boss_x = 0.f;
   boss_y = 0.f;
+
+  bomb_effect_t = 999.f;
 }
 
 void setAimEmitterAtIndex(int index) {
@@ -527,6 +555,8 @@ void fireBomb() {
   for (i = 0; i < BULLET_COUNT; i++) {
     BulletStates[i] = 0;
   }
+
+  bomb_effect_t = 0.f;
 }
 
 // hack: make these extern for now and move into a header later
@@ -536,6 +566,10 @@ extern u8 bomb_count;
 
 void tickBullets(float player_x, float player_y, PlayerState* player_state, float deltaSeconds, float* player_t) {
 	int i;
+
+  if (bomb_effect_t < BOMB_EFFECT_DURATION) {
+    bomb_effect_t += deltaSeconds;
+  }
 
 	for (i = 0; i < BULLET_COUNT; i++) {
 		float dxSq = 9999.f;
@@ -1166,6 +1200,28 @@ void renderBullets(float view_x, float view_y) {
 
 	    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 	}
+}
+
+void renderBombEffect(float player_x, float player_y, Dynamic* dynamicp) {
+  const float effectScale = bomb_effect_t / BOMB_EFFECT_DURATION;
+  if (bomb_effect_t >= BOMB_EFFECT_DURATION) {
+    return;
+  }
+
+  guTranslate(&(dynamicp->bombEffectTranslation), player_x, player_y, 0.f);
+  guScale(&(dynamicp->bombEffectScale), effectScale, effectScale, effectScale);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bombEffectTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->bombEffectScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+  gSPVertex(glistp++, &(bomb_effect[0]), 20, 0);
+  gSP2Triangles(glistp++, 0, 2, 3, 0, 2, 4, 5, 0);
+  gSP2Triangles(glistp++, 4, 6, 7, 0, 6, 8, 9, 0);
+  gSP2Triangles(glistp++, 8, 10, 11, 0, 10, 12, 13, 0);
+  gSP2Triangles(glistp++, 12, 14, 15, 0, 14, 16, 17, 0);
+  gSP2Triangles(glistp++, 16, 18, 19, 0, 18, 0, 1, 0);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 }
 
 Position* getBulletPosition(int bulletIndex) {

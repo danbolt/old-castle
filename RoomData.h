@@ -33,7 +33,7 @@ typedef enum {
   StartingRoom, // The room where the player spawns
   StaircaseRoom, // A room with a starcase to another floor
   EnemyRoom, // A room full of enemies
-  RestRoom, // A room without enemies to take a break
+  RestRoom, // A room without enemies and consisting of some dialogue
   NoRoom, // The void
   HallwayRoom, // A room that's more of a hallawy to another room
   BossARoom, // The room for boss A

@@ -678,6 +678,8 @@ void makeDL00(void)
   // Render emitters
   renderEmitters(player_x, player_y, &dynamicp->playerScale);
 
+  renderBombEffect(player_x, player_y, dynamicp);
+
   renderBoss(dynamicp);
 
   nuDebPerfMarkSet(4);

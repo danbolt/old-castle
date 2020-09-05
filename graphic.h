@@ -49,6 +49,9 @@ typedef struct {
   Mtx bossHairMidTranslationD;
 
   Mtx grandBulletScale;
+
+  Mtx bombEffectTranslation;
+  Mtx bombEffectScale;
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/

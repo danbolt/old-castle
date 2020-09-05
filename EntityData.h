@@ -64,6 +64,8 @@ void fireBomb();
 void tickBullets(float player_x, float player_y, PlayerState* player_state, float deltaSeconds, float* player_t);
 void renderBullets(float view_x, float view_y);
 
+void renderBombEffect(float player_x, float player_y, Dynamic* dynamicp);
+
 Position* getBulletPosition(int bulletIndex);
 Velocity* getBulletVelocity(int bulletIndex);
 
