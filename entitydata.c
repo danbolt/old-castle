@@ -1,13 +1,11 @@
 
-#include "EntityData.h"
-
 #include "graphic.h"
+
+#include "EntityData.h"
 
 #include "game_math.h"
 
 // Constants
-#define BULLET_COUNT 200
-#define EMITTER_COUNT 64
 #define AIM_EMITTER_COUNT 64
 #define SPIN_EMITTER_COUNT 64
 #define EMITTER_RADIUS 4.f
@@ -38,8 +36,6 @@ typedef struct {
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
 static u8 BulletStates[BULLET_COUNT];
-static EntityTransform BulletMatricies[BULLET_COUNT];
-static EntityTransform DefeatedEffectScaleMatricies[BULLET_COUNT];
 static float DefeatedEffectTimes[BULLET_COUNT];
 
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
@@ -47,8 +43,6 @@ static SpinEmitterData SpinEmitters[SPIN_EMITTER_COUNT];
 
 static Position EmitterPositions[EMITTER_COUNT];
 static Velocity EmitterVelocities[EMITTER_COUNT];
-static EntityTransform EmitterMatricies[EMITTER_COUNT];
-static EntityTransform EmitterRotations[EMITTER_COUNT];
 static u8 EmitterStates[EMITTER_COUNT];
 static u8 EmitterFireStates[EMITTER_COUNT];
 static FireData EmitterShotConfigs[EMITTER_COUNT];
@@ -193,8 +187,6 @@ void initializeEntityData() {
 
 		BulletStates[i] = 0;
     DefeatedEffectTimes[i] = 0.f;
-
-		guMtxIdent(&(BulletMatricies[i].mat));   
 	}
 
 	// Initialize emitters
@@ -213,8 +205,6 @@ void initializeEntityData() {
 		EmitterVelocities[i].y = 0.f;
 		EmitterTicks[i] = 0;
     EmitterTimes[i].t = 0.f;
-
-		guMtxIdent(&(EmitterMatricies[i].mat));   
 	}
 	NextEmitterIndex = 0;
 
@@ -479,7 +469,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
   }
 }
 
-void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
+void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale, Dynamic* dynamicp) {
 	int i;
 
   gDPSetCombineLERP(glistp++, NOISE,    0, SHADE,     0,
@@ -509,11 +499,11 @@ void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
       continue;
     }
 
-    guTranslate(&(EmitterMatricies[i].mat), EmitterPositions[i].x, EmitterPositions[i].y, 0.f);
-    guRotate(&(EmitterRotations[i].mat), EmitterShotConfigs[i].direction / M_PI * 180, 0.f, 0.f, 1.f);
+    guTranslate(&(dynamicp->EmitterTranslations[i]), EmitterPositions[i].x, EmitterPositions[i].y, 0.f);
+    guRotate(&(dynamicp->EmitterRotations[i]), EmitterShotConfigs[i].direction / M_PI * 180, 0.f, 0.f, 1.f);
 
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(EmitterRotations[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->EmitterTranslations[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->EmitterRotations[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(aimEmitterScale), G_MTX_NOPUSH | G_MTX_MODELVIEW);
     addEmitterToDisplayList();
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
@@ -1148,7 +1138,7 @@ void renderBoss(Dynamic* dynamic) {
   }
 }
 
-void renderBullets(float view_x, float view_y) {
+void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
 	int i;
   int j;
 
@@ -1158,11 +1148,11 @@ void renderBullets(float view_x, float view_y) {
 	    if (BulletStates[i] == 0) {
         if (DefeatedEffectTimes[i] > 0.f) {
           const float scaleValue = DefeatedEffectTimes[i] / BULLET_FADEOUT_TIME;
-          guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
-          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+          guTranslate(&(dynamicp->BulletMatricies[i]), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
+          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-          guScale(&(DefeatedEffectScaleMatricies[i].mat), scaleValue, scaleValue, scaleValue);
-          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(DefeatedEffectScaleMatricies[i].mat)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+          guScale(&(dynamicp->DefeatedEffectScaleMatricies[i]), scaleValue, scaleValue, scaleValue);
+          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->DefeatedEffectScaleMatricies[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
           gSPVertex(glistp++, bullet_geom, 9, 0);
           for(j = 1; j <= 8; j += 2) {
@@ -1190,8 +1180,8 @@ void renderBullets(float view_x, float view_y) {
 	      continue;
 	    }
 
-	    guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
-	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+	    guTranslate(&(dynamicp->BulletMatricies[i]), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
+	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
 	    gSPVertex(glistp++, bullet_geom, 9, 0);
       for(j = 1; j <= 8; j += 2) {

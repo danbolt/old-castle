@@ -22,10 +22,6 @@ typedef struct {
 } Velocity;
 
 typedef struct {
-  Mtx mat;
-} EntityTransform;
-
-typedef struct {
   u8 enabled;
 } AimEmitterData;
 
@@ -50,7 +46,7 @@ int generateSpinEmitterEntity(float x, float y);
 int generateBossA(float x, float y);
 
 void tickEmitters(float player_x, float player_y, PlayerState player_state, float deltaSeconds, float player_t);
-void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale);
+void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale, Dynamic* dynamicp);
 
 void tickBoss(float deltaSeconds, float player_x, float player_y);
 void renderBoss(Dynamic* dynamic);
@@ -62,7 +58,7 @@ void setBulletState(int bulletIndex, u8 state);
 void fireBomb();
 
 void tickBullets(float player_x, float player_y, PlayerState* player_state, float deltaSeconds, float* player_t);
-void renderBullets(float view_x, float view_y);
+void renderBullets(float view_x, float view_y, Dynamic* dynamicp);
 
 void renderBombEffect(float player_x, float player_y, Dynamic* dynamicp);
 

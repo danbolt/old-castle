@@ -671,12 +671,12 @@ void makeDL00(void)
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->grandBulletScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
   // Render Bullets
-  renderBullets(player_x, player_y);
+  renderBullets(player_x, player_y, dynamicp);
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   // Render emitters
-  renderEmitters(player_x, player_y, &dynamicp->playerScale);
+  renderEmitters(player_x, player_y, &dynamicp->playerScale, dynamicp);
 
   renderBombEffect(player_x, player_y, dynamicp);
 

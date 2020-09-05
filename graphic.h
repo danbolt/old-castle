@@ -9,6 +9,11 @@
 #ifndef _GRAPHIC_H_
 #define _GRAPHIC_H_
 
+#include <nusys.h>
+
+#define BULLET_COUNT 200
+#define EMITTER_COUNT 64
+
 /* The screen size  */
 #define SCREEN_HT        240
 #define SCREEN_WD        320
@@ -52,6 +57,12 @@ typedef struct {
 
   Mtx bombEffectTranslation;
   Mtx bombEffectScale;
+
+  Mtx EmitterTranslations[EMITTER_COUNT];
+  Mtx EmitterRotations[EMITTER_COUNT];
+
+  Mtx BulletMatricies[BULLET_COUNT];
+  Mtx DefeatedEffectScaleMatricies[BULLET_COUNT];
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/
