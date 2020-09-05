@@ -18,6 +18,8 @@
 #define EMITTER_SPIN 2
 #define EMITTER_BOSS_A_ARM 3
 
+#define BULLET_RADII_SQ 1
+
 typedef struct {
   float period;
   float t;
@@ -35,7 +37,6 @@ typedef struct {
 static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
 static u8 BulletStates[BULLET_COUNT];
-static u8 BulletRadiiSquared[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
 int NextBulletIndex;
 
@@ -139,6 +140,8 @@ static Vtx test_boss_hair_geo[] = {
 };
 
 static Vtx bullet_geom[] =  {
+  {   0,    0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+
   {   8,    8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   0,   10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {  -8,    8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
@@ -146,16 +149,7 @@ static Vtx bullet_geom[] =  {
   {  -8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   0,  -10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-  {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
-
-  {   8,    8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {   0,   10, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {  -8,    8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  { -10,    0, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {  -8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {   0,  -10, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {   8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
-  {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0x00, 0xff },
+  {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff }
 };
 
 void initializeEntityData() {
@@ -170,7 +164,6 @@ void initializeEntityData() {
 		BulletVelocities[i].y = sinf(guRandom() % 7) * 0.05f;
 
 		BulletStates[i] = 0;
-		BulletRadiiSquared[i] = 1 * 1;
 
 		guMtxIdent(&(BulletMatricies[i].mat));   
 	}
@@ -599,7 +592,7 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		  dxSq = player_x - BulletPositions[i].x;
 		  dxSq = dxSq * dxSq;
 		}
-		if (dxSq > BulletRadiiSquared[i]) {
+		if (dxSq > BULLET_RADII_SQ) {
 		  continue;
 		}
 
@@ -607,7 +600,7 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		  dySq = player_y - BulletPositions[i].y;
 		  dySq = dySq * dySq;
 		}
-		if (dySq > BulletRadiiSquared[i]) {
+		if (dySq > BULLET_RADII_SQ) {
 		  continue;
 		}
 
@@ -1123,6 +1116,7 @@ void renderBoss(Dynamic* dynamic) {
 
 void renderBullets(float view_x, float view_y) {
 	int i;
+  int j;
 
 	for (i = 0; i < BULLET_COUNT; i++) {
 	    float dxSq;
@@ -1151,10 +1145,10 @@ void renderBullets(float view_x, float view_y) {
 
 	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-	    gSPVertex(glistp++,&(bullet_geom[(guRandom() % 2 == 0) ? 0 : 8 ]), 8, 0);
-	    gSP2Triangles(glistp++, 0, 2, 4, 0, 0, 4, 6, 0);
-      gSP2Triangles(glistp++, 0, 1, 2, 0, 2, 3, 4, 0);
-      gSP2Triangles(glistp++, 4, 5, 6, 0, 6, 7, 0, 0);
+	    gSPVertex(glistp++, bullet_geom, 9, 0);
+      for(j = 1; j <= 8; j += 2) {
+        gSP2Triangles(glistp++, 0, j, j + 1, 0, 0, j + 1, (j < 7) ? j + 2 : 1, 0);
+      }
 
 	    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 	}
