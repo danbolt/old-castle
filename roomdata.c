@@ -117,14 +117,14 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[4].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2) - 7;
 	rooms[4].width = (MAP_SIZE / 4) - 8;
 	rooms[4].height = 14;
-	rooms[4].type = EnemyRoom;
+	rooms[4].type = RestRoom;
 
 	// Side room B
 	rooms[5].x = (MAP_SIZE / 4) + (MAP_SIZE / 2);
 	rooms[5].y = MAP_SIZE - 10 - (mainCorridorLength / 2) - 7;
 	rooms[5].width = 14;
 	rooms[5].height = 14;
-	rooms[5].type = EnemyRoom;
+	rooms[5].type = RestRoom;
 
 	// A's subrooms
 	rooms[6].x = rooms[4].x;

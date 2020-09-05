@@ -1193,7 +1193,7 @@ void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
 }
 
 void renderBombEffect(float player_x, float player_y, Dynamic* dynamicp) {
-  const float effectScale = bomb_effect_t / BOMB_EFFECT_DURATION;
+  const float effectScale = cubic(bomb_effect_t / BOMB_EFFECT_DURATION);
   const float modulatedScale = cubic(((effectScale * 2.f) - 0.2) * 10.f);
   if (bomb_effect_t >= BOMB_EFFECT_DURATION) {
     return;

@@ -58,6 +58,9 @@ int isWarping;
 int isWarpingOut;
 float warpDelta;
 
+GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
+int numberOfGeneratedRooms;
+
 static Vtx jump_target_geom[] =  {
   {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
   {   1,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
@@ -276,12 +279,26 @@ static Vtx thing_geom[] = {
 { -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
 };
 
+inline int isInside(float x, float y, float minX, float minY, float maxX, float maxY) {
+  const int insideX = (x > minX) && (x < maxX);
+  const int insideY = (y > minY) && (y < maxY);
+
+  return (insideX && insideY);
+}
+
+int isInsideRoom(float x, float y, GeneratedRoom* room, float extraBuffer) {
+  const float roomMinX = (room->x * TILE_SIZE) - extraBuffer;
+  const float roomMinY = (room->y * TILE_SIZE) - extraBuffer;
+  const float roomMaxX = ((room->x + room->width) * TILE_SIZE) + extraBuffer;
+  const float roomMaxY = ((room->y + room->height) * TILE_SIZE) + extraBuffer;
+
+  return isInside(x, y, roomMinX, roomMinY, roomMaxX, roomMaxY);
+}
+
 /* The initialization of stage 0 */
 void initStage00(int floorNumber)
 {
   int i;
-  int numberOfGeneratedRooms;
-  GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
   target_distance = DEFAULT_TARGET_DISTANCE;
   player_state = Move;
@@ -304,14 +321,6 @@ void initStage00(int floorNumber)
   player_rotation = -M_PI_2;
 
   resetTextRequests();
-
-  // sprintf(testStringBuf, "curr. floor is %d", currentFloor);
-  // getTextRequest(0)->enable = 1;
-  // getTextRequest(0)->text = testStringBuf;
-  // getTextRequest(0)->x = 16;
-  // getTextRequest(0)->y = 16;
-  // getTextRequest(0)->cutoff = 0;
-  // getTextRequest(0)->typewriterTick = 0;
 
   initializeEntityData();
 
@@ -485,6 +494,34 @@ void addLandEffectDisplayList() {
   gSP2Triangles(glistp++, 9, 8, 16, 0, 8, 15, 23, 0);
   gSP2Triangles(glistp++, 14, 13, 21, 0, 12, 11, 19, 0);
   gSP2Triangles(glistp++, 10, 9, 17, 0, 15, 14, 22, 0);
+}
+
+void renderRestRoom(GeneratedRoom* room, Dynamic* dynamicp) {
+  if (!(isInsideRoom(player_x, player_y, room, 0.f))) {
+    return;
+  }
+
+  // draw a little character in the center of the room
+  guTranslate(&(dynamicp->roomEntityMatricies[0]), (room->x + (room->width * 0.5f)) * TILE_SIZE, (room->y + (room->height * 0.5f)) * TILE_SIZE, 0.f);
+  guScale(&(dynamicp->roomEntityMatricies[1]), 0.01, 0.01, 0.01);
+
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomEntityMatricies[0])), G_MTX_PUSH | G_MTX_MODELVIEW);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomEntityMatricies[1])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+  addPlayerDisplayList();
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+}
+
+void renderForRooms(Dynamic* dynamicp) {
+  int i;
+
+  for (i = 0; i < numberOfGeneratedRooms; i++) {
+    GeneratedRoom* room = &(rooms[i]);
+
+    if (room->type == RestRoom) {
+      renderRestRoom(room, dynamicp);
+    }
+  }
 }
 
 void makeDL00(void)
@@ -699,6 +736,8 @@ void makeDL00(void)
     renderMapTiles(camera_x, camera_y, camera_rotation, 0.f);
   }
 
+  renderForRooms(dynamicp);
+
   if (player_state == Jumping || player_state == Landed || player_state == Holding) {
     gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
     for (i = 0; i < 32; i += 2) {
@@ -816,6 +855,24 @@ void makeDL00(void)
 
   /* Switch display list buffers */
   gfx_gtask_no ^= 1;
+}
+
+void updateRestRoom(GeneratedRoom* room) {
+  if (!(isInsideRoom(player_x, player_y, room, -8.f))) {
+    return;
+  }
+}
+
+void updateForRooms() {
+  int i;
+
+  for (i = 0; i < numberOfGeneratedRooms; i++) {
+    GeneratedRoom* room = &(rooms[i]);
+
+    if (room->type == RestRoom) {
+      updateRestRoom(room);
+    }
+  }
 }
 
 void updateGame00(void)
@@ -1076,6 +1133,8 @@ void updateGame00(void)
     // Update emitters position/velocity/life
     tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
   }
+
+  updateForRooms();
 
   nuDebPerfMarkSet(1);
   

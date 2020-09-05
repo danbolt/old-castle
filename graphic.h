@@ -64,6 +64,8 @@ typedef struct {
 
   Mtx BulletMatricies[BULLET_COUNT];
   Mtx DefeatedEffectScaleMatricies[BULLET_COUNT];
+
+  Mtx roomEntityMatricies[8];
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/
