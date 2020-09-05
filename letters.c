@@ -2,6 +2,7 @@
 
 #include <gu.h>
 #include "graphic.h"
+#include "main.h"
 
 #define TIME_PER_CHARACTER 0.03936f
 
@@ -225,6 +226,8 @@ unsigned int test2_bin_len = 2560;
 
 TextRequest textRequests[TEXT_REQUEST_BUF_SIZE];
 
+DialogueLine* currentDialogue;
+
 static const char NO_MSG[] = "";
 
 int indexForChar(const char letter) {
@@ -262,6 +265,8 @@ void resetTextRequests() {
     textRequests[i].text = NO_MSG;
     textRequests[i].enable = 0;
   }
+
+  currentDialogue = NULL;
 }
 
 void drawTextRequests() {
@@ -321,6 +326,34 @@ TextRequest* getTextRequest(int slot) {
   return &(textRequests[slot]);
 }
 
+TextRequest* getDialogueTextRequest() {
+  return getTextRequest(DIALOGUE_SLOT);
+}
+
+void tickDialogueState() {
+  if (currentDialogue == NULL) {
+    return;
+  }
+
+  nuContDataGetEx(contdata,0);
+
+  if ((contdata[0].trigger & A_BUTTON) && (getDialogueTextRequest()->enable == 1)) {
+    if (getDialogueTextRequest()->cutoff == -1) {
+      if (currentDialogue->next) {
+        currentDialogue = currentDialogue->next;
+        getDialogueTextRequest()->text = currentDialogue->text;
+        getDialogueTextRequest()->cutoff = 0;
+        getDialogueTextRequest()->typewriterTick = 0;
+      } else {
+        getDialogueTextRequest()->enable = 0;
+        currentDialogue = NULL;
+      }
+    } else {
+      getDialogueTextRequest()->cutoff = -1;
+    }
+  }
+}
+
 void tickTextRequests(float deltaSeconds) {
   int i;
 
@@ -347,6 +380,21 @@ void tickTextRequests(float deltaSeconds) {
     }
   }
 
+  tickDialogueState();
 }
 
+void setDialogue(DialogueLine* newLine) {
+  getDialogueTextRequest()->enable = 1;
+  getDialogueTextRequest()->text = newLine->text;
+  getDialogueTextRequest()->x = 8;
+  getDialogueTextRequest()->y = 10;
+  getDialogueTextRequest()->cutoff = 0;
+  getDialogueTextRequest()->typewriterTick = 0;
+
+  currentDialogue = newLine;
+}
+
+int isDialogueInProcess() {
+  return currentDialogue != NULL;
+}
 

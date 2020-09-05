@@ -16,14 +16,15 @@ OSTime interStitialTime;
 float interStitialDeltaSeconds;
 float secondsSinceSceneStart;
 float secondsSinceTransitionOut;
+int doneTransitioningIn;
 int transitioningOut;
 
 extern DialogueLine* foyer_dialogues[];
 extern const int foyer_dialogues_count;
 
-DialogueLine* current;
-
 float noiseHeightValue;
+
+DialogueLine* current;
 
 // Loads a collection of `DialogueLine`s from ROM, as defined by the spec file
 void loadTextFromROM(void) {
@@ -52,6 +53,7 @@ void initInterstitial(int randomIndex) {
   	secondsSinceSceneStart = 0;
   	noiseHeightValue = 1.f;
   	transitioningOut = 0;
+  	doneTransitioningIn = 0;
   	secondsSinceTransitionOut = 0.f;
 
   	loadTextFromROM();
@@ -145,32 +147,14 @@ void updateGameInterstital(void) {
 		}
 	}
 
-	if ((secondsSinceSceneStart > TRANSITION_IN_DURATION) && (getTextRequest(0)->enable == 0) && !(transitioningOut)) {
-		getTextRequest(0)->enable = 1;
-		getTextRequest(0)->text = current->text;
-		getTextRequest(0)->x = 8;
-		getTextRequest(0)->y = 10;
-		getTextRequest(0)->cutoff = 0;
-		getTextRequest(0)->typewriterTick = 0;
+	if (doneTransitioningIn && !(isDialogueInProcess()) && !(transitioningOut)) {
+		transitioningOut = 1;
+	}
+
+	if ((secondsSinceSceneStart > TRANSITION_IN_DURATION) && (!(isDialogueInProcess())) && !(transitioningOut) && !(doneTransitioningIn)) {
+		setDialogue(current);
+		doneTransitioningIn = 1;
 	}
 
 	tickTextRequests(interStitialDeltaSeconds);
-
-	nuContDataGetEx(contdata,0);
-
-	if ((contdata[0].trigger & A_BUTTON) && (getTextRequest(0)->enable == 1)) {
-		if (getTextRequest(0)->cutoff == -1) {
-			if (current->next) {
-				current = current->next;
-				getTextRequest(0)->text = current->text;
-				getTextRequest(0)->cutoff = 0;
-				getTextRequest(0)->typewriterTick = 0;
-			} else {
-				transitioningOut = 1;
-				getTextRequest(0)->enable = 0;
-			}
-		} else {
-			getTextRequest(0)->cutoff = -1;
-		}
-	}
 }
