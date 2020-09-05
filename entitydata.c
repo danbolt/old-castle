@@ -12,6 +12,7 @@
 #define SPIN_EMITTER_COUNT 64
 #define EMITTER_RADIUS 4.f
 #define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
+#define BULLET_FADEOUT_TIME 0.4f
 
 #define EMITTER_DEAD 0
 #define EMITTER_AIM 1
@@ -38,7 +39,8 @@ static Position BulletPositions[BULLET_COUNT];
 static Velocity BulletVelocities[BULLET_COUNT];
 static u8 BulletStates[BULLET_COUNT];
 static EntityTransform BulletMatricies[BULLET_COUNT];
-int NextBulletIndex;
+static EntityTransform DefeatedEffectScaleMatricies[BULLET_COUNT];
+static float DefeatedEffectTimes[BULLET_COUNT];
 
 static AimEmitterData AimEmitters[AIM_EMITTER_COUNT];
 static SpinEmitterData SpinEmitters[SPIN_EMITTER_COUNT];
@@ -164,10 +166,10 @@ void initializeEntityData() {
 		BulletVelocities[i].y = sinf(guRandom() % 7) * 0.05f;
 
 		BulletStates[i] = 0;
+    DefeatedEffectTimes[i] = 0.f;
 
 		guMtxIdent(&(BulletMatricies[i].mat));   
 	}
-	NextBulletIndex = 0;
 
 	// Initialize emitters
 	for (i = 0; i < EMITTER_COUNT; i++) {
@@ -493,22 +495,14 @@ void renderEmitters(float player_x, float player_y, Mtx* aimEmitterScale) {
 
 int consumeNextBullet() {
   int i;
-  int iRaw;
-  int foundNewBullet = 0;
-  int nextCandidate = 0;
   int result = -1;
-
-  // Find the next bullet to shoot
-
 
   for (i = 0; i < BULLET_COUNT; i++) {
     if (BulletStates[i] != 0) {
       continue;
     }
 
-
     result = i;
-    //NextBulletIndex = i;
     break;
   }
 
@@ -522,6 +516,9 @@ void setBulletState(int bulletIndex, u8 state) {
 	}
 
 	BulletStates[bulletIndex] = state;
+  if (state > 0) {
+    DefeatedEffectTimes[bulletIndex] = BULLET_FADEOUT_TIME;
+  }
 }
 
 void fireBomb() {
@@ -546,6 +543,9 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		u8 computedRadiusForHoldingAlready = 0;
 
 		if (BulletStates[i] == 0) {
+      if (DefeatedEffectTimes[i] > 0.f) {
+        DefeatedEffectTimes[i] -= deltaSeconds;
+      }
 		  continue;
 		}
 
@@ -1122,6 +1122,21 @@ void renderBullets(float view_x, float view_y) {
 	    float dxSq;
 	    float dySq;
 	    if (BulletStates[i] == 0) {
+        if (DefeatedEffectTimes[i] > 0.f) {
+          const float scaleValue = DefeatedEffectTimes[i] / BULLET_FADEOUT_TIME;
+          guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
+          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
+
+          guScale(&(DefeatedEffectScaleMatricies[i].mat), scaleValue, scaleValue, scaleValue);
+          gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(DefeatedEffectScaleMatricies[i].mat)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+          gSPVertex(glistp++, bullet_geom, 9, 0);
+          for(j = 1; j <= 8; j += 2) {
+            gSP2Triangles(glistp++, 0, j, j + 1, 0, 0, j + 1, (j < 7) ? j + 2 : 1, 0);
+          }
+
+          gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+        }
 	      continue;
 	    }
 
@@ -1142,7 +1157,6 @@ void renderBullets(float view_x, float view_y) {
 	    }
 
 	    guTranslate(&(BulletMatricies[i].mat), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
-
 	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
 	    gSPVertex(glistp++, bullet_geom, 9, 0);
