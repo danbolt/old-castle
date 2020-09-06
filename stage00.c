@@ -857,9 +857,18 @@ void makeDL00(void)
   gfx_gtask_no ^= 1;
 }
 
-void updateRestRoom(GeneratedRoom* room) {
+DialogueLine b = { "here's the second\n\nhow does that look?", NULL };
+DialogueLine a = { "here's the first test", &b };
+
+void updateRestRoom(GeneratedRoom* room, int index) {
   if (!(isInsideRoom(player_x, player_y, room, -8.f))) {
     return;
+  }
+
+  if ((!isDialogueInProcess()) && (!hasRoomBeenCleared(currentFloor, index))) {
+    setDialogue(&a);
+
+    clearRoom(currentFloor, index);
   }
 }
 
@@ -870,7 +879,7 @@ void updateForRooms() {
     GeneratedRoom* room = &(rooms[i]);
 
     if (room->type == RestRoom) {
-      updateRestRoom(room);
+      updateRestRoom(room, i);
     }
   }
 }
@@ -960,18 +969,18 @@ void updateGame00(void)
       player_state = Move;
     }
 
-    if (bomb_count > 0) {
-      if ((contdata[0].trigger & Z_TRIG) || (contdata[0].trigger & L_TRIG)) {
-        bomb_count--;
-
-        fireBomb();
-      }
-    }
-
-    // If we're warping, don't allow motion
-    if (isWarping) {
+    // If we're warping or showing text, don't allow motion
+    if (isWarping || isDialogueInProcess()) {
       stickX = 0.f;
       stickY = 0.f;
+    } else {
+      if (bomb_count > 0) {
+        if ((contdata[0].trigger & Z_TRIG) || (contdata[0].trigger & L_TRIG)) {
+          bomb_count--;
+
+          fireBomb();
+        }
+      }
     }
 
     cosCamRot = cosf(-camera_rotation);

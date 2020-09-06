@@ -7,6 +7,8 @@ xorshift32_state roomSeeds[NUMBER_OF_FLOORS];
 
 s8 exitMap[NUMBER_OF_FLOORS][EXIT_COUNT];
 
+s8 roomsCleared[NUMBER_OF_FLOORS][MAX_NUMBER_OF_ROOMS_PER_FLOOR];
+
 void initializeSeeds() {
 	int i;
 
@@ -71,4 +73,23 @@ void initalizeConnections() {
 
 	// The room with the ending
 	exitMap[12][0] = 11;
+}
+
+void unClearAllRooms() {
+	int i;
+	int j;
+
+	for (i = 0; i < NUMBER_OF_FLOORS; i++) {
+		for (j = 0; j < MAX_NUMBER_OF_ROOMS_PER_FLOOR; j++) {
+			roomsCleared[i][j] = 0;
+		}
+	}
+}
+
+int hasRoomBeenCleared(int floor, int roomIndex) {
+	return roomsCleared[floor][roomIndex];
+}
+
+void clearRoom(int floor, int roomIndex) {
+	roomsCleared[floor][roomIndex] = 1;
 }
