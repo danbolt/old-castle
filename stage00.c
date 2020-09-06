@@ -924,6 +924,11 @@ void updateGame00(void)
   getTextRequest(1)->cutoff = -1;
   getTextRequest(1)->typewriterTick = 0;
 
+  if (isDialogueInProcess()) {
+    getTextRequest(0)->enable = 0;
+    getTextRequest(1)->enable = 0;
+  }
+
   tickTextRequests(deltaSeconds);
 
   /* Data reading of controller 1 */
