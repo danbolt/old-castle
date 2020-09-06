@@ -953,7 +953,7 @@ void updateGame00(void)
       stickY = MAX(-63.f, MIN(63.f, (contdata->stick_y))) / 63.f;
     }
 
-    if (contdata[0].button & B_BUTTON) {
+    if ((contdata[0].button & A_BUTTON) && (!isDialogueInProcess())) {
       if (player_state == Move) {
         player_sword_angle = player_rotation;
       }
@@ -1048,7 +1048,7 @@ void updateGame00(void)
       player_sword[i].v.cn[2] = 213;
     }
 
-    if ((contdata[0].trigger & A_BUTTON) && (player_bullets_collected >= JUMP_COST)) {
+    if ((contdata[0].trigger & B_BUTTON) && (player_bullets_collected >= JUMP_COST)) {
       player_bullets_collected = MAX(0, (player_bullets_collected - JUMP_COST));
       player_state = Jumping;
       player_t = 0.f;
