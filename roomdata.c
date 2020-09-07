@@ -11,7 +11,7 @@
 static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define IS_TILE_BLOCKED(x, y) MapInfo[x + (y * MAP_SIZE)]
 
-#define DARKEN_VERT 0x20
+#define DARKEN_VERT 0x14
 #define WALL_COLOR_R 0x4f
 #define WALL_COLOR_G 0x4c
 #define WALL_COLOR_B 0x2f
@@ -98,7 +98,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[2].type = BossARoom;
 
 	rooms[3].x = MAP_SIZE / 4;
-	rooms[3].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2);
+	rooms[3].y = MAP_SIZE - 16 - ((u8)mainCorridorLength / 2);
 	rooms[3].width = MAP_SIZE / 2;
 	rooms[3].height = 4;
 	rooms[3].type = HallwayRoom;
@@ -107,14 +107,14 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[4].x = 8;
 	rooms[4].y = MAP_SIZE - 10 - ((u8)mainCorridorLength / 2) - 7;
 	rooms[4].width = (MAP_SIZE / 4) - 8;
-	rooms[4].height = 14;
+	rooms[4].height = 10;
 	rooms[4].type = RestRoom;
 
 	// Side room B
 	rooms[5].x = (MAP_SIZE / 4) + (MAP_SIZE / 2);
 	rooms[5].y = MAP_SIZE - 10 - (mainCorridorLength / 2) - 7;
 	rooms[5].width = 14;
-	rooms[5].height = 14;
+	rooms[5].height = 10;
 	rooms[5].type = RestRoom;
 
 	// A's subrooms
@@ -210,6 +210,78 @@ int generateBasementStyleFloor(GeneratedRoom* rooms) {
 
 u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
+void darkenFloorTiles(GeneratedRoom* room, Vtx* vertexList, int x, int y) {
+  if (isTileBlocked(x + room->x, y + room->y)) {
+    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+  }
+
+  if (isTileBlocked(x + room->x - 1, y + room->y)) {
+    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+  }
+
+  if (isTileBlocked(x + room->x + 1, y + room->y)) {
+    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+  }
+  if (isTileBlocked(x + room->x, y + room->y - 1)) {
+    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+  }
+  if (isTileBlocked(x + room->x, y + room->y + 1)) {
+    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+  }
+
+  if (isTileBlocked(x + room->x - 1, y + room->y - 1)) {
+    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+  }
+  if (isTileBlocked(x + room->x + 1, y + room->y - 1)) {
+    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
+  }
+  if (isTileBlocked(x + room->x + 1, y + room->y + 1)) {
+    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+  }
+  if (isTileBlocked(x + room->x - 1, y + room->y + 1)) {
+    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+  }
+}
+
 void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
   int i;
   int j;
@@ -231,6 +303,177 @@ void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) 
         (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, floorToneA, floorToneA - DARKEN_VERT, floorToneA - DARKEN_VERT, 0xff };
         (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, floorToneB, floorToneB - DARKEN_VERT, floorToneB - DARKEN_VERT, 0xff };
         (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, floorToneB, floorToneB - DARKEN_VERT, floorToneB - DARKEN_VERT, 0xff };
+
+        darkenFloorTiles(room, vertexList, x, y);
+
+        if ((vertexList - lastBuffer) >= 64u) {
+          gSPVertex(commandList++, lastBuffer, 64, 0);
+
+          for (j = 0; j < 64; j += 4) {
+            gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+          }
+
+          lastBuffer = vertexList;
+        }
+      }
+    }
+
+    if (lastBuffer != vertexList) {
+      gSPVertex(commandList++, lastBuffer, (vertexList - lastBuffer), 0);
+      for (j = 0; j < (vertexList - lastBuffer); j += 4) {
+        gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+      }
+
+      lastBuffer = vertexList;
+    }
+
+    // Fill in the top wall tiles
+    for (x = 0; x < rooms[i].width; x++) {
+      if (!(isTileBlocked(room->x + x, room->y - 1))) {
+        continue;
+      }
+
+      (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+      (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+      (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+      (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+
+      if ((vertexList - lastBuffer) >= 64u) {
+        gSPVertex(commandList++, lastBuffer, 64, 0);
+
+        for (j = 0; j < 64; j += 4) {
+          gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+        }
+
+        lastBuffer = vertexList;
+      }
+    }
+    if (lastBuffer != vertexList) {
+      gSPVertex(commandList++, lastBuffer, (vertexList - lastBuffer), 0);
+      for (j = 0; j < (vertexList - lastBuffer); j += 4) {
+        gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+      }
+
+      lastBuffer = vertexList;
+    }
+
+    // Fill in the side wall tiles
+    for (y = 0; y < rooms[i].height; y++) {
+      if (isTileBlocked(room->x - 1, room->y + y)) {
+        (*(vertexList++)) = (Vtx){ (room->x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+
+        if ((vertexList - lastBuffer) >= 64u) {
+          gSPVertex(commandList++, lastBuffer, 64, 0);
+
+          for (j = 0; j < 64; j += 4) {
+            gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+          }
+
+          lastBuffer = vertexList;
+        }
+
+        if (isTileBlocked(room->x + room->width + 1, room->y + y)) {
+          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+        }
+      }
+    }
+    if (lastBuffer != vertexList) {
+      gSPVertex(commandList++, lastBuffer, (vertexList - lastBuffer), 0);
+      for (j = 0; j < (vertexList - lastBuffer); j += 4) {
+        gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+      }
+
+      lastBuffer = vertexList;
+    }
+
+    vertBuffUsage[i] = vertexList - room->verts;
+
+    gSPEndDisplayList(commandList++);
+  }
+}
+
+#define FOYER_HALL_FLOOR_A 0x33
+#define FOYER_HALL_FLOOR_B 0x44
+
+void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
+  int i;
+  int j;
+  int x;
+  int y;
+  for (i = 0; i < numberOfGeneratedRooms; i++) {
+    GeneratedRoom* room = &(rooms[i]);
+    Gfx* commandList = room->commands;
+    Vtx* vertexList = room->verts;
+    Vtx* lastBuffer = vertexList;
+
+    // Fill in the floor tiles
+    for (x = 0; x < rooms[i].width; x++) {
+      for (y = 0; y < rooms[i].height; y++) {
+        if (room->type == HallwayRoom) {
+          u8 tone1 = FOYER_HALL_FLOOR_A;
+          u8 tone2 = FOYER_HALL_FLOOR_A;
+          u8 tone3 = FOYER_HALL_FLOOR_A;
+          u8 tone4 = FOYER_HALL_FLOOR_A;
+
+          if (((x + room->x) % 4 == 0) && ((y + room->y) % 4 == 0)) {
+            tone1 = FOYER_HALL_FLOOR_B;
+            tone2 = FOYER_HALL_FLOOR_B;
+            tone3 = FOYER_HALL_FLOOR_B;
+            tone4 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 1) && ((y + room->y) % 4 == 0)) {
+            tone1 = FOYER_HALL_FLOOR_B;
+            tone4 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 3) && ((y + room->y) % 4 == 0)) {
+            tone2 = FOYER_HALL_FLOOR_B;
+            tone3 = FOYER_HALL_FLOOR_B;
+          }
+
+          if (((x + room->x) % 4 == 0) && ((y + room->y) % 4 == 3)) {
+            tone3 = FOYER_HALL_FLOOR_B;
+            tone4 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 0) && ((y + room->y) % 4 == 1)) {
+            tone1 = FOYER_HALL_FLOOR_B;
+            tone2 = FOYER_HALL_FLOOR_B;
+          }
+
+          if (((x + room->x) % 4 == 1) && ((y + room->y) % 4 == 1)) {
+            tone1 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 3) && ((y + room->y) % 4 == 1)) {
+            tone2 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 1) && ((y + room->y) % 4 == 3)) {
+            tone4 = FOYER_HALL_FLOOR_B;
+          } else if (((x + room->x) % 4 == 3) && ((y + room->y) % 4 == 3)) {
+            tone3 = FOYER_HALL_FLOOR_B;
+          }
+
+          (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone1, tone1, tone1, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone2, tone2, tone2, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone3, tone3, tone3, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone4, tone4, tone4, 0xff };
+        } else {
+          (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x66, 0x55, 0x55, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x66, 0x55, 0x55, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x66, 0x55, 0x55, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x66, 0x55, 0x55, 0xff };
+        }
+
+        darkenFloorTiles(room, vertexList, x, y);
 
         if ((vertexList - lastBuffer) >= 64u) {
           gSPVertex(commandList++, lastBuffer, 64, 0);
@@ -352,12 +595,11 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   //TODO: Turn the floor numbers from magic numbers into #define constants
   if (floorNumber == 0) {
   	numberOfGeneratedRooms = generateFloorInStyleA(rooms);
+    createFoyerDisplayData(rooms, numberOfGeneratedRooms);
   } else {
   	numberOfGeneratedRooms = generateBasementStyleFloor(rooms);
+    createGenericDisplayData(rooms, numberOfGeneratedRooms);
   }
-
-  // TODO: customize this for each area of the manor
-  createGenericDisplayData(rooms, numberOfGeneratedRooms);
 
   return numberOfGeneratedRooms;
 }
