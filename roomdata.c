@@ -543,22 +543,22 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
 
           lastBuffer = vertexList;
         }
+      }
 
-        if (isTileBlocked(room->x + room->width + 1, room->y + y)) {
-          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
-          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
-          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
-          (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+      if (isTileBlocked(room->x + room->width, room->y + y)) {
+        (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
 
-          if ((vertexList - lastBuffer) >= 64u) {
-            gSPVertex(commandList++, lastBuffer, 64, 0);
+        if ((vertexList - lastBuffer) >= 64u) {
+          gSPVertex(commandList++, lastBuffer, 64, 0);
 
-            for (j = 0; j < 64; j += 4) {
-              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
-            }
-
-            lastBuffer = vertexList;
+          for (j = 0; j < 64; j += 4) {
+            gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
           }
+
+          lastBuffer = vertexList;
         }
       }
     }
