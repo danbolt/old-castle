@@ -868,8 +868,8 @@ void makeDL00(void)
   gfx_gtask_no ^= 1;
 }
 
-DialogueLine b = { "it's a caretaker for the manor", NULL };
-DialogueLine a = { "what do they have to say?", &b };
+DialogueLine b = { "what do they have to say?", NULL };
+DialogueLine a = { "it's a caretaker for the manor", &b };
 
 void updateRestRoom(GeneratedRoom* room, int index) {
   if (!(isInsideRoom(player_x, player_y, room, -8.f))) {

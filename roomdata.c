@@ -16,6 +16,10 @@ static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 #define WALL_COLOR_G 0x4c
 #define WALL_COLOR_B 0x2f
 
+#define STAIRS_R 0xff
+#define STAIRS_G 0xe6
+#define STAIRS_B 0xcc
+
 static xorshift32_state roomGeneratorState;
 
 static Mtx tilesWarp[(RENDER_DISTANCE_IN_TILES + 2) * 2];
@@ -437,10 +441,10 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
             const float yOffset1 = (short)(sinf(percent * M_PI * 2) * 150);
             const float yOffset2 = (short)(sinf(percentNext * M_PI * 2) * 150);
 
-            (*(vertexList++)) = (Vtx){ stairX, stairY, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
-            (*(vertexList++)) = (Vtx){ stairX + xOffset1, stairY + yOffset1, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
-            (*(vertexList++)) = (Vtx){ stairX + xOffset1, stairY + yOffset1, stairHeight - 20, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
-            (*(vertexList++)) = (Vtx){ stairX + xOffset2, stairY + yOffset2, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX, stairY, stairHeight, 0, 0, 0, STAIRS_R, STAIRS_G, STAIRS_B, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset1, stairY + yOffset1, stairHeight, 0, 0, 0, STAIRS_R, STAIRS_G, STAIRS_B, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset2, stairY + yOffset2, stairHeight, 0, 0, 0, 0x11, 0x11, 0x11, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset2, stairY + yOffset2, stairHeight + 65, 0, 0, 0, 0x00, 0x00, 0x00, 0xff };
 
             if ((vertexList - lastBuffer) >= 64u) {
               gSPVertex(commandList++, lastBuffer, 64, 0);
