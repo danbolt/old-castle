@@ -425,6 +425,37 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
     // Fill in the floor tiles
     for (x = 0; x < rooms[i].width; x++) {
       for (y = 0; y < rooms[i].height; y++) {
+        if ((isTileBlocked(x + room->x, y + room->y) >= STAIRCASE_A) && (isTileBlocked(x + room->x, y + room->y) <= STAIRCASE_E)) {
+          int stairX = (((room->x + x) * TILE_SIZE + 1)) * ROOM_VERT_DATA_SCALE;
+          int stairY = (((room->y + y) * TILE_SIZE + 1)) * ROOM_VERT_DATA_SCALE;
+          for (j = 0; j < 8; j++) {
+            const short stairHeight = (j * 65) - 90;
+            const float percent = j / 8.f;
+            const float percentNext = (j + 0.8) / 8.f;
+            const float xOffset1 = (short)(cosf(percent * M_PI * 2) * 150);
+            const float xOffset2 = (short)(cosf(percentNext * M_PI * 2) * 150);
+            const float yOffset1 = (short)(sinf(percent * M_PI * 2) * 150);
+            const float yOffset2 = (short)(sinf(percentNext * M_PI * 2) * 150);
+
+            (*(vertexList++)) = (Vtx){ stairX, stairY, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset1, stairY + yOffset1, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset1, stairY + yOffset1, stairHeight - 20, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
+            (*(vertexList++)) = (Vtx){ stairX + xOffset2, stairY + yOffset2, stairHeight, 0, 0, 0, 0xFF, 0x00, 0xFF, 0xff };
+
+            if ((vertexList - lastBuffer) >= 64u) {
+              gSPVertex(commandList++, lastBuffer, 64, 0);
+
+              for (j = 0; j < 64; j += 4) {
+                gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+              }
+
+              lastBuffer = vertexList;
+            }
+          }
+
+          continue;
+        }
+
         if (room->type == HallwayRoom) {
           u8 tone1 = FOYER_HALL_FLOOR_A;
           u8 tone2 = FOYER_HALL_FLOOR_A;
