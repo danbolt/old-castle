@@ -61,6 +61,8 @@ float warpDelta;
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
 
+// u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
+
 static Vtx jump_target_geom[] =  {
   {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
   {   1,  1, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
@@ -325,9 +327,8 @@ void initStage00(int floorNumber)
   initializeEntityData();
 
   // TODO: create a variable for this to change
-  numberOfGeneratedRooms =initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
+  numberOfGeneratedRooms = initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
   initEnemiesForMap(rooms);
-  updateMapFromInfo();
 
   if (previousFloor == NO_PREVIOUS_FLOOR) {
     // If we have no previous floor, let's simply place ourself in the lobby
@@ -515,13 +516,20 @@ void renderRestRoom(GeneratedRoom* room, Dynamic* dynamicp) {
 void renderForRooms(Dynamic* dynamicp) {
   int i;
 
+  guScale(&(dynamicp->roomRenderScale), 0.01f, 0.01f, 0.01f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomRenderScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
+
   for (i = 0; i < numberOfGeneratedRooms; i++) {
     GeneratedRoom* room = &(rooms[i]);
+
+    gSPDisplayList(glistp++, rooms[i].commands);
 
     if (room->type == RestRoom) {
       renderRestRoom(room, dynamicp);
     }
   }
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 }
 
 void makeDL00(void)
@@ -724,19 +732,16 @@ void makeDL00(void)
   if (isWarping) {
     gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
                                 SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
-    
     if (isWarpingOut) {
-      renderMapTiles(camera_x, camera_y, camera_rotation, cubic((warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+      renderForRooms(dynamicp);
       gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
     } else {
-      renderMapTiles(camera_x, camera_y, camera_rotation, cubic(1.f - (warpDelta / WARP_IN_TIME_IN_SECONDS)) * 30.f);
+      renderForRooms(dynamicp);
       gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
     }
   } else {
-    renderMapTiles(camera_x, camera_y, camera_rotation, 0.f);
+    renderForRooms(dynamicp);
   }
-
-  renderForRooms(dynamicp);
 
   if (player_state == Jumping || player_state == Landed || player_state == Holding) {
     gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
@@ -781,6 +786,12 @@ void makeDL00(void)
 		 NU_GFX_UCODE_F3DEX2_REJ , NU_SC_NOSWAPBUFFER);
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
+
+  // for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+  //   nuDebConTextPos(0,1,3 + i);
+  //   sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
+  //   nuDebConCPuts(0, conbuf);
+  // }
 
   // if(contPattern & 0x1)
   // {

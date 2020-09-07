@@ -29,6 +29,12 @@
 
 #define MAX_NUMBER_OF_ROOMS_PER_FLOOR ((MAP_SIZE / ROOM_SIZE) * (MAP_SIZE / ROOM_SIZE))
 
+#define ROOM_VERT_BUFFER_SIZE 4096
+#define ROOM_COMMAND_BUFFER_SIZE 512
+
+#define ROOM_MACRO_SCALE 0.01f
+#define ROOM_VERT_DATA_SCALE 100
+
 typedef enum {
   StartingRoom, // The room where the player spawns
   StaircaseRoom, // A room with a starcase to another floor
@@ -48,15 +54,14 @@ typedef struct {
   s8 stairsDirectionIndex; // used if this is a staircaseRoom
 
   RoomType type;
+
+  Vtx verts[ROOM_VERT_BUFFER_SIZE];
+  Gfx commands[ROOM_COMMAND_BUFFER_SIZE];
 } GeneratedRoom;
 
 int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
 
 void initEnemiesForMap(GeneratedRoom* rooms);
-
-void updateMapFromInfo();
-
-void renderMapTiles(float camera_x, float camera_y, float camera_rotation, float warp);
 
 int isTileBlocked(int x, int y);
 
