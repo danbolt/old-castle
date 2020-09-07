@@ -61,7 +61,7 @@ float warpDelta;
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
 
-// u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
+extern u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
 static Vtx jump_target_geom[] =  {
   {   0,  2, 0, 0, 0, 0, 0xff, 0, 0, 0xff },
@@ -787,11 +787,11 @@ void makeDL00(void)
 
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
-  // for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-  //   nuDebConTextPos(0,1,3 + i);
-  //   sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
-  //   nuDebConCPuts(0, conbuf);
-  // }
+  for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    nuDebConTextPos(0,1,3 + i);
+    sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
+    nuDebConCPuts(0, conbuf);
+  }
 
   // if(contPattern & 0x1)
   // {
