@@ -220,73 +220,73 @@ u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
 void darkenFloorTiles(GeneratedRoom* room, Vtx* vertexList, int x, int y) {
   if (isTileBlocked(x + room->x, y + room->y)) {
-    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[0] = MAX(0, ((*(vertexList - 4)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[1] = MAX(0, ((*(vertexList - 4)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[2] = MAX(0, ((*(vertexList - 4)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[0] = MAX(0, ((*(vertexList - 3)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[1] = MAX(0, ((*(vertexList - 3)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[2] = MAX(0, ((*(vertexList - 3)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[0] = MAX(0, ((*(vertexList - 2)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[1] = MAX(0, ((*(vertexList - 2)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[2] = MAX(0, ((*(vertexList - 2)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[0] = MAX(0, ((*(vertexList - 1)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[1] = MAX(0, ((*(vertexList - 1)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[2] = MAX(0, ((*(vertexList - 1)).v.cn[2] - DARKEN_VERT));
   }
 
   if (isTileBlocked(x + room->x - 1, y + room->y)) {
-    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[0] = MAX(0, ((*(vertexList - 4)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[1] = MAX(0, ((*(vertexList - 4)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[2] = MAX(0, ((*(vertexList - 4)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[0] = MAX(0, ((*(vertexList - 1)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[1] = MAX(0, ((*(vertexList - 1)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[2] = MAX(0, ((*(vertexList - 1)).v.cn[2] - DARKEN_VERT));
   }
 
   if (isTileBlocked(x + room->x + 1, y + room->y)) {
-    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[0] = MAX(0, ((*(vertexList - 3)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[1] = MAX(0, ((*(vertexList - 3)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[2] = MAX(0, ((*(vertexList - 3)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[0] = MAX(0, ((*(vertexList - 2)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[1] = MAX(0, ((*(vertexList - 2)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[2] = MAX(0, ((*(vertexList - 2)).v.cn[2] - DARKEN_VERT));
   }
   if (isTileBlocked(x + room->x, y + room->y - 1)) {
-    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[0] = MAX(0, ((*(vertexList - 3)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[1] = MAX(0, ((*(vertexList - 3)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[2] = MAX(0, ((*(vertexList - 3)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[0] = MAX(0, ((*(vertexList - 4)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[1] = MAX(0, ((*(vertexList - 4)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[2] = MAX(0, ((*(vertexList - 4)).v.cn[2] - DARKEN_VERT));
   }
   if (isTileBlocked(x + room->x, y + room->y + 1)) {
-    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[0] = MAX(0, ((*(vertexList - 1)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[1] = MAX(0, ((*(vertexList - 1)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[2] = MAX(0, ((*(vertexList - 1)).v.cn[2] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[0] = MAX(0, ((*(vertexList - 2)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[1] = MAX(0, ((*(vertexList - 2)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[2] = MAX(0, ((*(vertexList - 2)).v.cn[2] - DARKEN_VERT));
   }
 
   if (isTileBlocked(x + room->x - 1, y + room->y - 1)) {
-    (*(vertexList - 4)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 4)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 4)).v.cn[0] = MAX(0, ((*(vertexList - 4)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[1] = MAX(0, ((*(vertexList - 4)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 4)).v.cn[2] = MAX(0, ((*(vertexList - 4)).v.cn[2] - DARKEN_VERT));
   }
   if (isTileBlocked(x + room->x + 1, y + room->y - 1)) {
-    (*(vertexList - 3)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 3)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 3)).v.cn[0] = MAX(0, ((*(vertexList - 3)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[1] = MAX(0, ((*(vertexList - 3)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 3)).v.cn[2] = MAX(0, ((*(vertexList - 3)).v.cn[2] - DARKEN_VERT));
   }
   if (isTileBlocked(x + room->x + 1, y + room->y + 1)) {
-    (*(vertexList - 2)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 2)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 2)).v.cn[0] = MAX(0, ((*(vertexList - 2)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[1] = MAX(0, ((*(vertexList - 2)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 2)).v.cn[2] = MAX(0, ((*(vertexList - 2)).v.cn[2] - DARKEN_VERT));
   }
   if (isTileBlocked(x + room->x - 1, y + room->y + 1)) {
-    (*(vertexList - 1)).v.cn[0] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[1] -= DARKEN_VERT;
-    (*(vertexList - 1)).v.cn[2] -= DARKEN_VERT;
+    (*(vertexList - 1)).v.cn[0] = MAX(0, ((*(vertexList - 1)).v.cn[0] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[1] = MAX(0, ((*(vertexList - 1)).v.cn[1] - DARKEN_VERT));
+    (*(vertexList - 1)).v.cn[2] = MAX(0, ((*(vertexList - 1)).v.cn[2] - DARKEN_VERT));
   }
 }
 
@@ -419,6 +419,13 @@ void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) 
 #define FOYER_HALL_FLOOR_A 0x33
 #define FOYER_HALL_FLOOR_B 0x44
 
+#define ENTRANCE_FLOOR_A_R (DARKEN_VERT + (DARKEN_VERT / 2))
+#define ENTRANCE_FLOOR_A_G (DARKEN_VERT + (DARKEN_VERT / 2))
+#define ENTRANCE_FLOOR_A_B 0x3A
+#define ENTRANCE_FLOOR_B_R (DARKEN_VERT + (DARKEN_VERT / 2))
+#define ENTRANCE_FLOOR_B_G (DARKEN_VERT + (DARKEN_VERT / 2))
+#define ENTRANCE_FLOOR_B_B (DARKEN_VERT + (DARKEN_VERT / 2))
+
 void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
   int i;
   int j;
@@ -508,6 +515,24 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
           (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone2, tone2, tone2, 0xff };
           (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone3, tone3, tone3, 0xff };
           (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone4, tone4, tone4, 0xff };
+        } else if (room->type == StartingRoom) {
+          const int tileVal = ((x % 2) + (y % 2));
+          if (tileVal == 0) {
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+          } else if (tileVal == 1) {
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+          } else if (tileVal == 2) {
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+          }
         } else if (room->type == BossARoom) {
           // TODO: move this to the boss' floor layout later
           u8 tone1 = FOYER_HALL_FLOOR_A + (0x30);
