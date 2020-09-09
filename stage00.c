@@ -307,7 +307,7 @@ void initStage00(int floorNumber)
   player_t = 0.f;
   HIT_WALL_WHILE_JUMPING = 0;
   player_sword_angle = 0.f;
-  player_bullets_collected = 50;
+  player_bullets_collected = 0;
   bomb_count = 3;
 
   trail_geo_index = 0;
@@ -788,9 +788,9 @@ void makeDL00(void)
   //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
-    nuDebConTextPos(0,1,3 + i);
-    sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
-    nuDebConCPuts(0, conbuf);
+    // nuDebConTextPos(0,1,3 + i);
+    // sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
+    // nuDebConCPuts(0, conbuf);
   }
 
   // if(contPattern & 0x1)
