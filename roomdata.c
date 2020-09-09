@@ -516,22 +516,34 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
           (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone3, tone3, tone3, 0xff };
           (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, tone4, tone4, tone4, 0xff };
         } else if (room->type == StartingRoom) {
-          const int tileVal = ((x % 2) + (y % 2));
-          if (tileVal == 0) {
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-          } else if (tileVal == 1) {
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
-          } else if (tileVal == 2) {
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
-            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+          if ((y >= (room->height - 2)) && ((x == ((room -> width / 2) + 0)) || (x == ((room -> width / 2) - 1)))) {
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - 0, ENTRANCE_FLOOR_B_G - 0, ENTRANCE_FLOOR_B_B - 0, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R + DARKEN_VERT, ENTRANCE_FLOOR_B_G + DARKEN_VERT, ENTRANCE_FLOOR_B_B + DARKEN_VERT, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - 0, ENTRANCE_FLOOR_B_G - 0, ENTRANCE_FLOOR_B_B - 0, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R + DARKEN_VERT, ENTRANCE_FLOOR_B_G + DARKEN_VERT, ENTRANCE_FLOOR_B_B + DARKEN_VERT, 0xff };
+          } else if ((y >= (room->height - 3)) && ((x == ((room -> width / 2) + 0)) || (x == ((room -> width / 2) - 1)) || (x == ((room -> width / 2) - 2)) || (x == ((room -> width / 2) + 1)))) {
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - 0, ENTRANCE_FLOOR_B_G - 0, ENTRANCE_FLOOR_B_B - 0, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - DARKEN_VERT, ENTRANCE_FLOOR_B_G - DARKEN_VERT, ENTRANCE_FLOOR_B_B + DARKEN_VERT, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - 0, ENTRANCE_FLOOR_B_G - 0, ENTRANCE_FLOOR_B_B - 0, 0xff };
+            (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R - DARKEN_VERT, ENTRANCE_FLOOR_B_G - DARKEN_VERT, ENTRANCE_FLOOR_B_B + DARKEN_VERT, 0xff };
+          } else {
+            const int tileVal = ((x % 2) + (y % 2));
+            if (tileVal == 0) {
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            } else if (tileVal == 1) {
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+            } else if (tileVal == 2) {
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,         (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_B_R, ENTRANCE_FLOOR_B_G, ENTRANCE_FLOOR_B_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+              (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE,     (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, ENTRANCE_FLOOR_A_R, ENTRANCE_FLOOR_A_G, ENTRANCE_FLOOR_A_B, 0xff };
+            }
           }
         } else if (room->type == BossARoom) {
           // TODO: move this to the boss' floor layout later
@@ -617,6 +629,11 @@ void createFoyerDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
         (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE + (x % 2 != 0 ? (guRandom() % 100 + 40) : 0), 0, 0, 0, 0x30, 0x10, 0x10, 0xff };
         (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE + (x % 2 != 0 ? 40 : -20),      2 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x30, 0x20, 0x1C, 0xff };
         (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE + (x % 2 == 0 ? 40 : -20),      2 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x30, 0x20, 0x1C, 0xff };
+      } else if (room->type == StartingRoom) {
+        (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
+        (*(vertexList++)) = (Vtx){ (room->x + x) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R - DARKEN_VERT, WALL_COLOR_G - DARKEN_VERT, WALL_COLOR_B - DARKEN_VERT, 0xff };
       } else {
         (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
         (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, 5 * ROOM_VERT_DATA_SCALE, 0, 0, 0, WALL_COLOR_R, WALL_COLOR_G, WALL_COLOR_B, 0xff };
