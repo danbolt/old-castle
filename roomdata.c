@@ -334,6 +334,101 @@ void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) 
 
           lastBuffer = vertexList;
         }
+
+        
+        if (isTileBlocked(x + room->x, y + room->y) == LOW_WALL_TILE) {
+          // table top
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+
+          // legs
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT - 50, 0, 0, 0, 0x2E - DARKEN_VERT, 0x1C - DARKEN_VERT, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE, LOW_WALL_HEIGHT - 50, 0, 0, 0, 0x2E - DARKEN_VERT, 0x1C - DARKEN_VERT, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE - 40, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE - 20, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE + 40, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE + 20, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y + 1) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE - 40, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x + 1)     * ROOM_VERT_DATA_SCALE * TILE_SIZE - 20, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE + 40, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, LOW_WALL_HEIGHT - 30, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE + 20, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+          (*(vertexList++)) = (Vtx){ (room->x + x)     * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + y) * ROOM_VERT_DATA_SCALE * TILE_SIZE - 5, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x2E, 0x1C, 0x00, 0xff };
+
+          if ((vertexList - lastBuffer) >= 64u) {
+            gSPVertex(commandList++, lastBuffer, 64, 0);
+
+            for (j = 0; j < 64; j += 4) {
+              gSP2Triangles(commandList++, j + 0, j + 1, j + 2, 0, j + 0, j + 2, j + 3, 0);
+            }
+
+            lastBuffer = vertexList;
+          }
+        }
       }
     }
 
@@ -345,6 +440,8 @@ void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) 
 
       lastBuffer = vertexList;
     }
+
+
 
     // Fill in the top wall tiles
     for (x = 0; x < rooms[i].width; x++) {
