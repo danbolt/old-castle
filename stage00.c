@@ -53,10 +53,16 @@ float test;
 
 char testStringBuf[64];
 char bulletBuff[64];
+char keysBuff[NUMBER_OF_SPECIAL_KEYS + 1];
 
 int isWarping;
 int isWarpingOut;
 float warpDelta;
+
+SpecialKeyType specialKeyType;
+float key_x;
+float key_y;
+u8 isThereASpecialKey;
 
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
@@ -281,6 +287,100 @@ static Vtx thing_geom[] = {
 { -87, -70, 146, 0, 0, 0, 59, 49, 56, 255 },
 };
 
+static Vtx key_geom[] = {
+  { 33, 41, 106, 0, 0, 0, 0, 0, 0, 255 },
+  { 33, -41, 106, 0, 0, 0, 2, 2, 2, 255 },
+  { 42, 100, 133, 0, 0, 0, 166, 166, 166, 255 },
+  { 42, -100, 133, 0, 0, 0, 158, 158, 158, 255 },
+  { 25, 106, 275, 0, 0, 0, 255, 255, 255, 255 },
+  { 25, -101, 275, 0, 0, 0, 255, 255, 255, 255 },
+  { 38, 35, 31, 0, 0, 0, 176, 176, 176, 255 },
+  { 38, -35, -23, 0, 0, 0, 108, 108, 108, 255 },
+  { 38, -134, -57, 0, 0, 0, 235, 235, 235, 255 },
+  { 44, 0, 133, 0, 0, 0, 132, 132, 132, 255 },
+  { 38, -37, 29, 0, 0, 0, 255, 255, 255, 255 },
+  { 36, -109, 6, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, 37, -88, 0, 0, 0, 32, 32, 32, 255 },
+  { 0, -51, -92, 0, 0, 0, 32, 32, 32, 255 },
+  { -33, 41, 106, 0, 0, 0, 0, 0, 0, 255 },
+  { -33, -41, 106, 0, 0, 0, 2, 2, 2, 255 },
+  { 0, 44, 105, 0, 0, 0, 0, 0, 0, 255 },
+  { 0, -44, 105, 0, 0, 0, 11, 11, 11, 255 },
+  { -42, 100, 133, 0, 0, 0, 166, 166, 166, 255 },
+  { -42, -100, 133, 0, 0, 0, 158, 158, 158, 255 },
+  { 0, -123, 121, 0, 0, 0, 158, 158, 158, 255 },
+  { 0, 117, 128, 0, 0, 0, 158, 158, 158, 255 },
+  { -25, 106, 275, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, 122, 298, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, -121, 298, 0, 0, 0, 255, 255, 255, 255 },
+  { -25, -101, 275, 0, 0, 0, 255, 255, 255, 255 },
+  { -38, 35, 31, 0, 0, 0, 176, 176, 176, 255 },
+  { -38, -35, -23, 0, 0, 0, 108, 108, 108, 255 },
+  { 0, 38, 27, 0, 0, 0, 176, 176, 176, 255 },
+  { 0, -37, -24, 0, 0, 0, 69, 69, 69, 255 },
+  { -38, -134, -57, 0, 0, 0, 235, 235, 235, 255 },
+  { 0, -133, -86, 0, 0, 0, 89, 89, 89, 255 },
+  { 0, -132, -30, 0, 0, 0, 251, 251, 251, 255 },
+  { -44, 0, 133, 0, 0, 0, 132, 132, 132, 255 },
+  { 0, 86, 204, 0, 0, 0, 16, 16, 16, 255 },
+  { 0, 2, 259, 0, 0, 0, 84, 84, 84, 255 },
+  { 0, -84, 204, 0, 0, 0, 28, 28, 28, 255 },
+  { 0, 0, 150, 0, 0, 0, 158, 158, 158, 255 },
+  { -38, -37, 29, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, -39, 29, 0, 0, 0, 255, 255, 255, 255 },
+  { -36, -109, 6, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, -110, -11, 0, 0, 0, 255, 255, 255, 255 },
+  { 0, -112, 22, 0, 0, 0, 255, 255, 255, 255 },
+};
+
+static Gfx key_dl[] = {
+  gsSPVertex( key_geom, 43, 0),
+  gsSP2Triangles( 3, 5, 24, 0, 10, 17, 39, 0),
+  gsSP2Triangles( 28, 0, 6, 0, 6, 1, 10, 0),
+  gsSP2Triangles( 21, 0, 16, 0, 3, 17, 1, 0),
+  gsSP2Triangles( 9, 1, 0, 0, 24, 5, 4, 0),
+  gsSP2Triangles( 12, 7, 13, 0, 12, 28, 6, 0),
+  gsSP2Triangles( 7, 32, 8, 0, 8, 32, 31, 0),
+  gsSP2Triangles( 13, 8, 31, 0, 13, 7, 8, 0),
+  gsSP2Triangles( 3, 37, 36, 0, 2, 4, 34, 0),
+  gsSP2Triangles( 6, 10, 7, 0, 10, 42, 11, 0),
+  gsSP2Triangles( 11, 42, 41, 0, 7, 10, 11, 0),
+  gsSP2Triangles( 29, 11, 41, 0, 4, 2, 21, 0),
+  gsSP2Triangles( 21, 23, 4, 0, 24, 20, 3, 0),
+  gsSP2Triangles( 10, 1, 17, 0, 28, 16, 0, 0),
+  gsSP2Triangles( 6, 0, 1, 0, 21, 2, 0, 0),
+  gsSP2Triangles( 3, 20, 17, 0, 0, 2, 9, 0),
+  gsSP2Triangles( 9, 3, 1, 0, 4, 23, 24, 0),
+  gsSP2Triangles( 12, 6, 7, 0, 7, 29, 32, 0),
+  gsSP2Triangles( 36, 5, 3, 0, 3, 9, 37, 0),
+  gsSP2Triangles( 37, 2, 34, 0, 37, 9, 2, 0),
+  gsSP2Triangles( 5, 36, 35, 0, 4, 5, 35, 0),
+  gsSP2Triangles( 35, 34, 4, 0, 10, 39, 42, 0),
+  gsSP2Triangles( 29, 7, 11, 0, 19, 24, 25, 0),
+  gsSP2Triangles( 38, 39, 17, 0, 28, 26, 14, 0),
+  gsSP2Triangles( 26, 38, 15, 0, 21, 16, 14, 0),
+  gsSP2Triangles( 19, 15, 17, 0, 33, 14, 15, 0),
+  gsSP2Triangles( 24, 22, 25, 0, 12, 13, 27, 0),
+  gsSP2Triangles( 12, 26, 28, 0, 27, 30, 32, 0),
+  gsSP2Triangles( 30, 31, 32, 0, 13, 31, 30, 0),
+  gsSP2Triangles( 13, 30, 27, 0, 19, 36, 37, 0),
+  gsSP2Triangles( 18, 34, 22, 0, 26, 27, 38, 0),
+  gsSP2Triangles( 38, 40, 42, 0, 40, 41, 42, 0),
+  gsSP2Triangles( 27, 40, 38, 0, 29, 41, 40, 0),
+  gsSP2Triangles( 22, 21, 18, 0, 21, 22, 23, 0),
+  gsSP2Triangles( 24, 19, 20, 0, 38, 17, 15, 0),
+  gsSP2Triangles( 28, 14, 16, 0, 26, 15, 14, 0),
+  gsSP2Triangles( 21, 14, 18, 0, 19, 17, 20, 0),
+  gsSP2Triangles( 14, 33, 18, 0, 33, 15, 19, 0),
+  gsSP2Triangles( 22, 24, 23, 0, 12, 27, 26, 0),
+  gsSP2Triangles( 27, 32, 29, 0, 36, 19, 25, 0),
+  gsSP2Triangles( 19, 37, 33, 0, 37, 34, 18, 0),
+  gsSP2Triangles( 37, 18, 33, 0, 25, 35, 36, 0),
+  gsSP2Triangles( 22, 35, 25, 0, 35, 22, 34, 0),
+  gsSP2Triangles( 38, 42, 39, 0, 29, 40, 27, 0),
+  gsSPEndDisplayList()
+};
+
 inline int isInside(float x, float y, float minX, float minY, float maxX, float maxY) {
   const int insideX = (x > minX) && (x < maxX);
   const int insideY = (y > minY) && (y < maxY);
@@ -348,6 +448,11 @@ void initStage00(int floorNumber)
 
   camera_x = player_x;
   camera_y = player_y;
+
+  isThereASpecialKey = 0;
+  key_x = player_x + 4;
+  key_y = player_y;
+  specialKeyType = SpecialKey_Blue;
 
   isWarping = 1;
   isWarpingOut = 0;
@@ -666,7 +771,6 @@ void makeDL00(void)
 
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
   guTranslate(&(dynamicp->targetTranslation), target_distance, 0.0f, 0.f);
@@ -711,6 +815,20 @@ void makeDL00(void)
   trail_geo[trail_geo_index + 1].v.ob[2] = (short)oz;
 
   gDPPipeSync(glistp++);
+
+  if (isThereASpecialKey) {
+    guTranslate(&(dynamicp->specialKeyTranslation), key_x, key_y, 0.0f);
+    guRotate(&dynamicp->specialKeyRotation, time * 0.0001f, 0.f, 0.f, 1.f);
+    guRotate(&dynamicp->specialKeyRotation2, 20.f, 1.f, 0.f, 0.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation2)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    gSPDisplayList(glistp++, key_dl);
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
 
   guScale(&(dynamicp->grandBulletScale), 0.1f, 0.1f, 0.1f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->grandBulletScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
@@ -935,9 +1053,21 @@ void updateGame00(void)
   getTextRequest(1)->cutoff = -1;
   getTextRequest(1)->typewriterTick = 0;
 
+  for (i = 0; i < NUMBER_OF_SPECIAL_KEYS; i++) {
+    keysBuff[i] = hasSpecialKey(i) ? 'K' : ' ';
+  }
+  keysBuff[NUMBER_OF_SPECIAL_KEYS] = '\0';
+  getTextRequest(2)->enable = 1;
+  getTextRequest(2)->text = keysBuff;
+  getTextRequest(2)->x = 8;
+  getTextRequest(2)->y = 24;
+  getTextRequest(2)->cutoff = -1;
+  getTextRequest(2)->typewriterTick = 0;
+
   if (isDialogueInProcess()) {
     getTextRequest(0)->enable = 0;
     getTextRequest(1)->enable = 0;
+    getTextRequest(2)->enable = 0;
   }
 
   tickTextRequests(deltaSeconds);
@@ -1143,7 +1273,19 @@ void updateGame00(void)
 
     newY = player_y;
   }
-  player_y = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newY));;
+  player_y = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newY));
+
+  if (isThereASpecialKey) {
+    float dx = (player_x - key_x);
+    float dy = (player_y - key_y);
+    dx = (dx * dx);
+    dy = (dy * dy);
+
+    if (dx + dy <= PLAYER_HIT_RADIUS_SQ) {
+      isThereASpecialKey = 0;
+      giveSpecialKey(specialKeyType);
+    }
+  }
 
   // Lerp the camera
   camera_x = lerp(camera_x, player_x, CAMERA_LERP);

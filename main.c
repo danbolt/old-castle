@@ -57,6 +57,8 @@ void mainproc(void)
 
   unClearAllRooms();
 
+  initalizeSpecialKeysState();
+
   // TODO: have this begin when the player "starts a new game"
   nextRoomRequest = NO_PREVIOUS_FLOOR;
   currentFloor = 0;

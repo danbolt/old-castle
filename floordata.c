@@ -9,6 +9,8 @@ s8 exitMap[NUMBER_OF_FLOORS][EXIT_COUNT];
 
 s8 roomsCleared[NUMBER_OF_FLOORS][MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
+u8 playerHasSpecialKey[NUMBER_OF_SPECIAL_KEYS];
+
 void initializeSeeds() {
 	int i;
 
@@ -92,4 +94,32 @@ int hasRoomBeenCleared(int floor, int roomIndex) {
 
 void clearRoom(int floor, int roomIndex) {
 	roomsCleared[floor][roomIndex] = 1;
+}
+
+void initalizeSpecialKeysState() {
+	int i;
+
+	for (i = 0; i < NUMBER_OF_SPECIAL_KEYS; i++) {
+		playerHasSpecialKey[i] = 0;
+	}
+}
+
+int hasSpecialKey(SpecialKeyType specialKey) {
+	int casted = (int)(specialKey);
+
+	if ((casted < 0) || (casted >= NUMBER_OF_SPECIAL_KEYS)) {
+		return 0;
+	}
+
+	return playerHasSpecialKey[casted];
+}
+
+void giveSpecialKey(SpecialKeyType specialKey) {
+	int casted = (int)(specialKey);
+
+	if ((casted < 0) || (casted >= NUMBER_OF_SPECIAL_KEYS)) {
+		return;
+	}
+
+	playerHasSpecialKey[casted] = 1;
 }

@@ -68,6 +68,10 @@ typedef struct {
   Mtx roomEntityMatricies[8];
 
   Mtx roomRenderScale;
+
+  Mtx specialKeyTranslation;
+  Mtx specialKeyRotation;
+  Mtx specialKeyRotation2;
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/
