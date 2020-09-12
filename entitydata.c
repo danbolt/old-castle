@@ -12,6 +12,10 @@
 #define EMITTER_RADIUS_SQ (EMITTER_RADIUS * EMITTER_RADIUS)
 #define BULLET_FADEOUT_TIME 0.4f
 
+#define BULLET_DEAD 0
+#define BULLET_ALIVE 1
+#define BULLET_ALIVE_NO_ABSORB 2
+
 #define EMITTER_DEAD 0
 #define EMITTER_AIM 1
 #define EMITTER_SPIN 2
@@ -137,9 +141,9 @@ static Vtx test_boss_hair_geo[] = {
   { -1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
   {  1,  -1, -1, 0, 0, 0, 0, 0, 0, 0xff },
 };
-
+  
 static Vtx bullet_geom[] =  {
-  {   0,    0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
+  {   0,    0, 0, 0, 0, 0, 0xa3, 0x56, 0xa6, 0xff },
 
   {   8,    8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   0,   10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
@@ -149,6 +153,19 @@ static Vtx bullet_geom[] =  {
   {   0,  -10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   8,   -8, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff },
   {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff }
+};
+
+static Vtx bullet_no_absorb_geom[] =  {
+  {   0,    0, 0, 0, 0, 0, 0x00, 0x00, 0x00, 0xff },
+
+  {   8,    8, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {   0,   10, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {  -8,    8, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  { -10,    0, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {  -8,   -8, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {   0,  -10, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {   8,   -8, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
+  {   10,   0, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff }
 };
 
 static Vtx bomb_effect[] = {
@@ -458,7 +475,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
         break;
       }
 
-      setBulletState(newBulletIndex, 1);
+      setBulletState(newBulletIndex, BULLET_ALIVE);
       bulletPosition = getBulletPosition(newBulletIndex);
       bulletVelocity = getBulletVelocity(newBulletIndex);
       bulletPosition->x = EmitterPositions[i].x;
@@ -591,7 +608,7 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		  continue;
 		}
 
-		if (*player_state == Holding) {
+		if ((*player_state == Holding) && (BulletStates[i] != BULLET_ALIVE_NO_ABSORB)) {
 		  dxSq = player_x - BulletPositions[i].x;
 		  dxSq = dxSq * dxSq;
 		  dySq = player_y - BulletPositions[i].y;
@@ -1183,7 +1200,7 @@ void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
 	    guTranslate(&(dynamicp->BulletMatricies[i]), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
 	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-	    gSPVertex(glistp++, bullet_geom, 9, 0);
+	    gSPVertex(glistp++, (BulletStates[i] == BULLET_ALIVE_NO_ABSORB) ? bullet_no_absorb_geom : bullet_geom, 9, 0);
       for(j = 1; j <= 8; j += 2) {
         gSP2Triangles(glistp++, 0, j, j + 1, 0, 0, j + 1, (j < 7) ? j + 2 : 1, 0);
       }
