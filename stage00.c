@@ -526,6 +526,8 @@ void initStage00(int floorNumber)
   player_sword_angle = 0.f;
   player_bullets_collected = 0;
   bomb_count = 3;
+  isThereASpecialLock = 0;
+  isThereASpecialKey = 0;
 
   trail_geo_index = 0;
 
@@ -546,6 +548,15 @@ void initStage00(int floorNumber)
   // TODO: create a variable for this to change
   numberOfGeneratedRooms = initMap(rooms, &(roomSeeds[floorNumber]), floorNumber);
   initEnemiesForMap(rooms);
+
+  for (i = 0; i < numberOfGeneratedRooms; i++) {
+    if (rooms[i].type == LockRoom) {
+      lockType = rooms[i].lockIndex;
+      lock_x = (rooms[i].x + (rooms[i].width / 2)) * TILE_SIZE;
+      lock_y = (rooms[i].y + (rooms[i].height / 2)) * TILE_SIZE;
+      isThereASpecialLock = 1;
+    }
+  }
 
   if (previousFloor == NO_PREVIOUS_FLOOR) {
     // If we have no previous floor, let's simply place ourself in the lobby
@@ -570,11 +581,6 @@ void initStage00(int floorNumber)
   key_x = player_x + 4;
   key_y = player_y + 2;
   specialKeyType = SpecialKey_Purple;
-
-  isThereASpecialLock = 1;
-  lock_x = player_x;
-  lock_y = player_y - 8;
-  lockType = SpecialKey_Purple;
 
   isWarping = 1;
   isWarpingOut = 0;

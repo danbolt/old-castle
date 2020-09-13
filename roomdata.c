@@ -5,6 +5,7 @@
 #include "EntityData.h"
 #include "game_math.h"
 #include "graphic.h"
+#include "FloorData.h"
 
 #define WARP_EPSILON 0.001f
 
@@ -218,7 +219,8 @@ int generateBasementStyleFloor(GeneratedRoom* rooms) {
   rooms[2].y = 1;
   rooms[2].width = 4;
   rooms[2].height = 2;
-  rooms[2].type = HallwayRoom;
+  rooms[2].type = LockRoom;
+  rooms[2].lockIndex = SpecialKey_Purple;
 
 	fillInRooms(rooms, 3);
 
@@ -1492,6 +1494,7 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     rooms[i].stairsDirectionIndex = NO_STAIRS_DIRECTION;
+    rooms[i].lockIndex = -1;
   }
 
   //TODO: Turn the floor numbers from magic numbers into #define constants

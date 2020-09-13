@@ -45,6 +45,7 @@ typedef enum {
   NoRoom, // The void
   HallwayRoom, // A room that's more of a hallawy to another room
   BossARoom, // The room for boss A
+  LockRoom
 } RoomType;
 
 #define NO_STAIRS_DIRECTION -1
@@ -59,6 +60,8 @@ typedef struct {
 
   Vtx verts[ROOM_VERT_BUFFER_SIZE];
   Gfx commands[ROOM_COMMAND_BUFFER_SIZE];
+
+  s8 lockIndex;
 } GeneratedRoom;
 
 int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
