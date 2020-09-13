@@ -21,6 +21,9 @@
 
 #define WARP_IN_TIME_IN_SECONDS 2.34222f
 
+#define LOCK_RADIUS 4.5f
+#define LOCK_RADIUS_SQ (LOCK_RADIUS * LOCK_RADIUS)
+
 static float player_x;
 static float player_y;
 static float player_jump_x;
@@ -56,7 +59,7 @@ char bulletBuff[64];
 char keysBuff[NUMBER_OF_SPECIAL_KEYS + 1];
 
 char keyMessageBuffer[128];
-DialogueLine gotKeyLine = { keyMessageBuffer, NULL };
+DialogueLine keyLockLine = { keyMessageBuffer, NULL };
 
 int isWarping;
 int isWarpingOut;
@@ -66,6 +69,11 @@ SpecialKeyType specialKeyType;
 float key_x;
 float key_y;
 u8 isThereASpecialKey;
+
+SpecialKeyType lockType;
+float lock_x;
+float lock_y;
+u8 isThereASpecialLock;
 
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
@@ -384,6 +392,112 @@ static Gfx key_dl[] = {
   gsSPEndDisplayList()
 };
 
+static Vtx lock_geom[] = {
+{ 89, -52, 71, 0, 0, 0, 255, 255, 255, 255 },
+{ 112, -89, -71, 0, 0, 0, 1, 1, 1, 255 },
+{ 94, -87, 0, 0, 0, 0, 120, 120, 120, 255 },
+{ 58, -113, -61, 0, 0, 0, 97, 97, 97, 255 },
+{ 39, -76, 73, 0, 0, 0, 255, 255, 255, 255 },
+{ 50, -100, 0, 0, 0, 0, 193, 193, 193, 255 },
+{ 100, -56, 0, 0, 0, 0, 194, 194, 194, 255 },
+{ -89, -52, 71, 0, 0, 0, 255, 255, 255, 255 },
+{ -112, -89, -71, 0, 0, 0, 1, 1, 1, 255 },
+{ 0, -100, 100, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, -119, -104, 0, 0, 0, 4, 4, 4, 255 },
+{ -94, -87, 0, 0, 0, 0, 120, 120, 120, 255 },
+{ -58, -113, -61, 0, 0, 0, 97, 97, 97, 255 },
+{ -39, -76, 73, 0, 0, 0, 255, 255, 255, 255 },
+{ -50, -100, 0, 0, 0, 0, 187, 187, 187, 255 },
+{ 0, -124, -49, 0, 0, 0, 97, 97, 97, 255 },
+{ 0, -100, 50, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, -26, 3, 0, 0, 0, 0, 0, 0, 255 },
+{ -100, -56, 0, 0, 0, 0, 192, 192, 192, 255 },
+{ 89, 52, 71, 0, 0, 0, 255, 255, 255, 255 },
+{ 112, 89, -71, 0, 0, 0, 1, 1, 1, 255 },
+{ 125, 0, -104, 0, 0, 0, 108, 108, 108, 255 },
+{ 100, 0, 100, 0, 0, 0, 255, 255, 255, 255 },
+{ 94, 87, 0, 0, 0, 0, 120, 120, 120, 255 },
+{ 58, 113, -61, 0, 0, 0, 97, 97, 97, 255 },
+{ 39, 76, 73, 0, 0, 0, 190, 190, 190, 255 },
+{ 50, 100, 0, 0, 0, 0, 194, 194, 194, 255 },
+{ 100, 0, 51, 0, 0, 0, 255, 255, 255, 255 },
+{ 124, 0, -51, 0, 0, 0, 138, 138, 138, 255 },
+{ 100, 56, 0, 0, 0, 0, 192, 192, 192, 255 },
+{ 50, 0, -2, 0, 0, 0, 0, 0, 0, 255 },
+{ -89, 52, 71, 0, 0, 0, 255, 255, 255, 255 },
+{ -112, 89, -71, 0, 0, 0, 1, 1, 1, 255 },
+{ 0, 0, 100, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, 0, -100, 0, 0, 0, 16, 16, 16, 255 },
+{ -125, 0, -104, 0, 0, 0, 108, 108, 108, 255 },
+{ -100, 0, 100, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, 100, 100, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, 119, -104, 0, 0, 0, 4, 4, 4, 255 },
+{ -94, 87, 0, 0, 0, 0, 189, 189, 189, 255 },
+{ -58, 113, -61, 0, 0, 0, 97, 97, 97, 255 },
+{ -39, 76, 73, 0, 0, 0, 255, 255, 255, 255 },
+{ -50, 100, 0, 0, 0, 0, 194, 194, 194, 255 },
+{ 0, 124, -49, 0, 0, 0, 97, 97, 97, 255 },
+{ 0, 100, 50, 0, 0, 0, 255, 255, 255, 255 },
+{ 0, 26, 3, 0, 0, 0, 0, 0, 0, 255 },
+{ -100, 0, 51, 0, 0, 0, 255, 255, 255, 255 },
+{ -124, 0, -51, 0, 0, 0, 138, 138, 138, 255 },
+{ -100, 56, 0, 0, 0, 0, 150, 150, 150, 255 },
+{ -50, 0, -2, 0, 0, 0, 12, 12, 12, 255 },
+};
+
+static Gfx lock_dl[] = {
+  gsSPVertex( lock_geom, 50, 0),
+  gsSP2Triangles(0, 6, 27, 0, 1, 3, 21, 0),
+  gsSP2Triangles(10, 21, 3, 0, 22, 9, 4, 0),
+  gsSP2Triangles(5, 3, 2, 0, 1, 2, 3, 0),
+  gsSP2Triangles(5, 2, 4, 0, 10, 5, 15, 0),
+  gsSP2Triangles(0, 22, 4, 0, 2, 0, 4, 0),
+  gsSP2Triangles(16, 4, 9, 0, 5, 16, 17, 0),
+  gsSP2Triangles(15, 5, 17, 0, 1, 21, 28, 0),
+  gsSP2Triangles(2, 28, 6, 0, 22, 0, 27, 0),
+  gsSP2Triangles(27, 6, 30, 0, 6, 28, 30, 0),
+  gsSP2Triangles(7, 18, 11, 0, 8, 35, 12, 0),
+  gsSP2Triangles(10, 35, 34, 0, 36, 9, 33, 0),
+  gsSP2Triangles(14, 11, 12, 0, 8, 12, 11, 0),
+  gsSP2Triangles(14, 13, 11, 0, 10, 14, 12, 0),
+  gsSP2Triangles(7, 13, 36, 0, 11, 13, 7, 0),
+  gsSP2Triangles(16, 13, 14, 0, 14, 17, 16, 0),
+  gsSP2Triangles(15, 17, 14, 0, 8, 47, 35, 0),
+  gsSP2Triangles(11, 47, 8, 0, 36, 46, 7, 0),
+  gsSP2Triangles(46, 49, 18, 0, 18, 49, 47, 0),
+  gsSP2Triangles(19, 29, 23, 0, 20, 21, 24, 0),
+  gsSP2Triangles(38, 21, 34, 0, 22, 37, 33, 0),
+  gsSP2Triangles(26, 23, 24, 0, 20, 24, 23, 0),
+  gsSP2Triangles(26, 25, 23, 0, 38, 26, 24, 0),
+  gsSP2Triangles(19, 25, 22, 0, 23, 25, 19, 0),
+  gsSP2Triangles(44, 25, 26, 0, 26, 45, 44, 0),
+  gsSP2Triangles(43, 45, 26, 0, 20, 28, 21, 0),
+  gsSP2Triangles(23, 28, 20, 0, 22, 27, 19, 0),
+  gsSP2Triangles(27, 30, 29, 0, 29, 30, 28, 0),
+  gsSP2Triangles(31, 48, 46, 0, 32, 40, 35, 0),
+  gsSP2Triangles(38, 35, 40, 0, 36, 37, 41, 0),
+  gsSP2Triangles(42, 40, 39, 0, 32, 39, 40, 0),
+  gsSP2Triangles(42, 39, 41, 0, 38, 42, 43, 0),
+  gsSP2Triangles(31, 36, 41, 0, 39, 31, 41, 0),
+  gsSP2Triangles(44, 41, 37, 0, 42, 44, 45, 0),
+  gsSP2Triangles(43, 42, 45, 0, 32, 35, 47, 0),
+  gsSP2Triangles(39, 47, 48, 0, 36, 31, 46, 0),
+  gsSP2Triangles(46, 48, 49, 0, 48, 47, 49, 0),
+  gsSP2Triangles(0, 2, 6, 0, 10, 34, 21, 0),
+  gsSP2Triangles(22, 33, 9, 0, 10, 3, 5, 0),
+  gsSP2Triangles(16, 5, 4, 0, 2, 1, 28, 0),
+  gsSP2Triangles(7, 46, 18, 0, 10, 12, 35, 0),
+  gsSP2Triangles(36, 13, 9, 0, 10, 15, 14, 0),
+  gsSP2Triangles(16, 9, 13, 0, 11, 18, 47, 0),
+  gsSP2Triangles(19, 27, 29, 0, 38, 24, 21, 0),
+  gsSP2Triangles(22, 25, 37, 0, 38, 43, 26, 0),
+  gsSP2Triangles(44, 37, 25, 0, 23, 29, 28, 0),
+  gsSP2Triangles(31, 39, 48, 0, 38, 34, 35, 0),
+  gsSP2Triangles(36, 33, 37, 0, 38, 40, 42, 0),
+  gsSP2Triangles(44, 42, 41, 0, 39, 32, 47, 0),
+  gsSPEndDisplayList()
+};
+
 inline int isInside(float x, float y, float minX, float minY, float maxX, float maxY) {
   const int insideX = (x > minX) && (x < maxX);
   const int insideY = (y > minY) && (y < maxY);
@@ -454,8 +568,13 @@ void initStage00(int floorNumber)
 
   isThereASpecialKey = 1;
   key_x = player_x + 4;
-  key_y = player_y;
+  key_y = player_y + 2;
   specialKeyType = SpecialKey_Purple;
+
+  isThereASpecialLock = 1;
+  lock_x = player_x;
+  lock_y = player_y - 8;
+  lockType = SpecialKey_Purple;
 
   isWarping = 1;
   isWarpingOut = 0;
@@ -836,6 +955,26 @@ void makeDL00(void)
     gDPPipeSync(glistp++);
 
     gSPDisplayList(glistp++, key_dl);
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
+    gDPPipeSync(glistp++);
+  }
+
+  if (isThereASpecialLock && (!isWarping) && (fabs_d(lock_x - player_x) < 30 && fabs_d(lock_y - player_y) < 30)) {
+    KeyColor* lockColor = getKeyColor(lockType);
+
+    guTranslate(&(dynamicp->specialLockTranslation), lock_x, lock_y, 2.0f);
+    guScale(&(dynamicp->specialLockScale), 0.04f, 0.04f, 0.04f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    gDPSetEnvColor(glistp++, 255 - lockColor->r, 255 - lockColor->g, 255 - lockColor->b, 255);
+    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
+
+    gDPPipeSync(glistp++);
+
+    gSPDisplayList(glistp++, lock_dl);
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 
     gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
@@ -1293,12 +1432,32 @@ void updateGame00(void)
     dx = (dx * dx);
     dy = (dy * dy);
 
-    if (dx + dy <= PLAYER_HIT_RADIUS_SQ) {
+    if ((dx + dy) <= PLAYER_HIT_RADIUS_SQ) {
       isThereASpecialKey = 0;
       giveSpecialKey(specialKeyType);
 
       sprintf(keyMessageBuffer, "\n\n\n      Got a %s\n      Key of %s.", getKeyAdjective(specialKeyType), getKeyName(specialKeyType));
-      setDialogue(&gotKeyLine);
+      setDialogue(&keyLockLine);
+    }
+  }
+
+  if (isThereASpecialLock) {
+    float dx = (lock_x - player_x);
+    float dy = (lock_y - player_y);
+    float dxSq = (dx * dx);
+    float dySq = (dy * dy);
+
+    if ((dxSq + dySq) <= LOCK_RADIUS_SQ) {
+      if (hasSpecialKey(lockType)) {
+        isThereASpecialLock = 0;
+      } else {
+        float pushbackAngle = nu_atan2(dy, dx);
+        player_x = lock_x - cosf(pushbackAngle) * (LOCK_RADIUS + 0.2f);
+        player_y = lock_y - sinf(pushbackAngle) * (LOCK_RADIUS + 0.2f);
+
+        sprintf(keyMessageBuffer, "\n\n\n It looks like a \n\n  %s Lock of %s\n\n blocks the way.", getKeyAdjective(lockType), getKeyName(lockType));
+        setDialogue(&keyLockLine);
+      }
     }
   }
 

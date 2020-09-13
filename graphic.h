@@ -72,6 +72,10 @@ typedef struct {
   Mtx specialKeyTranslation;
   Mtx specialKeyRotation;
   Mtx specialKeyRotation2;
+
+  Mtx specialLockTranslation;
+  Mtx specialLockScale;
+
 } Dynamic;
 
 /*-------------------------------- parameter---------------------------------*/
