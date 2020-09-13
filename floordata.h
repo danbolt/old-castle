@@ -25,7 +25,7 @@ typedef enum {
   SpecialKey_Purple = 3,
   SpecialKey_White = 4,
   SpecialKey_Black = 5,
-  SpecialKey_Grey = 6,
+  SpecialKey_Yellow = 6,
   SpecialKey_Pink = 7,
   SpecialKey_Turquoise = 8,
   SpecialKey_Orange = 9,
@@ -48,5 +48,15 @@ void clearRoom(int floor, int roomIndex);
 void initalizeSpecialKeysState();
 int hasSpecialKey(SpecialKeyType specialKey);
 void giveSpecialKey(SpecialKeyType specialKey);
+
+typedef struct {
+	u8 r;
+	u8 g;
+	u8 b;
+} KeyColor;
+KeyColor* getKeyColor(SpecialKeyType specialKey);
+
+const char* getKeyAdjective(SpecialKeyType specialKey);
+const char* getKeyName(SpecialKeyType specialKey);
 
 #endif

@@ -55,6 +55,9 @@ char testStringBuf[64];
 char bulletBuff[64];
 char keysBuff[NUMBER_OF_SPECIAL_KEYS + 1];
 
+char keyMessageBuffer[128];
+DialogueLine gotKeyLine = { keyMessageBuffer, NULL };
+
 int isWarping;
 int isWarpingOut;
 float warpDelta;
@@ -449,10 +452,10 @@ void initStage00(int floorNumber)
   camera_x = player_x;
   camera_y = player_y;
 
-  isThereASpecialKey = 0;
+  isThereASpecialKey = 1;
   key_x = player_x + 4;
   key_y = player_y;
-  specialKeyType = SpecialKey_Blue;
+  specialKeyType = SpecialKey_Purple;
 
   isWarping = 1;
   isWarpingOut = 0;
@@ -816,7 +819,9 @@ void makeDL00(void)
 
   gDPPipeSync(glistp++);
 
-  if (isThereASpecialKey) {
+  if (isThereASpecialKey && (!isWarping) && (fabs_d(key_x - player_x) < 30 && fabs_d(key_y - player_y) < 30)) {
+    KeyColor* keyColor = getKeyColor(specialKeyType);
+
     guTranslate(&(dynamicp->specialKeyTranslation), key_x, key_y, 0.0f);
     guRotate(&dynamicp->specialKeyRotation, time * 0.0001f, 0.f, 0.f, 1.f);
     guRotate(&dynamicp->specialKeyRotation2, 20.f, 1.f, 0.f, 0.f);
@@ -825,9 +830,16 @@ void makeDL00(void)
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-    gSPDisplayList(glistp++, key_dl);
+    gDPSetEnvColor(glistp++, 255 - keyColor->r, 255 - keyColor->g, 255 - keyColor->b, 255);
+    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
 
+    gDPPipeSync(glistp++);
+
+    gSPDisplayList(glistp++, key_dl);
     gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
+    gDPPipeSync(glistp++);
   }
 
   guScale(&(dynamicp->grandBulletScale), 0.1f, 0.1f, 0.1f);
@@ -1284,6 +1296,9 @@ void updateGame00(void)
     if (dx + dy <= PLAYER_HIT_RADIUS_SQ) {
       isThereASpecialKey = 0;
       giveSpecialKey(specialKeyType);
+
+      sprintf(keyMessageBuffer, "\n\n\n      Got a %s\n      Key of %s.", getKeyAdjective(specialKeyType), getKeyName(specialKeyType));
+      setDialogue(&gotKeyLine);
     }
   }
 

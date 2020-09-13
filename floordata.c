@@ -11,6 +11,25 @@ s8 roomsCleared[NUMBER_OF_FLOORS][MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
 u8 playerHasSpecialKey[NUMBER_OF_SPECIAL_KEYS];
 
+KeyColor colorMappng[] = {
+	{ 212, 0, 0 },
+	{ 0, 0, 212 },
+	{ 0, 212, 0 },
+	{ 152, 66, 245 },
+	{ 255, 255, 255 },
+	{ 50, 50, 50 },
+	{ 255, 255, 0 },
+	{ 250, 145, 175 },
+	{ 81, 109, 219 },
+	{ 255, 98, 0 },
+	{ 66, 37, 6 },
+	{ 176, 136, 42 },
+	{ 125, 19, 0 },
+	{ 41, 242, 162 },
+	{ 255, 0, 255 },
+	{ 0, 9, 112 }
+};
+
 void initializeSeeds() {
 	int i;
 
@@ -122,4 +141,58 @@ void giveSpecialKey(SpecialKeyType specialKey) {
 	}
 
 	playerHasSpecialKey[casted] = 1;
+}
+
+KeyColor* getKeyColor(SpecialKeyType specialKey) {
+	int casted = (int)(specialKey);
+
+	if ((casted < 0) || (casted >= NUMBER_OF_SPECIAL_KEYS)) {
+		return NULL;
+	}
+
+	return &(colorMappng[casted]);
+}
+
+const char* getKeyAdjective(SpecialKeyType specialKey) {
+	switch (specialKey) {
+		case SpecialKey_Red: return "Gauche"; 
+		case SpecialKey_Blue: return "Milquetoast"; 
+		case SpecialKey_Green: return "Uneasy"; 
+		case SpecialKey_Purple: return "Brainless"; 
+		case SpecialKey_White: return "Dull"; 
+		case SpecialKey_Black: return "Wisful"; 
+		case SpecialKey_Yellow: return "Daring"; 
+		case SpecialKey_Pink: return "Unlovable"; 
+		case SpecialKey_Turquoise: return "Infantile"; 
+		case SpecialKey_Orange: return "Giving"; 
+		case SpecialKey_Brown: return "Dejected"; 
+		case SpecialKey_Gold: return "Exhausted"; 
+		case SpecialKey_Maroon: return "Ardent"; 
+		case SpecialKey_Teal: return "Careful"; 
+		case SpecialKey_Magenta: return "Unsatisfying"; 
+		case SpecialKey_NavyBlue: return "Normal"; 
+		default: return "BADPREFIX";
+	}
+}
+
+const char* getKeyName(SpecialKeyType specialKey) {
+	switch (specialKey) {
+		case SpecialKey_Red: return "Blood"; 
+		case SpecialKey_Blue: return "Rainfall"; 
+		case SpecialKey_Green: return "Respite"; 
+		case SpecialKey_Purple: return "Grandeur"; 
+		case SpecialKey_White: return "Blindness"; 
+		case SpecialKey_Black: return "Angrogyny"; 
+		case SpecialKey_Yellow: return "Stares"; 
+		case SpecialKey_Pink: return "Honesty"; 
+		case SpecialKey_Turquoise: return "Nostalgia"; 
+		case SpecialKey_Orange: return "Naivety"; 
+		case SpecialKey_Brown: return "Earnesty"; 
+		case SpecialKey_Gold: return "Arrogance"; 
+		case SpecialKey_Maroon: return "Stupidity"; 
+		case SpecialKey_Teal: return "Heartlessness"; 
+		case SpecialKey_Magenta: return "Emptyness"; 
+		case SpecialKey_NavyBlue: return "Navy Blue"; 
+		default: return "BADNAME";
+	}
 }
