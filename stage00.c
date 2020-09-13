@@ -78,6 +78,8 @@ u8 isThereASpecialLock;
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
 
+int frameBufferEmulationCheck[2];
+
 extern u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
 static Vtx jump_target_geom[] =  {
@@ -541,6 +543,8 @@ void initStage00(int floorNumber)
   camera_rotation = M_PI;
   player_rotation = -M_PI_2;
 
+  frameBufferEmulationCheck[1] = 0;
+
   resetTextRequests();
 
   initializeEntityData();
@@ -779,6 +783,20 @@ void makeDL00(void)
 
   /* Perspective normal value; I don't know what this does yet. */
   u16 perspNorm;
+
+  // On the first 2 display lists, we check if we're running in an emulator by checking D-cache/FB information
+  // TODO: cold-run this in a different scene before setup
+  if (frameBufferEmulationCheck[1] == 0) {
+    *((u8*)(0x8038F800)) = 255;
+    osInvalDCache((void*)0x8038F800, 1);
+    frameBufferEmulationCheck[1] = 1;
+  } else if (frameBufferEmulationCheck[1] == 1) {
+    if (*((u8*)(0x8038F800)) == 255) {
+      frameBufferEmulationCheck[1] = 32;
+    } else {
+      frameBufferEmulationCheck[1] = 101;
+    }
+  }
 
   nuDebPerfMarkSet(2);
 
