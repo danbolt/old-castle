@@ -198,7 +198,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
   return 14;
 }
 
-int generateBasementStyleFloor(GeneratedRoom* rooms) {
+int generateBasementStyleFloor(GeneratedRoom* rooms, int floorNumber) {
 	int i;
 
 	rooms[0].x = 1;
@@ -220,7 +220,15 @@ int generateBasementStyleFloor(GeneratedRoom* rooms) {
   rooms[2].width = 4;
   rooms[2].height = 2;
   rooms[2].type = LockRoom;
-  rooms[2].lockIndex = SpecialKey_Purple;
+  if (floorNumber == 1) {
+    rooms[2].lockIndex = SpecialKey_Red;
+  } else if (floorNumber == 4) {
+    rooms[2].lockIndex = SpecialKey_Blue;
+  } else if (floorNumber == 7) {
+    rooms[2].lockIndex = SpecialKey_Green;
+  } else if (floorNumber == 10) {
+    rooms[2].lockIndex = SpecialKey_Purple;
+  }
 
 	fillInRooms(rooms, 3);
 
@@ -1502,7 +1510,7 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   	numberOfGeneratedRooms = generateFloorInStyleA(rooms);
     createFoyerDisplayData(rooms, numberOfGeneratedRooms);
   } else {
-  	numberOfGeneratedRooms = generateBasementStyleFloor(rooms);
+  	numberOfGeneratedRooms = generateBasementStyleFloor(rooms, floorNumber);
     createGenericDisplayData(rooms, numberOfGeneratedRooms);
   }
 

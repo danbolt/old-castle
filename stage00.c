@@ -577,10 +577,12 @@ void initStage00(int floorNumber)
   camera_x = player_x;
   camera_y = player_y;
 
-  isThereASpecialKey = 1;
-  key_x = player_x + 4;
-  key_y = player_y + 2;
-  specialKeyType = SpecialKey_Purple;
+  if (currentFloor == 0) {
+    isThereASpecialKey = 1;
+    key_x = player_x + 4;
+    key_y = player_y + 2;
+    specialKeyType = SpecialKey_Red;
+  }
 
   isWarping = 1;
   isWarpingOut = 0;
