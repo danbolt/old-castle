@@ -755,6 +755,8 @@ void renderRestRoom(GeneratedRoom* room, Dynamic* dynamicp) {
 void renderForRooms(Dynamic* dynamicp) {
   int i;
 
+  gDPPipeSync(glistp++);
+
   guScale(&(dynamicp->roomRenderScale), 0.01f, 0.01f, 0.01f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomRenderScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
@@ -798,7 +800,7 @@ void makeDL00(void)
     }
   }
 
-  nuDebPerfMarkSet(2);
+  //nuDebPerfMarkSet(2);
 
   /* Specify the display list buffer */
   dynamicp = &gfx_dynamic[gfx_gtask_no];
@@ -821,20 +823,86 @@ void makeDL00(void)
 
   gDPPipeSync(glistp++);
   gDPSetCycleType(glistp++, G_CYC_1CYCLE);
-  gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
+  gDPSetRenderMode(glistp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
   gSPClearGeometryMode(glistp++, 0xFFFFFFFF);
   gDPPipelineMode(glistp++, G_PM_NPRIMITIVE);
-  gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+  gSPSetGeometryMode(glistp++,  G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
 
   if (isWarping) {
-    if (isWarpingOut) {
-      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
-    } else {
-      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
-    }
     gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
                                 SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
+    if (isWarpingOut) {
+      renderForRooms(dynamicp);
+      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
+    } else {
+      renderForRooms(dynamicp);
+      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
+    }
+  } else {
+    renderForRooms(dynamicp);
   }
+
+  guScale(&(dynamicp->grandBulletScale), 0.1f, 0.1f, 0.1f);
+  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->grandBulletScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
+
+  // Render Bullets
+  renderBullets(player_x, player_y, dynamicp);
+
+  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+  // Render emitters
+  renderEmitters(player_x, player_y, &dynamicp->playerScale, dynamicp);
+
+  gDPPipeSync(glistp++);
+
+    gDPPipeSync(glistp++);
+
+  if (isThereASpecialKey && (!isWarping) && (fabs_d(key_x - player_x) < 30 && fabs_d(key_y - player_y) < 30)) {
+    KeyColor* keyColor = getKeyColor(specialKeyType);
+
+    guTranslate(&(dynamicp->specialKeyTranslation), key_x, key_y, 0.0f);
+    guRotate(&dynamicp->specialKeyRotation, time * 0.0001f, 0.f, 0.f, 1.f);
+    guRotate(&dynamicp->specialKeyRotation2, 20.f, 1.f, 0.f, 0.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation2)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    gDPSetEnvColor(glistp++, 255 - keyColor->r, 255 - keyColor->g, 255 - keyColor->b, 255);
+    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
+
+    gDPPipeSync(glistp++);
+
+    gSPDisplayList(glistp++, key_dl);
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
+    gDPPipeSync(glistp++);
+  }
+
+  if (isThereASpecialLock && (!isWarping) && (fabs_d(lock_x - player_x) < 30 && fabs_d(lock_y - player_y) < 30)) {
+    KeyColor* lockColor = getKeyColor(lockType);
+
+    guTranslate(&(dynamicp->specialLockTranslation), lock_x, lock_y, 2.0f);
+    guScale(&(dynamicp->specialLockScale), 0.04f, 0.04f, 0.04f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    gDPSetEnvColor(glistp++, 255 - lockColor->r, 255 - lockColor->g, 255 - lockColor->b, 255);
+    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
+
+    gDPPipeSync(glistp++);
+
+    gSPDisplayList(glistp++, lock_dl);
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+
+    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
+    gDPPipeSync(glistp++);
+  }
+
+  gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
+  gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+
 
   // Render Player
   guTranslate(&(dynamicp->playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
@@ -863,7 +931,7 @@ void makeDL00(void)
 
   addPlayerDisplayList();
 
-  nuDebPerfMarkSet(3);
+  //nuDebPerfMarkSet(3);
 
   // Determine sword display list
   guMtxIdent(&dynamicp->swordTranslation);
@@ -962,81 +1030,11 @@ void makeDL00(void)
   trail_geo[trail_geo_index + 1].v.ob[1] = (short)oy;
   trail_geo[trail_geo_index + 1].v.ob[2] = (short)oz;
 
-  gDPPipeSync(glistp++);
-
-  if (isThereASpecialKey && (!isWarping) && (fabs_d(key_x - player_x) < 30 && fabs_d(key_y - player_y) < 30)) {
-    KeyColor* keyColor = getKeyColor(specialKeyType);
-
-    guTranslate(&(dynamicp->specialKeyTranslation), key_x, key_y, 0.0f);
-    guRotate(&dynamicp->specialKeyRotation, time * 0.0001f, 0.f, 0.f, 1.f);
-    guRotate(&dynamicp->specialKeyRotation2, 20.f, 1.f, 0.f, 0.f);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation2)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialKeyRotation)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->playerScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-
-    gDPSetEnvColor(glistp++, 255 - keyColor->r, 255 - keyColor->g, 255 - keyColor->b, 255);
-    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
-
-    gDPPipeSync(glistp++);
-
-    gSPDisplayList(glistp++, key_dl);
-    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-
-    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
-    gDPPipeSync(glistp++);
-  }
-
-  if (isThereASpecialLock && (!isWarping) && (fabs_d(lock_x - player_x) < 30 && fabs_d(lock_y - player_y) < 30)) {
-    KeyColor* lockColor = getKeyColor(lockType);
-
-    guTranslate(&(dynamicp->specialLockTranslation), lock_x, lock_y, 2.0f);
-    guScale(&(dynamicp->specialLockScale), 0.04f, 0.04f, 0.04f);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->specialLockScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
-
-    gDPSetEnvColor(glistp++, 255 - lockColor->r, 255 - lockColor->g, 255 - lockColor->b, 255);
-    gDPSetCombineLERP(glistp++, SHADE, ENVIRONMENT, 0, 0, 0, 0, 0, 0, SHADE, ENVIRONMENT, SHADE, 0, 0, 0, 0, SHADE);
-
-    gDPPipeSync(glistp++);
-
-    gSPDisplayList(glistp++, lock_dl);
-    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-
-    gDPSetCombineMode(glistp++, G_CC_SHADE, G_CC_SHADE);
-    gDPPipeSync(glistp++);
-  }
-
-  guScale(&(dynamicp->grandBulletScale), 0.1f, 0.1f, 0.1f);
-  gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->grandBulletScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
-
-  // Render Bullets
-  renderBullets(player_x, player_y, dynamicp);
-
-  gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
-
-  // Render emitters
-  renderEmitters(player_x, player_y, &dynamicp->playerScale, dynamicp);
-
   renderBombEffect(player_x, player_y, dynamicp);
 
   renderBoss(dynamicp);
 
-  nuDebPerfMarkSet(4);
-
-  if (isWarping) {
-    gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
-                                SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
-    if (isWarpingOut) {
-      renderForRooms(dynamicp);
-      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
-    } else {
-      renderForRooms(dynamicp);
-      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
-    }
-  } else {
-    renderForRooms(dynamicp);
-  }
+  //nuDebPerfMarkSet(4);
 
   if (player_state == Jumping || player_state == Landed || player_state == Holding) {
     gSPVertex(glistp++, &(trail_geo[0]), 32, 0);
@@ -1063,7 +1061,7 @@ void makeDL00(void)
     }
   }
 
-  nuDebPerfMarkSet(5);
+  //nuDebPerfMarkSet(5);
 
   drawTextRequests();
 
@@ -1080,7 +1078,7 @@ void makeDL00(void)
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DEX2_REJ , NU_SC_NOSWAPBUFFER);
 
-  //nuDebTaskPerfBar1(1, 200, NU_SC_SWAPBUFFER);
+  nuDebTaskPerfBar1(1, 200, NU_SC_NOSWAPBUFFER);
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     // nuDebConTextPos(0,1,3 + i);
@@ -1212,7 +1210,7 @@ void updateGame00(void)
   time = newTime;
   deltaSeconds = delta * 0.000001f;
 
-  nuDebPerfMarkSet(0);
+  //nuDebPerfMarkSet(0);
 
   sprintf(testStringBuf, "found %d", player_bullets_collected);
   getTextRequest(0)->enable = 1;
@@ -1503,6 +1501,6 @@ void updateGame00(void)
 
   updateForRooms();
 
-  nuDebPerfMarkSet(1);
+  //nuDebPerfMarkSet(1);
   
 }
