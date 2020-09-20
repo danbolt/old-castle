@@ -28,6 +28,8 @@
 #define ROOM_PURIFIED_TEXT_ONSCREEN_DURATION 5.16161f
 const char* RoomPurifiedMessage = "Room Purified";
 
+#define BATTLE_MODE_TRANSITION_TIME 3.f
+
 static float player_x;
 static float player_y;
 static float player_jump_x;
@@ -43,6 +45,7 @@ float player_sword_angle;
 u8 player_bullets_collected;
 s8 currentPlayerRoom;
 u8 isInBattleMode;
+float battleModeTime;
 
 static float camera_rotation;
 static float player_rotation;
@@ -540,6 +543,7 @@ void initStage00(int floorNumber)
   isThereASpecialKey = 0;
   currentPlayerRoom = -1;
   isInBattleMode = 0;
+  battleModeTime = 0.f;
 
   trail_geo_index = 0;
 
@@ -772,13 +776,18 @@ void renderForRooms(Dynamic* dynamicp) {
   guScale(&(dynamicp->roomRenderScale), 0.01f, 0.01f, 0.01f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomRenderScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-  for (i = 0; i < numberOfGeneratedRooms; i++) {
-    GeneratedRoom* room = &(rooms[i]);
+  // TODO: Create a transition
+  if (isInBattleMode) {
+    gSPDisplayList(glistp++, rooms[currentPlayerRoom].battleModeCommands);
+  } else {
+    for (i = 0; i < numberOfGeneratedRooms; i++) {
+      GeneratedRoom* room = &(rooms[i]);
 
-    gSPDisplayList(glistp++, rooms[i].commands);
+      gSPDisplayList(glistp++, rooms[i].commands);
 
-    if (room->type == RestRoom) {
-      renderRestRoom(room, dynamicp);
+      if (room->type == RestRoom) {
+        renderRestRoom(room, dynamicp);
+      }
     }
   }
 
@@ -1112,9 +1121,9 @@ void makeDL00(void)
     sprintf(conbuf,"isInBattleMode=%3d", isInBattleMode);
     nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,6);
-  //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,6);
+    sprintf(conbuf,"battleModeTime=%5.2f", battleModeTime);
+    nuDebConCPuts(0, conbuf);
 
   //   nuDebConTextPos(0,1,8);
   //   sprintf(conbuf,"warpDelta=%5.2f", warpDelta);
@@ -1203,6 +1212,7 @@ void updateEnemyRoom(GeneratedRoom* room, int index) {
 
   if ((currentPlayerRoom == index) && (isInBattleMode == 0)) {
     isInBattleMode = 1;
+    battleModeTime = 0.f;
   }
 
   for (i = 0; i < room->numberOfEnemies; i++) {
@@ -1572,6 +1582,12 @@ void updateGame00(void)
   }
 
   updateForRooms();
+
+  if (isInBattleMode) {
+    battleModeTime = MIN(battleModeTime + deltaSeconds, BATTLE_MODE_TRANSITION_TIME);
+  } else {
+    battleModeTime = MAX(battleModeTime - deltaSeconds, 0.f);
+  }
 
   //nuDebPerfMarkSet(1);
   

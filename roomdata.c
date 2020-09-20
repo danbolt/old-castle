@@ -312,6 +312,22 @@ void darkenFloorTiles(GeneratedRoom* room, Vtx* vertexList, int x, int y) {
   }
 }
 
+void generateBattleModeRoomGeom(GeneratedRoom* room) {
+  Gfx* commandList = room->battleModeCommands;
+  Vtx* vertexList = room->battleModeVerts;
+
+  (*(vertexList++)) = (Vtx){ room->x * ROOM_VERT_DATA_SCALE * TILE_SIZE,                                (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x4f, 0x6f, 0x6f, 0xff };
+  (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE,                (room->y) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x4f, 0x6f, 0x6f, 0xff };
+  (*(vertexList++)) = (Vtx){ (room->x + room->width) * ROOM_VERT_DATA_SCALE * TILE_SIZE, (room->y + (room->height)) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x4f, 0x6f, 0x6f, 0xff };
+  (*(vertexList++)) = (Vtx){ room->x * ROOM_VERT_DATA_SCALE * TILE_SIZE,                 (room->y + (room->height)) * ROOM_VERT_DATA_SCALE * TILE_SIZE, -1 * ROOM_VERT_DATA_SCALE, 0, 0, 0, 0x4f, 0x6f, 0x6f, 0xff };
+
+  gSPClipRatio(commandList++, FRUSTRATIO_6);
+  gSPVertex(commandList++, room->battleModeVerts, 4, 0);
+  gSP2Triangles(commandList++, 0, 1, 2, 0, 0, 2, 3, 0);
+  gSPClipRatio(commandList++, FRUSTRATIO_2);
+  gSPEndDisplayList(commandList++);
+}
+
 void createGenericDisplayData(GeneratedRoom* rooms, int numberOfGeneratedRooms) {
   int i;
   int j;
@@ -1514,6 +1530,10 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   } else {
   	numberOfGeneratedRooms = generateBasementStyleFloor(rooms, floorNumber);
     createGenericDisplayData(rooms, numberOfGeneratedRooms);
+  }
+
+  for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+    generateBattleModeRoomGeom(&(rooms[i]));
   }
 
   return numberOfGeneratedRooms;

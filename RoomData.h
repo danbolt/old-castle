@@ -63,6 +63,9 @@ typedef struct {
   Vtx verts[ROOM_VERT_BUFFER_SIZE];
   Gfx commands[ROOM_COMMAND_BUFFER_SIZE];
 
+  Vtx battleModeVerts[8];
+  Gfx battleModeCommands[8];
+
   s8 lockIndex;
 
   u8 enemies[MAX_ENEMIES_PER_ROOM];
