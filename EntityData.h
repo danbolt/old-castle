@@ -40,6 +40,8 @@ void initializeEntityData();
 int generateAimEmitterEntity(float x, float y);
 int generateSpinEmitterEntity(float x, float y);
 
+int isEmitterAlive(int index);
+
 // We hard-enforce these to simplify hardcoded boss patterns
 #define BOSS_A_ROOM_WIDTH 20
 #define BOSS_A_ROOM_HEIGHT 14

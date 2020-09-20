@@ -24,6 +24,10 @@
 #define LOCK_RADIUS 4.5f
 #define LOCK_RADIUS_SQ (LOCK_RADIUS * LOCK_RADIUS)
 
+#define ROOM_PURIFIED_TEXT_INDEX 5
+#define ROOM_PURIFIED_TEXT_ONSCREEN_DURATION 5.16161f
+const char* RoomPurifiedMessage = "Room Purified";
+
 static float player_x;
 static float player_y;
 static float player_jump_x;
@@ -77,6 +81,8 @@ u8 isThereASpecialLock;
 
 GeneratedRoom rooms[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 int numberOfGeneratedRooms;
+
+float roomPurifiedTime;
 
 int frameBufferEmulationCheck[2];
 
@@ -542,6 +548,8 @@ void initStage00(int floorNumber)
 
   camera_rotation = M_PI;
   player_rotation = -M_PI_2;
+
+  roomPurifiedTime = 999.f;
 
   frameBufferEmulationCheck[1] = 0;
 
@@ -1078,7 +1086,7 @@ void makeDL00(void)
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
 		 NU_GFX_UCODE_F3DEX2_REJ , NU_SC_NOSWAPBUFFER);
 
-  nuDebTaskPerfBar1(1, 200, NU_SC_NOSWAPBUFFER);
+  // nuDebTaskPerfBar1(1, 200, NU_SC_NOSWAPBUFFER);
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     // nuDebConTextPos(0,1,3 + i);
@@ -1176,6 +1184,43 @@ void updateRestRoom(GeneratedRoom* room, int index) {
   }
 }
 
+void updateEnemyRoom(GeneratedRoom* room, int index) {
+  int i;
+  int hasClearedAllEnemies = 1;
+
+  if (hasRoomBeenCleared(currentFloor, index)) {
+    return;
+  }
+
+  if (room->numberOfEnemies == 0) {
+    clearRoom(currentFloor, index);
+    return;
+  }
+
+  for (i = 0; i < room->numberOfEnemies; i++) {
+    const int enemyIndex = room->enemies[i];
+    const int hasDefeatedEnemy = isEmitterAlive(enemyIndex);
+
+    if (hasDefeatedEnemy != 0) {
+      hasClearedAllEnemies = 0;
+    }
+  }
+
+  if (hasClearedAllEnemies) {
+    clearRoom(currentFloor, index);
+
+    roomPurifiedTime = 0.f;
+
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->enable = 1;
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->text = RoomPurifiedMessage;
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->x = (SCREEN_WD / 2) - ((13 * 8) / 2);
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->y = SCREEN_HT / 2 + 4;
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->cutoff = 0;
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->typewriterTick = 0;
+  }
+  
+}
+
 void updateForRooms() {
   int i;
 
@@ -1184,6 +1229,8 @@ void updateForRooms() {
 
     if (room->type == RestRoom) {
       updateRestRoom(room, i);
+    } else if (room->type == EnemyRoom) {
+      updateEnemyRoom(room, i);
     }
   }
 }
@@ -1497,6 +1544,11 @@ void updateGame00(void)
 
     // Update emitters position/velocity/life
     tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+  }
+
+  roomPurifiedTime += deltaSeconds;
+  if ((getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->enable == 1) && (roomPurifiedTime > ROOM_PURIFIED_TEXT_ONSCREEN_DURATION)) {
+    getTextRequest(ROOM_PURIFIED_TEXT_INDEX)->enable = 0;
   }
 
   updateForRooms();

@@ -325,6 +325,14 @@ int generateBossAArmEmitterEntity(float x, float y) {
   return newEmitterIndex;
 }
 
+int isEmitterAlive(int index) {
+  if ((index < 0) || (index >= EMITTER_COUNT)) {
+    return 0;
+  }
+
+  return EmitterStates[index];
+}
+
 int generateBossA(float x, float y) {
   int i;
 

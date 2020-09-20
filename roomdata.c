@@ -6,6 +6,7 @@
 #include "game_math.h"
 #include "graphic.h"
 #include "FloorData.h"
+#include "main.h"
 
 #define WARP_EPSILON 0.001f
 
@@ -1503,6 +1504,7 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     rooms[i].stairsDirectionIndex = NO_STAIRS_DIRECTION;
     rooms[i].lockIndex = -1;
+    rooms[i].numberOfEnemies = 0;
   }
 
   //TODO: Turn the floor numbers from magic numbers into #define constants
@@ -1522,10 +1524,14 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
 
   for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     if (rooms[i].type == EnemyRoom) {
-      generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
-      generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
-      generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
-      generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
+      if (hasRoomBeenCleared(currentFloor, i)) {
+        continue;
+      }
+
+      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
+      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
+      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
+      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
       
 
       // MapInfo[((rooms[i].y + 4) * MAP_SIZE) + (rooms[i].x + 3)] = LOW_WALL_TILE;

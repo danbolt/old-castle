@@ -37,6 +37,8 @@
 #define ROOM_MACRO_SCALE 0.01f
 #define ROOM_VERT_DATA_SCALE 100
 
+#define MAX_ENEMIES_PER_ROOM 16
+
 typedef enum {
   StartingRoom, // The room where the player spawns
   StaircaseRoom, // A room with a starcase to another floor
@@ -62,6 +64,9 @@ typedef struct {
   Gfx commands[ROOM_COMMAND_BUFFER_SIZE];
 
   s8 lockIndex;
+
+  u8 enemies[MAX_ENEMIES_PER_ROOM];
+  u8 numberOfEnemies;
 } GeneratedRoom;
 
 int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber);
