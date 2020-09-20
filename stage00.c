@@ -28,7 +28,7 @@
 #define ROOM_PURIFIED_TEXT_ONSCREEN_DURATION 5.16161f
 const char* RoomPurifiedMessage = "Room Purified";
 
-#define BATTLE_MODE_TRANSITION_TIME 3.f
+#define BATTLE_MODE_TRANSITION_TIME 1.1f
 
 static float player_x;
 static float player_y;
@@ -776,10 +776,14 @@ void renderForRooms(Dynamic* dynamicp) {
   guScale(&(dynamicp->roomRenderScale), 0.01f, 0.01f, 0.01f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomRenderScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-  // TODO: Create a transition
   if (isInBattleMode) {
     gSPDisplayList(glistp++, rooms[currentPlayerRoom].battleModeCommands);
-  } else {
+  }
+
+  if (!(isInBattleMode) || (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.0001f))) {
+    guTranslate(&(dynamicp->mainRoomsTranslation), 0.f, 0.f, cubic(battleModeTime / BATTLE_MODE_TRANSITION_TIME) * -20000.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->mainRoomsTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+
     for (i = 0; i < numberOfGeneratedRooms; i++) {
       GeneratedRoom* room = &(rooms[i]);
 
@@ -789,6 +793,8 @@ void renderForRooms(Dynamic* dynamicp) {
         renderRestRoom(room, dynamicp);
       }
     }
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
   }
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
@@ -844,10 +850,19 @@ void makeDL00(void)
 
   gDPPipeSync(glistp++);
   gDPSetCycleType(glistp++, G_CYC_1CYCLE);
-  gDPSetRenderMode(glistp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
+  if (!isInBattleMode || (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.0001f))) {
+    gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
+  } else {
+    gDPSetRenderMode(glistp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
+  }
   gSPClearGeometryMode(glistp++, 0xFFFFFFFF);
   gDPPipelineMode(glistp++, G_PM_NPRIMITIVE);
-  gSPSetGeometryMode(glistp++,  G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+
+  if (!isInBattleMode || (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.0001f))) {
+    gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+  } else {
+    gSPSetGeometryMode(glistp++, G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
+  }
 
   if (isWarping) {
     gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
@@ -923,7 +938,6 @@ void makeDL00(void)
 
   gDPSetRenderMode(glistp++, G_RM_ZB_OPA_SURF, G_RM_ZB_OPA_SURF2);
   gSPSetGeometryMode(glistp++, G_ZBUFFER | G_CULL_BACK | G_SHADE | G_SHADING_SMOOTH);
-
 
   // Render Player
   guTranslate(&(dynamicp->playerTranslation), player_x, player_y, ((player_state == Jumping) ? (sinf(player_t * M_PI) * 6.2f) : 0.f));
@@ -1573,7 +1587,9 @@ void updateGame00(void)
     tickBullets(player_x, player_y, &player_state, deltaSeconds, &player_t);
 
     // Update emitters position/velocity/life
-    tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+    if (isInBattleMode) {
+      tickEmitters(player_x, player_y, player_state, deltaSeconds, player_t);
+    }
   }
 
   roomPurifiedTime += deltaSeconds;

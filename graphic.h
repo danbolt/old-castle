@@ -69,6 +69,8 @@ typedef struct {
 
   Mtx roomRenderScale;
 
+  Mtx mainRoomsTranslation;
+
   Mtx specialKeyTranslation;
   Mtx specialKeyRotation;
   Mtx specialKeyRotation2;
