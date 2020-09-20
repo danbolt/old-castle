@@ -41,6 +41,8 @@ static int HIT_WALL_WHILE_JUMPING;
 u8 bomb_count;
 float player_sword_angle;
 u8 player_bullets_collected;
+s8 currentPlayerRoom;
+u8 isInBattleMode;
 
 static float camera_rotation;
 static float player_rotation;
@@ -536,6 +538,8 @@ void initStage00(int floorNumber)
   bomb_count = 3;
   isThereASpecialLock = 0;
   isThereASpecialKey = 0;
+  currentPlayerRoom = -1;
+  isInBattleMode = 0;
 
   trail_geo_index = 0;
 
@@ -1084,15 +1088,15 @@ void makeDL00(void)
      switch display buffers */
   nuGfxTaskStart(&gfx_glist[gfx_gtask_no][0],
 		 (s32)(glistp - gfx_glist[gfx_gtask_no]) * sizeof (Gfx),
-		 NU_GFX_UCODE_F3DEX2_REJ , NU_SC_NOSWAPBUFFER);
+		 NU_GFX_UCODE_F3DLX2_REJ , NU_SC_NOSWAPBUFFER);
 
   // nuDebTaskPerfBar1(1, 200, NU_SC_NOSWAPBUFFER);
 
-  for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
+  // for (i = 0; i < MAX_NUMBER_OF_ROOMS_PER_FLOOR; i++) {
     // nuDebConTextPos(0,1,3 + i);
     // sprintf(conbuf,"vb=%d / %d", vertBuffUsage[i], ROOM_VERT_BUFFER_SIZE);
     // nuDebConCPuts(0, conbuf);
-  }
+  // }
 
   // if(contPattern & 0x1)
   // {
@@ -1100,13 +1104,13 @@ void makeDL00(void)
   //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
   //   nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,4);
-  //   sprintf(conbuf,"time=%llu", time);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,4);
+    sprintf(conbuf,"current room = %3d", currentPlayerRoom);
+    nuDebConCPuts(0, conbuf);
 
-  //   nuDebConTextPos(0,1,5);
-  //   sprintf(conbuf,"delta=%llu", delta);
-  //   nuDebConCPuts(0, conbuf);
+    nuDebConTextPos(0,1,5);
+    sprintf(conbuf,"isInBattleMode=%3d", isInBattleMode);
+    nuDebConCPuts(0, conbuf);
 
   //   nuDebConTextPos(0,1,6);
   //   sprintf(conbuf,"deltaSeconds=%5.2f", deltaSeconds);
@@ -1197,6 +1201,10 @@ void updateEnemyRoom(GeneratedRoom* room, int index) {
     return;
   }
 
+  if ((currentPlayerRoom == index) && (isInBattleMode == 0)) {
+    isInBattleMode = 1;
+  }
+
   for (i = 0; i < room->numberOfEnemies; i++) {
     const int enemyIndex = room->enemies[i];
     const int hasDefeatedEnemy = isEmitterAlive(enemyIndex);
@@ -1208,6 +1216,7 @@ void updateEnemyRoom(GeneratedRoom* room, int index) {
 
   if (hasClearedAllEnemies) {
     clearRoom(currentFloor, index);
+    isInBattleMode = 0;
 
     roomPurifiedTime = 0.f;
 
@@ -1226,6 +1235,10 @@ void updateForRooms() {
 
   for (i = 0; i < numberOfGeneratedRooms; i++) {
     GeneratedRoom* room = &(rooms[i]);
+
+    if (isInsideRoom(player_x, player_y, room, 0.f)) {
+      currentPlayerRoom = i;
+    }
 
     if (room->type == RestRoom) {
       updateRestRoom(room, i);
@@ -1496,6 +1509,13 @@ void updateGame00(void)
     newY = player_y;
   }
   player_y = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newY));
+
+  // If we're in battle mode, don't let the player leave the room!
+  if (isInBattleMode && (currentPlayerRoom > -1)) {
+    GeneratedRoom* room = &(rooms[currentPlayerRoom]);
+    player_x = MIN(MAX( player_x, room->x * TILE_SIZE ), ((room->x + room->width) * TILE_SIZE));
+    player_y = MIN(MAX( player_y, room->y * TILE_SIZE ), ((room->y + room->height) * TILE_SIZE));
+  }
 
   if (isThereASpecialKey) {
     float dx = (player_x - key_x);
