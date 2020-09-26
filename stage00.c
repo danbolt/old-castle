@@ -867,6 +867,25 @@ void makeDL00(void)
   /* Clear the frame and Z-buffer */
   gfxClearCfb();
 
+  if (isInBattleMode || (battleModeTime > 0.01f)) {
+    const int offset = ((time / 50000) % 32) - 32;
+    const u8 r = 10 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
+    const u8 g = 32 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
+    const u8 b = 40 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
+
+    for (i = 0; i < (SCREEN_WD / 16) + 2; i++) {
+      for (j = 0; j < (SCREEN_HT / 16) + 2; j++) {
+        if ((i + j) % 2 != 0) {
+          continue;
+        }
+
+        gDPSetFillColor(glistp++, (GPACK_RGBA5551(r, g, b, 1) << 16 | GPACK_RGBA5551(r, g, b, 1)));
+        gDPScisFillRectangle(glistp++, (i << 4) + offset, (j << 4) + offset, (i << 4) + 16 + offset,(j << 4) + 16 + offset);
+      }
+    }
+    
+  }
+
   /* projection,modeling matrix set */
   guPerspective(&dynamicp->projection, &perspNorm, CAMERA_FOV, (float)SCREEN_WD/(float)SCREEN_HT, 10.0f, 100.0f, 1.0f);
   guLookAt(&dynamicp->viewing, camera_x, camera_y + CAMERA_DISTANCE, CAMERA_HEIGHT, camera_x, camera_y, 0.0f, 0.0f, 0.0f, 1.0f);
