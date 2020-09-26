@@ -28,7 +28,7 @@
 #define ROOM_PURIFIED_TEXT_ONSCREEN_DURATION 5.16161f
 const char* RoomPurifiedMessage = "Room Purified";
 
-#define BATTLE_MODE_TRANSITION_TIME 1.1f
+#define BATTLE_MODE_TRANSITION_TIME 1.1717623f
 
 static float player_x;
 static float player_y;
@@ -768,22 +768,50 @@ void renderRestRoom(GeneratedRoom* room, Dynamic* dynamicp) {
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 }
 
+#define BATTLE_ROOM_R 0x4f
+#define BATTLE_ROOM_G 0x6f
+#define BATTLE_ROOM_B 0x72
+#define BATTLE_ROOM_A 0xff
+
+static Vtx battle_room_geom[] = {
+  { -1,  -1, 0, 0, 0, 0, BATTLE_ROOM_R, BATTLE_ROOM_G, BATTLE_ROOM_B, BATTLE_ROOM_A },
+  {  1,  -1, 0, 0, 0, 0, BATTLE_ROOM_R, BATTLE_ROOM_G, BATTLE_ROOM_B, BATTLE_ROOM_A },
+  {  1,   1, 0, 0, 0, 0, BATTLE_ROOM_R, BATTLE_ROOM_G, BATTLE_ROOM_B, BATTLE_ROOM_A },
+  { -1,   1, 0, 0, 0, 0, BATTLE_ROOM_R, BATTLE_ROOM_G, BATTLE_ROOM_B, BATTLE_ROOM_A },
+};
+
+static Gfx battle_room_commands[] = {
+  gsSPClipRatio(FRUSTRATIO_6),
+  gsSPVertex( battle_room_geom, 4, 0),
+  gsSP2Triangles( 0, 1, 2, 0, 0, 2, 3, 0),
+  gsSPClipRatio(FRUSTRATIO_2),
+  gsSPEndDisplayList()
+};
+
 void renderForRooms(Dynamic* dynamicp) {
   int i;
 
   gDPPipeSync(glistp++);
 
+  if ((isInBattleMode || (battleModeTime > 0.01f)) && (currentPlayerRoom != -1)) {
+    GeneratedRoom* currentRoom = &(rooms[currentPlayerRoom]);
+    const float t = cubic(battleModeTime / BATTLE_MODE_TRANSITION_TIME);
+
+    guTranslate(&(dynamicp->battleRoomTranslation), (currentRoom->x + (currentRoom->width * 0.5f)) * TILE_SIZE, (currentRoom->y + (currentRoom->height * 0.5f)) * TILE_SIZE, 0.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->battleRoomTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
+
+    guScale(&(dynamicp->battleRoomScale), currentRoom->width * t, currentRoom->height * (t * t), 1.f);
+    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->battleRoomScale)), G_MTX_NOPUSH | G_MTX_MODELVIEW);
+
+    gSPDisplayList(glistp++, battle_room_commands);
+
+    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  }
+
   guScale(&(dynamicp->roomRenderScale), 0.01f, 0.01f, 0.01f);
   gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->roomRenderScale)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-  if (isInBattleMode) {
-    gSPDisplayList(glistp++, rooms[currentPlayerRoom].battleModeCommands);
-  }
-
-  if (!(isInBattleMode) || (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.0001f))) {
-    guTranslate(&(dynamicp->mainRoomsTranslation), 0.f, 0.f, cubic(battleModeTime / BATTLE_MODE_TRANSITION_TIME) * -20000.f);
-    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->mainRoomsTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
-
+  if (!(isInBattleMode)) {
     for (i = 0; i < numberOfGeneratedRooms; i++) {
       GeneratedRoom* room = &(rooms[i]);
 
@@ -793,8 +821,8 @@ void renderForRooms(Dynamic* dynamicp) {
         renderRestRoom(room, dynamicp);
       }
     }
-
-    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
+  } else if (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.0001f)) {
+    
   }
 
   gSPPopMatrix(glistp++, G_MTX_MODELVIEW);

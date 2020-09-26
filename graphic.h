@@ -69,7 +69,8 @@ typedef struct {
 
   Mtx roomRenderScale;
 
-  Mtx mainRoomsTranslation;
+  Mtx battleRoomScale;
+  Mtx battleRoomTranslation;
 
   Mtx specialKeyTranslation;
   Mtx specialKeyRotation;
