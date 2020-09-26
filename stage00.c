@@ -893,14 +893,14 @@ void makeDL00(void)
   }
 
   if (isWarping) {
-    gDPSetCombineLERP(glistp++, SHADE,    ENVIRONMENT, 0,     0, 0,    0,     0, 0,
-                                SHADE,    ENVIRONMENT, SHADE,     0, 0,    0,     0, SHADE);
+    gDPSetCombineLERP(glistp++, ENVIRONMENT,    0, 1,     0, 0,    0,     0, 0,
+                                ENVIRONMENT,    0, SHADE,     0, 0,    0,     0, SHADE);
     if (isWarpingOut) {
       renderForRooms(dynamicp);
-      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
+      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
     } else {
       renderForRooms(dynamicp);
-      gDPSetEnvColor(glistp++, 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio), 255 * (1.f - warpRatio));
+      gDPSetEnvColor(glistp++, 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio), 255 * (warpRatio));
     }
   } else {
     renderForRooms(dynamicp);
