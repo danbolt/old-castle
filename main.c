@@ -11,6 +11,7 @@
 #include "main.h"
 
 #include "floordata.h"
+#include "audio_defines.h"
 
 /* Declaration of scene prototypes  */
 void stage00(int);
@@ -41,6 +42,8 @@ int frameRandom;
 void initAudio(void)
 {
     nuAuInit();
+
+    initializeAudioLogic();
 }
 
 /*------------------------
@@ -81,9 +84,7 @@ void mainproc(void)
     /* The screen display is ON */
     nuGfxDisplayOn();
 
-    while(resetStageFlag == 0)
-      ;
-
+    while(resetStageFlag == 0);
 
     nuGfxFuncRemove();
     nuGfxDisplayOff();
@@ -102,8 +103,7 @@ void mainproc(void)
     /* The screen display is ON */
     nuGfxDisplayOn();
 
-    while(resetStageFlag == 0)
-      ;
+    while(resetStageFlag == 0);
 
     nuGfxFuncRemove();
     nuGfxDisplayOff();

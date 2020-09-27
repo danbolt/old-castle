@@ -29,6 +29,7 @@ beginseg
     include "$(ROOT)/usr/lib/PR/gspF3DEX2.NoN.fifo.o"
     include "$(ROOT)/usr/lib/PR/gspF3DLX2.Rej.fifo.o"
 	include "$(ROOT)/usr/lib/PR/gspS2DEX2.fifo.o"
+	include "$(ROOT)/usr/lib/PR/aspMain.o"
 	include "$(ROOT)/usr/lib/PR/n_aspMain.o"
 endseg
 
@@ -38,6 +39,24 @@ beginseg
 	after "code"
 	align 32
 	include "foyer_dialogues.o"
+endseg
+
+beginseg
+    name "dm_bank"
+    flags RAW
+    include "bgm/dm.ctl"
+endseg
+
+beginseg
+    name "dm_table"
+    flags RAW
+    include "bgm/dm.tbl"
+endseg
+
+beginseg
+    name "dm_seq"
+    flags RAW
+    include "bgm/songs.sbk"  
 endseg
 
 beginwave

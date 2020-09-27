@@ -5,6 +5,7 @@
 #include "floordata.h"
 #include "game_math.h"
 #include "main.h"
+#include "audio_defines.h"
 
 // Constants
 #define AIM_EMITTER_COUNT 64
@@ -894,6 +895,8 @@ void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
 
     isInBattleMode = 1;
     battleModeTime = 0.f;
+
+    playBossMusic();
   }
 }
 
@@ -1160,7 +1163,10 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
     key_x = boss_x;
     key_y = boss_y;
     clearRoom(currentFloor, currentPlayerRoom);
+    stopAllMusic();
   }
+
+  checkBossLoopMarkers();
 }
 
 void tickBoss(float deltaSeconds, float player_x, float player_y) {
