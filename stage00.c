@@ -28,7 +28,10 @@
 #define ROOM_PURIFIED_TEXT_ONSCREEN_DURATION 5.16161f
 const char* RoomPurifiedMessage = "Room Purified";
 
-#define BATTLE_MODE_TRANSITION_TIME 1.1717623f
+#define WARNING_TEXT_INDEX_A 6
+#define WARNING_TEXT_INDEX_B 7
+
+#define BATTLE_MODE_TRANSITION_TIME 1.8717623f
 
 static float player_x;
 static float player_y;
@@ -795,7 +798,7 @@ void renderForRooms(Dynamic* dynamicp) {
 
   if ((isInBattleMode || (battleModeTime > 0.01f)) && (currentPlayerRoom != -1)) {
     GeneratedRoom* currentRoom = &(rooms[currentPlayerRoom]);
-    const float t = cubic(battleModeTime / BATTLE_MODE_TRANSITION_TIME);
+    const float t = (MIN(battleModeTime, BATTLE_MODE_TRANSITION_TIME - 1.2f) / (BATTLE_MODE_TRANSITION_TIME - 1.2f));
 
     guTranslate(&(dynamicp->battleRoomTranslation), (currentRoom->x + (currentRoom->width * 0.5f)) * TILE_SIZE, (currentRoom->y + (currentRoom->height * 0.5f)) * TILE_SIZE, 0.f);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->battleRoomTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
@@ -869,9 +872,10 @@ void makeDL00(void)
 
   if (isInBattleMode || (battleModeTime > 0.01f)) {
     const int offset = ((time / 50000) % 32) - 32;
-    const u8 r = 10 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
-    const u8 g = 32 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
-    const u8 b = 40 * (battleModeTime / WARP_IN_TIME_IN_SECONDS);
+    const float t = battleModeTime / (WARP_IN_TIME_IN_SECONDS + 1.1456);
+    const u8 r = 10 * t;
+    const u8 g = 32 * t;
+    const u8 b = 40 * t;
 
     for (i = 0; i < (SCREEN_WD / 16) + 2; i++) {
       for (j = 0; j < (SCREEN_HT / 16) + 2; j++) {
@@ -1174,17 +1178,17 @@ void makeDL00(void)
   //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
   //   nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,4);
-    sprintf(conbuf,"current room = %3d", currentPlayerRoom);
-    nuDebConCPuts(0, conbuf);
+    // nuDebConTextPos(0,1,4);
+    // sprintf(conbuf,"current room = %3d", currentPlayerRoom);
+    // nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,5);
-    sprintf(conbuf,"isInBattleMode=%3d", isInBattleMode);
-    nuDebConCPuts(0, conbuf);
+    // nuDebConTextPos(0,1,5);
+    // sprintf(conbuf,"isInBattleMode=%3d", isInBattleMode);
+    // nuDebConCPuts(0, conbuf);
 
-    nuDebConTextPos(0,1,6);
-    sprintf(conbuf,"battleModeTime=%5.2f", battleModeTime);
-    nuDebConCPuts(0, conbuf);
+    // nuDebConTextPos(0,1,6);
+    // sprintf(conbuf,"battleModeTime=%5.2f", battleModeTime);
+    // nuDebConCPuts(0, conbuf);
 
   //   nuDebConTextPos(0,1,8);
   //   sprintf(conbuf,"warpDelta=%5.2f", warpDelta);
@@ -1374,6 +1378,22 @@ void updateGame00(void)
     getTextRequest(0)->enable = 0;
     getTextRequest(1)->enable = 0;
     getTextRequest(2)->enable = 0;
+  }
+
+  if (isInBattleMode && (battleModeTime < (BATTLE_MODE_TRANSITION_TIME - 0.001f))) {
+    getTextRequest(WARNING_TEXT_INDEX_A)->enable = 1;
+    getTextRequest(WARNING_TEXT_INDEX_A)->text = "WARNING";
+    getTextRequest(WARNING_TEXT_INDEX_A)->x =  -(8 * 7) + ((battleModeTime / BATTLE_MODE_TRANSITION_TIME) * (SCREEN_WD + (8 * 8)));
+    getTextRequest(WARNING_TEXT_INDEX_A)->y =  32;
+    getTextRequest(WARNING_TEXT_INDEX_A)->cutoff = -1;
+    getTextRequest(WARNING_TEXT_INDEX_A)->typewriterTick = 0;
+
+    getTextRequest(WARNING_TEXT_INDEX_B)->enable = 1;
+    getTextRequest(WARNING_TEXT_INDEX_B)->text = "spirits of the manor";
+    getTextRequest(WARNING_TEXT_INDEX_B)->x =  -(8 * 20) + ((battleModeTime / BATTLE_MODE_TRANSITION_TIME) * (SCREEN_WD + (8 * 21)));
+    getTextRequest(WARNING_TEXT_INDEX_B)->y = SCREEN_HT - 40;
+    getTextRequest(WARNING_TEXT_INDEX_B)->cutoff = -1;
+    getTextRequest(WARNING_TEXT_INDEX_B)->typewriterTick = 0;
   }
 
   tickTextRequests(deltaSeconds);
