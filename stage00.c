@@ -800,7 +800,7 @@ void renderForRooms(Dynamic* dynamicp) {
     GeneratedRoom* currentRoom = &(rooms[currentPlayerRoom]);
     const float t = (MIN(battleModeTime, BATTLE_MODE_TRANSITION_TIME - 1.2f) / (BATTLE_MODE_TRANSITION_TIME - 1.2f));
 
-    guTranslate(&(dynamicp->battleRoomTranslation), (currentRoom->x + (currentRoom->width * 0.5f)) * TILE_SIZE, (currentRoom->y + (currentRoom->height * 0.5f)) * TILE_SIZE, 0.f);
+    guTranslate(&(dynamicp->battleRoomTranslation), (currentRoom->x + (currentRoom->width * 0.5f)) * TILE_SIZE, (currentRoom->y + (currentRoom->height * 0.5f)) * TILE_SIZE, -0.8f);
     gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->battleRoomTranslation)), G_MTX_PUSH | G_MTX_MODELVIEW);
 
     guScale(&(dynamicp->battleRoomScale), currentRoom->width * t, currentRoom->height * (t * t), 1.f);

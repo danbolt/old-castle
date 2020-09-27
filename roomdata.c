@@ -116,7 +116,7 @@ int generateFloorInStyleA(GeneratedRoom* rooms) {
 	rooms[2].y = MAP_SIZE - 10 - (u8)mainCorridorLength - BOSS_A_ROOM_HEIGHT;
 	rooms[2].width = BOSS_A_ROOM_WIDTH;
 	rooms[2].height = BOSS_A_ROOM_HEIGHT;
-	rooms[2].type = BossARoom;
+	rooms[2].type = EnemyRoom;
 
 	rooms[3].x = MAP_SIZE / 4;
 	rooms[3].y = MAP_SIZE - 16 - ((u8)mainCorridorLength / 2);
@@ -220,20 +220,53 @@ int generateBasementStyleFloor(GeneratedRoom* rooms, int floorNumber) {
   rooms[2].y = 1;
   rooms[2].width = 4;
   rooms[2].height = 2;
-  rooms[2].type = LockRoom;
+  rooms[2].type = HallwayRoom;
   if (floorNumber == 1) {
+    rooms[2].type = LockRoom;
     rooms[2].lockIndex = SpecialKey_Red;
   } else if (floorNumber == 4) {
+    rooms[2].type = LockRoom;
     rooms[2].lockIndex = SpecialKey_Blue;
   } else if (floorNumber == 7) {
+    rooms[2].type = LockRoom;
     rooms[2].lockIndex = SpecialKey_Green;
   } else if (floorNumber == 10) {
+    rooms[2].type = LockRoom;
     rooms[2].lockIndex = SpecialKey_Purple;
   }
 
 	fillInRooms(rooms, 3);
 
 	fillInHighWalls();
+
+  return 3;
+}
+
+int generateBossStyleFloor(GeneratedRoom* rooms, int floorNumber) {
+  int i;
+
+  rooms[0].x = MAP_SIZE / 2;
+  rooms[0].y = BOSS_A_ROOM_HEIGHT + 5;
+  rooms[0].width = 10;
+  rooms[0].height = 10;
+  rooms[0].type = StaircaseRoom;
+  rooms[0].stairsDirectionIndex = 0;
+
+  rooms[1].x = MAP_SIZE / 2;
+  rooms[1].y = 1;
+  rooms[1].width = BOSS_A_ROOM_WIDTH;
+  rooms[1].height = BOSS_A_ROOM_HEIGHT;
+  rooms[1].type = BossARoom;
+
+  rooms[2].x = (MAP_SIZE / 2) + 2;
+  rooms[2].y = BOSS_A_ROOM_HEIGHT;
+  rooms[2].width = 4;
+  rooms[2].height = 5;
+  rooms[2].type = HallwayRoom;
+
+  fillInRooms(rooms, 3);
+
+  fillInHighWalls();
 
   return 3;
 }
@@ -1511,6 +1544,9 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   if (floorNumber == 0) {
   	numberOfGeneratedRooms = generateFloorInStyleA(rooms);
     createFoyerDisplayData(rooms, numberOfGeneratedRooms);
+  } else if ((floorNumber == 3) || (floorNumber == 6) || (floorNumber == 9)) {
+    numberOfGeneratedRooms = generateBossStyleFloor(rooms, floorNumber);
+    createGenericDisplayData(rooms, numberOfGeneratedRooms);
   } else {
   	numberOfGeneratedRooms = generateBasementStyleFloor(rooms, floorNumber);
     createGenericDisplayData(rooms, numberOfGeneratedRooms);
