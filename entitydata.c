@@ -866,6 +866,10 @@ void addBossDisplayList(Dynamic* dynamicp) {
 #define RETURN_TO_ATTACK_A_TIME 2.f
 #define RETURN_SLIPPERYNESS 0.04f
 
+//TODO: move these to a header or pass them in as params
+extern u8 isInBattleMode;
+extern float battleModeTime;
+
 void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
   Position* armAPosition = &(EmitterPositions[boss_A_arm_emitters[0]]);
   Position* armBPosition = &(EmitterPositions[boss_A_arm_emitters[1]]);
@@ -886,6 +890,9 @@ void tickBossA_initialState(float* boss_t, float player_x, float player_y) {
     armCPosition->y = boss_y + 2.f;
     armDPosition->x = boss_x + 10.f;
     armDPosition->y = boss_y - 5.f;
+
+    isInBattleMode = 1;
+    battleModeTime = 0.f;
   }
 }
 
@@ -1131,11 +1138,14 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
     tickBossA_AttackBToAttackA(&boss_t);
   }
 
-  if ((EmitterStates[boss_A_arm_emitters[0]] == EMITTER_DEAD)
+  if (isInBattleMode
+    && (EmitterStates[boss_A_arm_emitters[0]] == EMITTER_DEAD)
     && (EmitterStates[boss_A_arm_emitters[1]] == EMITTER_DEAD)
     && (EmitterStates[boss_A_arm_emitters[2]] == EMITTER_DEAD)
     && (EmitterStates[boss_A_arm_emitters[3]] == EMITTER_DEAD)) {
     BossAState = BossADefeated;
+
+    isInBattleMode =  0;
   }
 }
 
