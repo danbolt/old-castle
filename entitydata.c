@@ -2,8 +2,9 @@
 #include "graphic.h"
 
 #include "EntityData.h"
-
+#include "floordata.h"
 #include "game_math.h"
+#include "main.h"
 
 // Constants
 #define AIM_EMITTER_COUNT 64
@@ -1121,6 +1122,13 @@ void tickBossA_AttackBToAttackA(float* boss_t) {
   armDPosition->y = lerp(armDPosition->y, boss_starting_y - (((BOSS_A_ROOM_HEIGHT - 3) * TILE_SIZE) / 2), RETURN_SLIPPERYNESS);
 }
 
+extern SpecialKeyType specialKeyType;
+extern float key_x;
+extern float key_y;
+extern u8 isThereASpecialKey;
+extern s8 currentPlayerRoom;
+// TODO: Again, move these to a header file
+
 void tickBossA(float deltaSeconds, float player_x, float player_y) {
   boss_t += deltaSeconds;
 
@@ -1145,7 +1153,13 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
     && (EmitterStates[boss_A_arm_emitters[3]] == EMITTER_DEAD)) {
     BossAState = BossADefeated;
 
-    isInBattleMode =  0;
+    isInBattleMode = 0;
+
+    isThereASpecialKey = 1;
+    specialKeyType = SpecialKey_Blue;
+    key_x = boss_x;
+    key_y = boss_y;
+    clearRoom(currentFloor, currentPlayerRoom);
   }
 }
 

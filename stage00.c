@@ -1590,6 +1590,13 @@ void updateGame00(void)
   }
   player_x = MIN(MAP_SIZE * TILE_SIZE, MAX(0, newX));
 
+  // If we're in battle mode, don't let the player leave the room!
+  if (isInBattleMode && (currentPlayerRoom > -1)) {
+    GeneratedRoom* room = &(rooms[currentPlayerRoom]);
+    player_x = MIN(MAX( player_x, room->x * TILE_SIZE ), ((room->x + room->width) * TILE_SIZE));
+    player_y = MIN(MAX( player_y, room->y * TILE_SIZE ), ((room->y + room->height) * TILE_SIZE));
+  }
+
   // step y
   if ((newTileY < (MAP_SIZE * TILE_SIZE)) && (newTileY >= 0) && (isTileBlocked((int)(player_x * INV_TILE_SIZE), newTileY))) {
   

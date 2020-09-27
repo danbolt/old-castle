@@ -221,10 +221,7 @@ int generateBasementStyleFloor(GeneratedRoom* rooms, int floorNumber) {
   rooms[2].width = 4;
   rooms[2].height = 2;
   rooms[2].type = HallwayRoom;
-  if (floorNumber == 1) {
-    rooms[2].type = LockRoom;
-    rooms[2].lockIndex = SpecialKey_Red;
-  } else if (floorNumber == 4) {
+  if (floorNumber == 4) {
     rooms[2].type = LockRoom;
     rooms[2].lockIndex = SpecialKey_Blue;
   } else if (floorNumber == 7) {
@@ -246,7 +243,7 @@ int generateBossStyleFloor(GeneratedRoom* rooms, int floorNumber) {
   int i;
 
   rooms[0].x = MAP_SIZE / 2;
-  rooms[0].y = BOSS_A_ROOM_HEIGHT + 5;
+  rooms[0].y = BOSS_A_ROOM_HEIGHT + 5 + 1;
   rooms[0].width = 10;
   rooms[0].height = 10;
   rooms[0].type = StaircaseRoom;
@@ -259,7 +256,7 @@ int generateBossStyleFloor(GeneratedRoom* rooms, int floorNumber) {
   rooms[1].type = BossARoom;
 
   rooms[2].x = (MAP_SIZE / 2) + 2;
-  rooms[2].y = BOSS_A_ROOM_HEIGHT;
+  rooms[2].y = BOSS_A_ROOM_HEIGHT + 1;
   rooms[2].width = 4;
   rooms[2].height = 5;
   rooms[2].type = HallwayRoom;
