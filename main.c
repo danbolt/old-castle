@@ -38,6 +38,11 @@ volatile int nextRoomRequest;
 
 int frameRandom;
 
+void initAudio(void)
+{
+    nuAuInit();
+}
+
 /*------------------------
 	Main
 --------------------------*/
@@ -47,6 +52,8 @@ void mainproc(void)
 
   /* The initialization of graphic  */
   nuGfxInit();
+
+  initAudio();
 
   /* The initialization of the controller manager  */
   contPattern = nuContInit();

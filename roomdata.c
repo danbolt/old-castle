@@ -28,8 +28,6 @@ static u8 MapInfo[MAP_SIZE * MAP_SIZE];
 
 static xorshift32_state roomGeneratorState;
 
-static Mtx tilesWarp[(RENDER_DISTANCE_IN_TILES + 2) * 2];
-
 void fillInRooms(GeneratedRoom* rooms, int roomCount) {
 	int i;
 	int x;

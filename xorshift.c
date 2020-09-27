@@ -1,11 +1,11 @@
 
 #include "xorshift.h"
 
-u32 xorshift32(xorshift32_state *state)
+unsigned int xorshift32(xorshift32_state *xorState)
 {
-	u32 x = state->a;
+	unsigned int x = xorState->a;
 	x ^= x << 13;
 	x ^= x >> 17;
 	x ^= x << 5;
-	return state->a = x;
+	return xorState->a = x;
 }
