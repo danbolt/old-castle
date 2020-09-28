@@ -1165,8 +1165,6 @@ void tickBossA(float deltaSeconds, float player_x, float player_y) {
     clearRoom(currentFloor, currentPlayerRoom);
     stopAllMusic();
   }
-
-  checkBossLoopMarkers();
 }
 
 void tickBoss(float deltaSeconds, float player_x, float player_y) {

@@ -13,7 +13,6 @@ typedef struct {
 void initializeAudioLogic();
 
 void playBossMusic();
-void checkBossLoopMarkers();
 
 void stopAllMusic();
 

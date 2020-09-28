@@ -26,20 +26,12 @@ const TrackInformation trackData[] = {
 	}
 };
 
-ALCSeqMarker player1LoopMarkerStart;
-ALCSeqMarker player1LoopMarkerEnd;
-u32 seqPlayer1TicksPerSecond;
-u32 seqPlayer1CurrentTrack;
 
 void initializeAudioLogic() {
-	seqPlayer1TicksPerSecond = 1;
-	seqPlayer1CurrentTrack = -1;
 }
 
 void playBossMusic() {
   stopAllMusic();
-
-  seqPlayer1CurrentTrack = TRACK_0_DISTANT_MEMORY;
 
   // Using Distant Memory as the boss music for now 
   nuAuSeqPlayerBankSet(_dm_bankSegmentRomStart, _dm_bankSegmentRomEnd - _dm_bankSegmentRomStart, _dm_tableSegmentRomStart);
@@ -47,28 +39,9 @@ void playBossMusic() {
   nuAuSeqPlayerSetNo(DEFAULT_NUSYSTEM_BGM_PLAYER, TRACK_0_DISTANT_MEMORY);
 
   nuAuSeqPlayerPlay(DEFAULT_NUSYSTEM_BGM_PLAYER);
-
-  seqPlayer1TicksPerSecond = alCSeqSecToTicks(&(nuAuSeqPlayer[DEFAULT_NUSYSTEM_BGM_PLAYER].sequence), 1.f, trackData[TRACK_0_DISTANT_MEMORY].midiTempo);
-  alCSeqNewMarker(&(nuAuSeqPlayer[DEFAULT_NUSYSTEM_BGM_PLAYER].sequence), &(player1LoopMarkerStart), (u32)(trackData[TRACK_0_DISTANT_MEMORY].loopStartPoint * seqPlayer1TicksPerSecond) );
-  alCSeqNewMarker(&(nuAuSeqPlayer[DEFAULT_NUSYSTEM_BGM_PLAYER].sequence), &(player1LoopMarkerEnd), (u32)(trackData[TRACK_0_DISTANT_MEMORY].loopEndPoint * seqPlayer1TicksPerSecond) );
 }
 
-void checkBossLoopMarkers() {
-	long songTicks = 0;
-	float songSeconds = 0.f;
-	if (seqPlayer1CurrentTrack != TRACK_0_DISTANT_MEMORY) {
-		return;
-	}
-
-	songTicks = alCSeqGetTicks(&(nuAuSeqPlayer[DEFAULT_NUSYSTEM_BGM_PLAYER].sequence));
-	songSeconds = songTicks / seqPlayer1TicksPerSecond;
-	if (songSeconds > trackData[TRACK_0_DISTANT_MEMORY].loopEndPoint) {
-		alCSeqSetLoc(&(nuAuSeqPlayer[DEFAULT_NUSYSTEM_BGM_PLAYER].sequence), &player1LoopMarkerEnd);
-		nuAuSeqPlayerPlay(DEFAULT_NUSYSTEM_BGM_PLAYER);
-	}
-}
 
 void stopAllMusic() {
 	nuAuSeqPlayerStop(DEFAULT_NUSYSTEM_BGM_PLAYER);
-	seqPlayer1CurrentTrack = -1;
 }
