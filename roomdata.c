@@ -1550,6 +1550,26 @@ int initMap(GeneratedRoom* rooms, xorshift32_state* seed, int floorNumber) {
   return numberOfGeneratedRooms;
 }
 
+void Place4AimEmitters(GeneratedRoom* room) {
+  room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + (room->width / 4)) * TILE_SIZE, (room->y  + (room->height / 4)) * TILE_SIZE);
+  room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + (room->width / 4 * 3)) * TILE_SIZE, (room->y  + (room->height / 4)) * TILE_SIZE);
+  room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + (room->width / 4 * 3)) * TILE_SIZE, (room->y  + (room->height / 4 * 3)) * TILE_SIZE);
+  room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + (room->width / 4)) * TILE_SIZE, (room->y  + (room->height / 4 * 3)) * TILE_SIZE);
+}
+
+void PlaceAimCurtains(GeneratedRoom* room) {
+  int i;
+
+  for (i = 0; i < (room->width - 4); i += 6) {
+    room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + 2 + i) * TILE_SIZE, (room->y + 2) * TILE_SIZE);
+    room->enemies[room->numberOfEnemies++] = generateAimEmitterEntity((room->x + 2 + i) * TILE_SIZE, ((room->y + room->height) - 2) * TILE_SIZE);
+
+    if (room->numberOfEnemies >= MAX_ENEMIES_PER_ROOM) {
+      return;
+    }
+  }
+}
+
 void initEnemiesForMap(GeneratedRoom* rooms) {
   int i;
 
@@ -1559,13 +1579,15 @@ void initEnemiesForMap(GeneratedRoom* rooms) {
         continue;
       }
 
-      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
-      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4)) * TILE_SIZE);
-      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4 * 3)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
-      rooms[i].enemies[rooms[i].numberOfEnemies++] = generateAimEmitterEntity((rooms[i].x + (rooms[i].width / 4)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 4 * 3)) * TILE_SIZE);
+      PlaceAimCurtains(&(rooms[i]));
+
     }
 
     if (rooms[i].type == BossARoom) {
+      if (hasRoomBeenCleared(currentFloor, i)) {
+        continue;
+      }
+
       generateBossA((rooms[i].x + (rooms[i].width / 2)) * TILE_SIZE, (rooms[i].y  + (rooms[i].height / 2)) * TILE_SIZE);
     }
   }

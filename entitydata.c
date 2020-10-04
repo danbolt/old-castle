@@ -25,6 +25,8 @@
 
 #define BULLET_RADII_SQ 1
 
+#define AIM_EMITTER_DEFAULT_SPEED 2.831332f
+
 typedef struct {
   float period;
   float t;
@@ -36,6 +38,7 @@ typedef struct {
   float spread; // radians, each successive bullet after the first will have this added to its direction
   float speed;
   float speedRatio; // each successive bullet after the first will have this added to its speed
+  u8 bulletType;
 } FireData;
 
 // Static memory data
@@ -217,6 +220,7 @@ void initializeEntityData() {
     EmitterShotConfigs[i].spread = 0.f;
     EmitterShotConfigs[i].speed = 0.f;
     EmitterShotConfigs[i].speedRatio = 0.f;
+    EmitterShotConfigs[i].bulletType = BULLET_ALIVE;
     EmitterAimDirections[i] = 0.f;
 		EmitterPositions[i].x = 0.f;
 		EmitterPositions[i].y = 0.f;
@@ -259,7 +263,7 @@ void setAimEmitterAtIndex(int index) {
 
   EmitterShotConfigs[index].numberOfShots = 3;
   EmitterShotConfigs[index].spread = 0.6f;
-  EmitterShotConfigs[index].speed = 3.831332f;
+  EmitterShotConfigs[index].speed = AIM_EMITTER_DEFAULT_SPEED;
   EmitterShotConfigs[index].speedRatio = 0.f;
 }
 
@@ -400,6 +404,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
   // Update aim emitters
   for (i = 0; i < EMITTER_COUNT; i++) {
     float theta;
+    int roll = (guRandom() % 4);
 
     if ((EmitterStates[i]) != EMITTER_AIM) {
       continue;
@@ -432,7 +437,17 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
     theta = nu_atan2(player_y - EmitterPositions[i].y, player_x - EmitterPositions[i].x);
 
     EmitterFireStates[i] = 1;
-    EmitterShotConfigs[i].direction = theta;
+
+    if (roll == 0) {
+      EmitterShotConfigs[i].bulletType = BULLET_ALIVE_NO_ABSORB;
+      EmitterShotConfigs[i].speed = AIM_EMITTER_DEFAULT_SPEED - 1.1f;
+    } else {
+      EmitterShotConfigs[i].bulletType = BULLET_ALIVE;
+      EmitterShotConfigs[i].speed = AIM_EMITTER_DEFAULT_SPEED;
+    }
+
+    // If we have a spread set, then center it around the player
+    EmitterShotConfigs[i].direction = (EmitterShotConfigs[i].numberOfShots <= 1) ? theta : (theta - (EmitterShotConfigs[i].spread * (EmitterShotConfigs[i].numberOfShots - 1) * 0.5f));
   }
 
   // Update spin emitters
@@ -458,6 +473,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
     EmitterTimes[i].t = 0;
 
     EmitterFireStates[i] = 1;
+    EmitterShotConfigs[i].bulletType = BULLET_ALIVE;
     EmitterShotConfigs[i].direction = SpinEmitters[i].totalTime * SpinEmitters[i].spinSpeed;
   }
 
@@ -485,7 +501,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
         break;
       }
 
-      setBulletState(newBulletIndex, BULLET_ALIVE);
+      setBulletState(newBulletIndex, EmitterShotConfigs[i].bulletType);
       bulletPosition = getBulletPosition(newBulletIndex);
       bulletVelocity = getBulletVelocity(newBulletIndex);
       bulletPosition->x = EmitterPositions[i].x;
