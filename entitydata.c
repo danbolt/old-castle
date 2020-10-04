@@ -440,7 +440,7 @@ void tickEmitters(float player_x, float player_y, PlayerState player_state, floa
 
     if (roll == 0) {
       EmitterShotConfigs[i].bulletType = BULLET_ALIVE_NO_ABSORB;
-      EmitterShotConfigs[i].speed = AIM_EMITTER_DEFAULT_SPEED - 1.1f;
+      EmitterShotConfigs[i].speed = AIM_EMITTER_DEFAULT_SPEED - 0.6f;
     } else {
       EmitterShotConfigs[i].bulletType = BULLET_ALIVE;
       EmitterShotConfigs[i].speed = AIM_EMITTER_DEFAULT_SPEED;

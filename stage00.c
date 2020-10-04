@@ -1179,13 +1179,13 @@ void makeDL00(void)
 
   // if(contPattern & 0x1)
   // {
-  //   nuDebConTextPos(0,1,3);
-  //   sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
-  //   nuDebConCPuts(0, conbuf);
-
-    nuDebConTextPos(0,1,4);
-    sprintf(conbuf,"current room = %8d", alCSeqGetTicks(&(nuAuSeqPlayer[0].sequence)));
+    nuDebConTextPos(0,1,3);
+    sprintf(conbuf,"DL=%d / %d", (int)(glistp - gfx_glist[gfx_gtask_no]),  GFX_GLIST_LEN);
     nuDebConCPuts(0, conbuf);
+
+    // nuDebConTextPos(0,1,4);
+    // sprintf(conbuf,"current room = %8d", alCSeqGetTicks(&(nuAuSeqPlayer[0].sequence)));
+    // nuDebConCPuts(0, conbuf);
 
     // nuDebConTextPos(0,1,5);
     // sprintf(conbuf,"isInBattleMode=%3d", isInBattleMode);
