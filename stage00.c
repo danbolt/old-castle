@@ -12,6 +12,7 @@
 #include "game_math.h"
 #include "letters.h"
 #include "floordata.h"
+#include "audio_defines.h"
 
 #define CAMERA_MOVE_SPEED 0.01726f
 #define CAMERA_TURN_SPEED 0.03826f
@@ -94,6 +95,7 @@ int numberOfGeneratedRooms;
 float roomPurifiedTime;
 
 int frameBufferEmulationCheck[2];
+int hasDoneFirstFrame;
 
 extern u32 vertBuffUsage[MAX_NUMBER_OF_ROOMS_PER_FLOOR];
 
@@ -541,7 +543,7 @@ void initStage00(int floorNumber)
   player_t = 0.f;
   HIT_WALL_WHILE_JUMPING = 0;
   player_sword_angle = 0.f;
-  player_bullets_collected = 0;
+  player_bullets_collected = 100;
   bomb_count = 3;
   isThereASpecialLock = 0;
   isThereASpecialKey = 0;
@@ -611,6 +613,8 @@ void initStage00(int floorNumber)
   isWarping = 1;
   isWarpingOut = 0;
   warpDelta = 0;
+
+  hasDoneFirstFrame = 0;
 }
 
 void addEmitterToDisplayList()
@@ -1348,6 +1352,11 @@ void updateGame00(void)
 
   //nuDebPerfMarkSet(0);
 
+  if (!hasDoneFirstFrame) {
+    hasDoneFirstFrame = 1;
+    playSound(FadeIn);
+  }
+
   sprintf(testStringBuf, "found %d", player_bullets_collected);
   getTextRequest(0)->enable = 1;
   getTextRequest(0)->text = testStringBuf;
@@ -1429,6 +1438,9 @@ void updateGame00(void)
     if ((contdata[0].button & A_BUTTON) && (!isDialogueInProcess())) {
       if (player_state == Move) {
         player_sword_angle = player_rotation;
+      }
+      if (player_state != Holding) {
+        playSound(SwordOut);
       }
       player_state = Holding;
 
@@ -1528,6 +1540,8 @@ void updateGame00(void)
       player_jump_x = player_x;
       player_jump_y = player_y;
       HIT_WALL_WHILE_JUMPING = 0;
+
+      playSound(Jump);
     }
 
     for (i = 0; i < (sizeof(player_sword) / sizeof(Vtx)); i++) {
@@ -1546,6 +1560,8 @@ void updateGame00(void)
     if (player_t > 1.f) {
       player_state = Landed;
       player_t = 0.f;
+
+      playSound(AttackLand);
     }
 
     roll = guRandom() % 2;
@@ -1575,6 +1591,7 @@ void updateGame00(void)
   if ((!isWarping) && (isTileBlocked(newTileX, newTileY) >= STAIRCASE_A) && (isTileBlocked(newTileX, newTileY) <= STAIRCASE_E)) {
     nextRoomRequest = exitMap[currentFloor][isTileBlocked(newTileX, newTileY) - STAIRCASE_A];
 
+    playSound(FadeOut);
     isWarping = 1;
     warpDelta = 0;
     isWarpingOut = 1;

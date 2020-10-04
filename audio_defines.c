@@ -12,6 +12,11 @@ extern u8 _dm_bankSegmentRomEnd[];
 extern u8 _dm_tableSegmentRomStart[];
 extern u8 _dm_tableSegmentRomEnd[];
 
+extern u8 _sfx_bankSegmentRomStart[];
+extern u8 _sfx_bankSegmentRomEnd[];
+extern u8 _sfx_tableSegmentRomStart[];
+extern u8 _sfx_tableSegmentRomEnd[];
+
 #define DEFAULT_NUSYSTEM_BGM_PLAYER 0
 
 #define TRACK_0_DISTANT_MEMORY 0
@@ -28,6 +33,7 @@ const TrackInformation trackData[] = {
 
 
 void initializeAudioLogic() {
+	nuAuSndPlayerBankSet(_sfx_bankSegmentRomStart, _sfx_bankSegmentRomEnd - _sfx_bankSegmentRomStart, _sfx_tableSegmentRomStart);
 }
 
 void playBossMusic() {
@@ -44,4 +50,10 @@ void playBossMusic() {
 
 void stopAllMusic() {
 	nuAuSeqPlayerStop(DEFAULT_NUSYSTEM_BGM_PLAYER);
+}
+
+void playSound(SoundEffectKey sound) {
+	int castedSound = (int)sound;
+
+	nuAuSndPlayerPlay(castedSound);
 }

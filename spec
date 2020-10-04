@@ -59,6 +59,18 @@ beginseg
     include "bgm/songs.sbk"  
 endseg
 
+beginseg
+    name "sfx_bank"
+    flags RAW
+    include "sfx/SfxBank.ctl"
+endseg
+
+beginseg
+    name "sfx_table"
+    flags RAW
+    include "sfx/SfxBank.tbl"
+endseg
+
 beginwave
 	name	"nu1"
 	include	"code"

@@ -634,6 +634,7 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		      || ((dxSq + dySq) <= (SWORD_RADUS_SQ * 0.23f)) && (angleDelta < 0.3f)) {
 		      BulletStates[i] = 0;
 		      player_bullets_collected = MIN(100, (player_bullets_collected + POINTS_PER_BULLET));
+          playSound(guRandom() % 4);
 	    	  continue;
 		    }
 		  }
