@@ -1431,8 +1431,8 @@ void updateGame00(void)
         stickY = 1.f;
       }
     } else {
-      stickX = MAX(-61.f, MIN(61.f, (contdata->stick_x))) / 61.f;
-      stickY = MAX(-63.f, MIN(63.f, (contdata->stick_y))) / 63.f;
+      stickX = MAX(STICK_X_MIN, MIN(STICK_X_MAX, (contdata->stick_x))) / STICK_X_MAX;
+      stickY = MAX(STICK_Y_MIN, MIN(STICK_Y_MAX, (contdata->stick_y))) / STICK_Y_MAX;
     }
 
     if ((contdata[0].button & A_BUTTON) && (!isDialogueInProcess())) {
@@ -1466,6 +1466,14 @@ void updateGame00(void)
           fireBomb();
         }
       }
+    }
+
+    // Deadzone culling
+    if (fabs_d(stickX) < JOYSTICK_DEADZONE_X) {
+      stickX = 0.f;
+    }
+    if (fabs_d(stickY) < JOYSTICK_DEADZONE_Y) {
+      stickY = 0.f;
     }
 
     cosCamRot = cosf(-camera_rotation);

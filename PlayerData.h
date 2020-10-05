@@ -17,6 +17,15 @@
 #define SWORD_RADUS 8
 #define SWORD_RADUS_SQ (SWORD_RADUS * SWORD_RADUS)
 
+#define STICK_X_MIN -61.f
+#define STICK_X_MAX 61.f
+#define STICK_Y_MIN -63.f
+#define STICK_Y_MAX 63.f
+
+// TODO: let the user set this
+#define JOYSTICK_DEADZONE_X 0.1f
+#define JOYSTICK_DEADZONE_Y 0.1f
+
 typedef enum {
   Move,
   Jumping,
