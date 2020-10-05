@@ -160,6 +160,15 @@ static Vtx bullet_geom[] =  {
   {   10,   0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff }
 };
 
+static Gfx bullet_dl[] = {
+  gsSPVertex(bullet_geom, 9, 0),
+  gsSP2Triangles(0, 1, 2, 0, 0, 2, 3, 0),
+  gsSP2Triangles(0, 3, 4, 0, 0, 4, 5, 0),
+  gsSP2Triangles(0, 5, 6, 0, 0, 6, 7, 0),
+  gsSP2Triangles(0, 7, 8, 0, 0, 8, 1, 0),
+  gsSPEndDisplayList()
+};
+
 static Vtx bullet_no_absorb_geom[] =  {
   {   0,    0, 0, 0, 0, 0, 0x00, 0x00, 0x00, 0xff },
 
@@ -171,6 +180,15 @@ static Vtx bullet_no_absorb_geom[] =  {
   {   0,  -10, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
   {   8,   -8, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff },
   {   10,   0, 0, 0, 0, 0, 0x7f, 0xab, 0x1a, 0xff }
+};
+
+static Gfx bullet_no_absorb_dl[] = {
+  gsSPVertex(bullet_no_absorb_geom, 9, 0),
+  gsSP2Triangles(0, 1, 2, 0, 0, 2, 3, 0),
+  gsSP2Triangles(0, 3, 4, 0, 0, 4, 5, 0),
+  gsSP2Triangles(0, 5, 6, 0, 0, 6, 7, 0),
+  gsSP2Triangles(0, 7, 8, 0, 0, 8, 1, 0),
+  gsSPEndDisplayList()
 };
 
 static Vtx bomb_effect[] = {
@@ -677,6 +695,12 @@ void tickBullets(float player_x, float player_y, PlayerState* player_state, floa
 		}
 
     // If we've reached this area, the player's been hit
+
+    // If the player is in a landed state, then destroy this bullet
+    if (*player_state == Landed) {
+      BulletStates[i] = 0;
+      continue;
+    }
 
     // If we have bombs, extend one
     if (bomb_count > 0) {
@@ -1224,10 +1248,7 @@ void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
           guScale(&(dynamicp->DefeatedEffectScaleMatricies[i]), scaleValue, scaleValue, scaleValue);
           gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->DefeatedEffectScaleMatricies[i])), G_MTX_NOPUSH | G_MTX_MODELVIEW);
 
-          gSPVertex(glistp++, bullet_geom, 9, 0);
-          for(j = 1; j <= 8; j += 2) {
-            gSP2Triangles(glistp++, 0, j, j + 1, 0, 0, j + 1, (j < 7) ? j + 2 : 1, 0);
-          }
+          gSPDisplayList(glistp++, ((BulletStates[i] == BULLET_ALIVE_NO_ABSORB) ? bullet_no_absorb_dl : bullet_dl));
 
           gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
         }
@@ -1253,10 +1274,7 @@ void renderBullets(float view_x, float view_y, Dynamic* dynamicp) {
 	    guTranslate(&(dynamicp->BulletMatricies[i]), BulletPositions[i].x * 10.f, BulletPositions[i].y * 10.f, 0.f);
 	    gSPMatrix(glistp++, OS_K0_TO_PHYSICAL(&(dynamicp->BulletMatricies[i])), G_MTX_PUSH | G_MTX_MODELVIEW);
 
-	    gSPVertex(glistp++, (BulletStates[i] == BULLET_ALIVE_NO_ABSORB) ? bullet_no_absorb_geom : bullet_geom, 9, 0);
-      for(j = 1; j <= 8; j += 2) {
-        gSP2Triangles(glistp++, 0, j, j + 1, 0, 0, j + 1, (j < 7) ? j + 2 : 1, 0);
-      }
+      gSPDisplayList(glistp++, ((BulletStates[i] == BULLET_ALIVE_NO_ABSORB) ? bullet_no_absorb_dl : bullet_dl));
 
 	    gSPPopMatrix(glistp++, G_MTX_MODELVIEW);
 	}
